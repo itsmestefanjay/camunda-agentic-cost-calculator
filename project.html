@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Business Case — Camunda</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* --- Page layout --- */
+    main {
+      display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 1.5rem; align-items: start;
+      @media (max-width: 860px) { grid-template-columns: 1fr; }
+    }
+    .inputs-column  { display: flex; flex-direction: column; gap: 0.75rem; }
+    .results-column { display: flex; flex-direction: column; gap: 1rem; }
+
+    /* --- Decision panel --- */
+    .decision-panel {
+      display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+      padding: 1rem 1.25rem;
+    }
+    .decision-detail {
+      font-size: 0.8rem; color: var(--muted); flex: 1; min-width: 180px;
+      line-height: 1.5;
+      strong { color: var(--text); }
+    }
+
+    /* --- Breakeven indicator line inside ROI chart label --- */
+    .roi-note {
+      font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 0.35rem;
+      &::before { content: ''; display: inline-block; width: 20px; height: 2px; background: rgba(34,197,94,0.7); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation drawer -->
+  <div class="nav-backdrop" id="navBackdrop"></div>
+  <nav class="nav-drawer" id="navDrawer" aria-label="Site navigation">
+    <div class="nav-drawer-header">
+      <span class="nav-logo">Camunda Calculators</span>
+      <button class="nav-close" id="navClose" aria-label="Close navigation">&times;</button>
+    </div>
+    <div class="nav-section-title">Calculators</div>
+    <a href="index.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Cost Comparison
+    </a>
+    <a href="project.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Project Business Case
+    </a>
+  </nav>
+
+  <header>
+    <div class="header-brand">
+      <button class="icon-btn" id="navBtn" title="Navigation menu" aria-label="Open navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="header-copy">
+        <h1>Orchestration Economic Estimate</h1>
+        <p>Step 1: Directional estimate for economic viability, not a final board-grade business case</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="header-currency usd-active">
+        <button id="btnUSD" aria-pressed="true">USD</button>
+        <button id="btnEUR" aria-pressed="false">EUR</button>
+        <span class="rate-field">1 USD = <input type="text" id="rateInput" value="0.92" size="5"> EUR</span>
+      </div>
+      <button class="icon-btn reset" id="resetBtn" title="Reset all inputs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </button>
+      <button class="icon-btn theme" id="themeBtn" title="Toggle light/dark mode">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== Inputs column ===== -->
+    <div class="inputs-column">
+      <div class="panel settings-panel">
+        <div class="settings-header">
+          <div class="settings-title">Company Size Profile</div>
+        </div>
+        <div class="settings-body"><div class="settings-body-inner">
+          <div class="slider-group">
+            <div class="slider-header"><label>Range profile</label></div>
+            <select id="rangeProfileInput" class="profile-select">
+              <option value="small">Small</option>
+              <option value="growth" selected>Growth</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Assumption profile</label></div>
+            <select id="assumptionProfileInput" class="profile-select">
+              <option value="conservative">Conservative</option>
+              <option value="base" selected>Base</option>
+              <option value="upside">Upside</option>
+            </select>
+            <div class="input-note" id="assumptionProfileNote">Conservative assumes slower rollout, lower realized value, and higher quality overhead.</div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- Implementation Cost -->
+      <div class="panel settings-panel" id="implPanel">
+        <div class="settings-header">
+          <button class="settings-collapse-btn" id="implCollapseBtn" title="Collapse">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="settings-title">Implementation Cost</div>
+        </div>
+        <div class="settings-body"><div class="settings-body-inner">
+          <div class="slider-group">
+            <div class="slider-header"><label>Developer days</label><output id="devDaysDisplay"></output></div>
+            <input type="range" min="1" max="300" step="1" value="60" id="devDaysInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Daily developer rate</label><output id="dailyRateDisplay"></output></div>
+            <input type="range" min="100" max="3000" step="50" value="800" id="dailyRateInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Infrastructure &amp; tooling (one-time)</label><output id="infraCostDisplay"></output></div>
+            <input type="range" min="0" max="100000" step="1000" value="5000" id="infraCostInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Training &amp; change management</label><output id="trainingCostDisplay"></output></div>
+            <input type="range" min="0" max="50000" step="500" value="2000" id="trainingCostInput">
+          </div>
+        </div></div>
+      </div>
+
+      <!-- Manual Process Baseline -->
+      <div class="panel settings-panel" id="procPanel">
+        <div class="settings-header">
+          <button class="settings-collapse-btn" id="procCollapseBtn" title="Collapse">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="settings-title">Manual Process Baseline</div>
+        </div>
+        <div class="settings-body"><div class="settings-body-inner">
+          <div class="slider-group">
+            <div class="slider-header"><label>Candidate processes</label><output id="processCountDisplay"></output></div>
+            <input type="range" min="1" max="50" step="1" value="12" id="processCountInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Avg. instances / process / month</label><output id="instancesPerProcessDisplay"></output></div>
+            <input type="range" min="50" max="5000" step="50" value="500" id="instancesPerProcessInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Avg. people involved / instance</label><output id="peoplePerInstanceDisplay"></output></div>
+            <input type="range" min="0.5" max="5" step="0.1" value="1.2" id="peoplePerInstanceInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Avg. handling time / instance</label><output id="handlingMinutesDisplay"></output></div>
+            <input type="range" min="1" max="480" step="1" value="30" id="handlingMinutesInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Staff hourly rate</label><output id="hourlyRateDisplay"></output></div>
+            <input type="range" min="10" max="300" step="5" value="50" id="hourlyRateInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Migrated volume share (steady state)</label><output id="coverageDisplay"></output></div>
+            <input type="range" min="10" max="100" step="5" value="80" id="coverageInput">
+          </div>
+        </div></div>
+      </div>
+
+      <!-- Automation Running Costs -->
+      <div class="panel settings-panel" id="autoPanel">
+        <div class="settings-header">
+          <button class="settings-collapse-btn" id="autoCollapseBtn" title="Collapse">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="settings-title">Advanced Assumptions: Delivery Quality &amp; Run Ops</div>
+        </div>
+        <div class="settings-body"><div class="settings-body-inner">
+          <div class="slider-group">
+            <div class="slider-header"><label>Deployment mode</label></div>
+            <select id="deploymentModeInput" class="profile-select">
+              <option value="existing-camunda">Camunda already in place (incremental default)</option>
+              <option value="add-camunda-saas">Add Camunda SaaS</option>
+              <option value="self-hosted-camunda">Self-hosted Camunda</option>
+              <option value="other-stack">Other orchestration stack</option>
+            </select>
+          </div>
+          <div class="slider-group" id="existingCostModeGroup">
+            <div class="slider-header"><label>Existing platform cost mode</label></div>
+            <select id="existingCostModeInput" class="profile-select">
+              <option value="incremental">Incremental economics only</option>
+              <option value="allocated">Include allocated platform cost</option>
+            </select>
+          </div>
+          <div class="slider-group" id="existingAllocatedCostGroup">
+            <div class="slider-header"><label>Allocated platform cost / year</label><output id="existingAllocatedYearlyDisplay"></output></div>
+            <input type="range" min="0" max="2000000" step="5000" value="0" id="existingAllocatedYearlyInput">
+          </div>
+          <div class="slider-group" id="saasClusterCountGroup">
+            <div class="slider-header"><label>Camunda SaaS clusters</label><output id="camundaClustersDisplay"></output></div>
+            <input type="range" min="1" max="20" step="1" value="3" id="camundaClustersInput">
+          </div>
+          <div class="slider-group" id="saasClusterRateGroup">
+            <div class="slider-header"><label>Cost per cluster / year</label><output id="camundaClusterYearlyRateDisplay"></output></div>
+            <input type="range" min="5000" max="15000" step="250" value="7000" id="camundaClusterYearlyRateInput">
+          </div>
+          <div class="slider-group" id="selfManagedInfraGroup">
+            <div class="slider-header"><label id="selfManagedInfraLabel">Self-managed infra / year</label><output id="selfManagedInfraDisplay"></output></div>
+            <input type="range" min="0" max="800000" step="1000" value="120000" id="selfManagedInfraInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Orchestration variable cost / automated instance</label><output id="orchestratorVarCostDisplay"></output></div>
+            <input type="range" min="0" max="200" step="1" value="8" id="orchestratorVarCostInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>LLM cost / automated instance</label><output id="llmCostDisplay"></output></div>
+            <input type="range" min="1" max="500" step="1" value="10" id="llmCostInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Human review rate</label><output id="reviewRateDisplay"></output></div>
+            <input type="range" min="0" max="100" step="1" value="20" id="reviewRateInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Review time / reviewed instance</label><output id="reviewMinutesDisplay"></output></div>
+            <input type="range" min="1" max="120" step="1" value="8" id="reviewMinutesInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Fallback-to-manual rate</label><output id="fallbackRateDisplay"></output></div>
+            <input type="range" min="0" max="60" step="1" value="8" id="fallbackRateInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Quality assumptions confidence</label></div>
+            <select id="qualityConfidenceInput" class="profile-select">
+              <option value="measured">Measured</option>
+              <option value="estimated" selected>Estimated</option>
+              <option value="guessed">Guessed</option>
+            </select>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Maintenance effort / month</label><output id="maintenanceDaysDisplay"></output></div>
+            <input type="range" min="0" max="20" step="1" value="3" id="maintenanceDaysInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Ops assumptions confidence</label></div>
+            <select id="opsConfidenceInput" class="profile-select">
+              <option value="measured">Measured</option>
+              <option value="estimated" selected>Estimated</option>
+              <option value="guessed">Guessed</option>
+            </select>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- Financial Parameters -->
+      <div class="panel settings-panel" id="finPanel">
+        <div class="settings-header">
+          <button class="settings-collapse-btn" id="finCollapseBtn" title="Collapse">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="settings-title">Advanced Assumptions: Financial Realization</div>
+        </div>
+        <div class="settings-body"><div class="settings-body-inner">
+          <div class="slider-group">
+            <div class="slider-header"><label>Captured labor value</label><output id="capturedValueDisplay"></output></div>
+            <input type="range" min="0" max="100" step="1" value="60" id="capturedValueInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Value-capture assumptions confidence</label></div>
+            <select id="captureConfidenceInput" class="profile-select">
+              <option value="measured">Measured</option>
+              <option value="estimated" selected>Estimated</option>
+              <option value="guessed">Guessed</option>
+            </select>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Pilot phase</label><output id="pilotMonthsDisplay"></output></div>
+            <input type="range" min="0" max="12" step="1" value="2" id="pilotMonthsInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Rollout ramp</label><output id="rampMonthsDisplay"></output></div>
+            <input type="range" min="1" max="24" step="1" value="6" id="rampMonthsInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Discount rate (WACC)</label><output id="discountRateDisplay"></output></div>
+            <input type="range" min="0" max="25" step="1" value="8" id="discountRateInput">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Analysis horizon</label><output id="horizonDisplay"></output></div>
+            <input type="range" min="1" max="10" step="1" value="5" id="horizonInput">
+          </div>
+        </div></div>
+      </div>
+
+    </div>
+
+    <!-- ===== Results column ===== -->
+    <div class="results-column">
+
+      <!-- Decision badge -->
+      <div class="panel decision-panel" id="decisionPanel">
+        <span class="decision-badge empty" id="decisionBadge">—</span>
+        <div class="decision-detail" id="decisionDetail">Enter inputs to see a directional economic estimate for this orchestration initiative.</div>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="summary-cards">
+        <div class="summary-card" id="cardImpl">
+          <div class="card-label">Project Investment</div>
+          <div class="card-value" id="cardImplValue">—</div>
+          <div class="card-sub" id="cardImplSub">one-time</div>
+        </div>
+        <div class="summary-card" id="cardManual">
+          <div class="card-label">Manual Baseline / Month</div>
+          <div class="card-value" id="cardManualValue">—</div>
+          <div class="card-sub" id="cardManualSub">current state</div>
+        </div>
+        <div class="summary-card" id="cardRealized">
+          <div class="card-label">Realized Labor Benefit / Month</div>
+          <div class="card-value" id="cardRealizedValue">—</div>
+          <div class="card-sub" id="cardRealizedSub">after capture and quality effects</div>
+        </div>
+        <div class="summary-card" id="cardSavings">
+          <div class="card-label">Steady-state Net / Month</div>
+          <div class="card-value" id="cardSavingsValue">—</div>
+          <div class="card-sub" id="cardSavingsSub">steady-state estimate</div>
+        </div>
+        <div class="summary-card" id="cardPayback">
+          <div class="card-label">Payback Period</div>
+          <div class="card-value" id="cardPaybackValue">—</div>
+          <div class="card-sub" id="cardPaybackSub">months to break even</div>
+        </div>
+        <div class="summary-card" id="cardBenefit">
+          <div class="card-label">Conservative Net / Month</div>
+          <div class="card-value" id="cardBenefitValue">—</div>
+          <div class="card-sub" id="cardBenefitSub">downside stress case</div>
+        </div>
+        <div class="summary-card" id="cardNPV">
+          <div class="card-label" id="cardNPVLabel">5-Year NPV</div>
+          <div class="card-value" id="cardNPVValue">—</div>
+          <div class="card-sub" id="cardNPVSub">at 8% discount rate</div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="panel chart-container"><canvas id="roiChart"></canvas></div>
+      <div class="chart-controls">
+        <div class="chart-tabs">
+          <span>Chart:</span>
+          <button id="tabROI"     data-tab="roi"     aria-pressed="true">Cumulative ROI</button>
+          <button id="tabAnnual"  data-tab="annual"  aria-pressed="false">Cumulative Benefit by Year</button>
+        </div>
+      </div>
+      <div class="panel chart-helper" id="chartHelper"></div>
+
+      <!-- Executive insights -->
+      <div class="panel executive-insight" id="executiveInsight"></div>
+      <div class="btn-row">
+        <button class="action-btn" id="toModelComparison">Step 2: Model Comparison</button>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script>
+    /* ===== Constants ===== */
+    const CURRENCIES  = { USD: '$', EUR: '\u20AC' };
+    const STORAGE_KEY = 'camunda-project-calc';
+    const STEP2_HANDOFF_KEY = 'camunda-step2-handoff';
+    const CHEVRON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    const WORKING_DAYS_PER_MONTH = 22;
+    const CONFIDENCE_SCORES = { guessed: 0, estimated: 1, measured: 2 };
+    const CONFIDENCE_LABELS = { guessed: 'Guessed', estimated: 'Estimated', measured: 'Measured' };
+    const DEFAULT_IMPL = { devDays: 60, dailyRate: 800, infraCost: 5000, trainingCost: 2000 };
+    const DEFAULT_PROC = {
+      processCount: 10,
+      instancesPerProcess: 300,
+      peoplePerInstance: 1.0,
+      handlingMinutes: 25,
+      hourlyRate: 50,
+    };
+    const DEFAULT_AUTO = {
+      deploymentMode: 'add-camunda-saas',
+      existingCostMode: 'incremental',
+      existingAllocatedYearly: 0,
+      camundaClusters: 4,
+      camundaClusterYearlyRate: 7000,
+      selfManagedInfraYearly: 120000,
+      orchestratorVarCents: 10,
+      llmCents: 12,
+      reviewRate: 30,
+      reviewMinutes: 10,
+      fallbackRate: 15,
+      maintenanceDays: 5,
+      qualityConfidence: 'estimated',
+      opsConfidence: 'estimated',
+    };
+    const DEFAULT_FIN  = {
+      coverage: 55,
+      capturedValue: 45,
+      captureConfidence: 'estimated',
+      pilotMonths: 2,
+      rampMonths: 6,
+      discountRate: 9,
+      horizon: 5,
+    };
+    const ASSUMPTION_PROFILES = {
+      conservative: {
+        coverage: 40, capturedValue: 30, discountRate: 10, horizon: 4,
+        reviewRate: 45, reviewMinutes: 12, fallbackRate: 24, maintenanceDays: 7,
+        llmCents: 14, orchestratorVarCents: 12, pilotMonths: 3, rampMonths: 9,
+      },
+      base: {
+        coverage: 55, capturedValue: 45, discountRate: 9, horizon: 5,
+        reviewRate: 30, reviewMinutes: 10, fallbackRate: 15, maintenanceDays: 5,
+        llmCents: 12, orchestratorVarCents: 10, pilotMonths: 2, rampMonths: 6,
+      },
+      upside: {
+        coverage: 72, capturedValue: 65, discountRate: 8, horizon: 6,
+        reviewRate: 18, reviewMinutes: 6, fallbackRate: 8, maintenanceDays: 3,
+        llmCents: 9, orchestratorVarCents: 8, pilotMonths: 1, rampMonths: 4,
+      },
+    };
+    const RANGE_PROFILES = {
+      small: {
+        processCount:      { min: 1, max: 20, step: 1, defaultValue: 6 },
+        instancesPerProcess: { min: 20, max: 1000, step: 20, defaultValue: 180 },
+        devDays:          { min: 5, max: 180, step: 1, defaultValue: 45 },
+        infraCost:        { min: 0, max: 75000, step: 500, defaultValue: 4000 },
+        trainingCost:     { min: 0, max: 30000, step: 250, defaultValue: 2000 },
+        camundaClusters:  { min: 1, max: 4, step: 1, defaultValue: 2 },
+        camundaClusterYearlyRate: { min: 5000, max: 12000, step: 250, defaultValue: 7000 },
+        existingAllocatedYearly: { min: 0, max: 150000, step: 1000, defaultValue: 0 },
+        selfManagedInfraYearly: { min: 0, max: 180000, step: 1000, defaultValue: 30000 },
+        orchestratorVarCents: { min: 0, max: 30, step: 1, defaultValue: 8 },
+        maintenanceDays:  { min: 0, max: 10, step: 1, defaultValue: 2 },
+      },
+      growth: {
+        processCount:      { min: 1, max: 80, step: 1, defaultValue: 20 },
+        instancesPerProcess: { min: 20, max: 5000, step: 50, defaultValue: 500 },
+        devDays:          { min: 1, max: 500, step: 1, defaultValue: 80 },
+        infraCost:        { min: 0, max: 250000, step: 1000, defaultValue: 10000 },
+        trainingCost:     { min: 0, max: 120000, step: 500, defaultValue: 5000 },
+        camundaClusters:  { min: 1, max: 20, step: 1, defaultValue: 4 },
+        camundaClusterYearlyRate: { min: 5000, max: 15000, step: 250, defaultValue: 7000 },
+        existingAllocatedYearly: { min: 0, max: 600000, step: 2000, defaultValue: 0 },
+        selfManagedInfraYearly: { min: 0, max: 800000, step: 2000, defaultValue: 120000 },
+        orchestratorVarCents: { min: 0, max: 60, step: 1, defaultValue: 8 },
+        maintenanceDays:  { min: 0, max: 25, step: 1, defaultValue: 3 },
+      },
+      enterprise: {
+        processCount:      { min: 1, max: 300, step: 5, defaultValue: 80 },
+        instancesPerProcess: { min: 50, max: 30000, step: 250, defaultValue: 3000 },
+        devDays:          { min: 10, max: 1500, step: 5, defaultValue: 320 },
+        infraCost:        { min: 0, max: 2000000, step: 5000, defaultValue: 100000 },
+        trainingCost:     { min: 0, max: 800000, step: 5000, defaultValue: 50000 },
+        camundaClusters:  { min: 1, max: 100, step: 1, defaultValue: 15 },
+        camundaClusterYearlyRate: { min: 5000, max: 20000, step: 500, defaultValue: 7000 },
+        existingAllocatedYearly: { min: 0, max: 3000000, step: 10000, defaultValue: 0 },
+        selfManagedInfraYearly: { min: 0, max: 5000000, step: 10000, defaultValue: 500000 },
+        orchestratorVarCents: { min: 0, max: 120, step: 1, defaultValue: 8 },
+        maintenanceDays:  { min: 0, max: 60, step: 1, defaultValue: 12 },
+      },
+    };
+    const DEPLOYMENT_PRESETS = {
+      'existing-camunda':    { camundaClusters: 3, camundaClusterYearlyRate: 7000, selfManagedInfraYearly: 0, orchestratorVarCents: 2 },
+      'add-camunda-saas':    { camundaClusters: 3, camundaClusterYearlyRate: 7000, selfManagedInfraYearly: 0, orchestratorVarCents: 8 },
+      'self-hosted-camunda': { camundaClusters: 3, camundaClusterYearlyRate: 7000, selfManagedInfraYearly: 120000, orchestratorVarCents: 4 },
+      'other-stack':         { camundaClusters: 3, camundaClusterYearlyRate: 7000, selfManagedInfraYearly: 60000, orchestratorVarCents: 6 },
+    };
+
+    /* ===== State ===== */
+    let currency = 'USD';
+    let eurRate  = 0.92;
+    let activeChartTab = 'roi';
+    let activeRangeProfile = 'growth';
+    let activeAssumptionProfile = 'base';
+    let chart = null;
+
+    // All monetary values stored in USD
+    let impl = { ...DEFAULT_IMPL };
+    let proc = { ...DEFAULT_PROC };
+    let auto = { ...DEFAULT_AUTO };
+    // Cost sliders in cents convert to USD via /100.
+    let fin  = { ...DEFAULT_FIN };
+
+    let implCollapsed = false;
+    let procCollapsed = false;
+    let autoCollapsed = true;
+    let finCollapsed  = true;
+
+    /* ===== Helpers ===== */
+    function sym() { return CURRENCIES[currency]; }
+    function displayRate() { return currency === 'EUR' ? eurRate : 1; }
+
+    function formatMoney(usdValue) {
+      const v = usdValue * displayRate();
+      const s = sym();
+      const abs = Math.abs(v);
+      let str;
+      if (abs === 0) str = `${s}0`;
+      else if (abs < 100)  str = `${s}${abs.toFixed(2)}`;
+      else if (abs < 10000) str = `${s}${Math.round(abs).toLocaleString()}`;
+      else if (abs < 1e6)  str = `${s}${(abs / 1000).toFixed(1)}k`;
+      else                 str = `${s}${(abs / 1e6).toFixed(2)}M`;
+      return v < 0 ? `-${str}` : str;
+    }
+
+    function formatMoneySigned(usdValue) {
+      if (usdValue === 0) return `${sym()}0`;
+      const prefix = usdValue > 0 ? '+' : '-';
+      return prefix + formatMoney(Math.abs(usdValue));
+    }
+
+    function formatMonths(n) {
+      if (!Number.isFinite(n) || n <= 0) return '—';
+      const rounded = Math.ceil(n);
+      return `${rounded} mo`;
+    }
+
+    function getThemeColors() {
+      const dark = document.documentElement.dataset.theme === 'dark';
+      return { muted: dark ? '#8b8d97' : '#6b7280', grid: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)' };
+    }
+    function deploymentModeLabel(mode) {
+      const labels = {
+        'existing-camunda': 'Camunda already in place',
+        'add-camunda-saas': 'Add Camunda SaaS',
+        'self-hosted-camunda': 'Self-hosted Camunda',
+        'other-stack': 'Other orchestration stack',
+      };
+      return labels[mode] || 'Custom deployment mode';
+    }
+    function annualPlatformFixedCostFrom(state = auto) {
+      if (state.deploymentMode === 'existing-camunda') {
+        return state.existingCostMode === 'allocated' ? state.existingAllocatedYearly : 0;
+      }
+      if (state.deploymentMode === 'add-camunda-saas') {
+        return state.camundaClusters * state.camundaClusterYearlyRate;
+      }
+      if (state.deploymentMode === 'self-hosted-camunda' || state.deploymentMode === 'other-stack') {
+        return state.selfManagedInfraYearly;
+      }
+      return 0;
+    }
+    function applyDeploymentPreset(mode) {
+      const preset = DEPLOYMENT_PRESETS[mode];
+      if (!preset) return;
+      const clusterInput = document.getElementById('camundaClustersInput');
+      const clusterRateInput = document.getElementById('camundaClusterYearlyRateInput');
+      const infraInput = document.getElementById('selfManagedInfraInput');
+      const varInput = document.getElementById('orchestratorVarCostInput');
+      auto.camundaClusters = clamp(preset.camundaClusters, +clusterInput.min, +clusterInput.max);
+      auto.camundaClusterYearlyRate = clamp(preset.camundaClusterYearlyRate, +clusterRateInput.min, +clusterRateInput.max);
+      auto.selfManagedInfraYearly = clamp(preset.selfManagedInfraYearly, +infraInput.min, +infraInput.max);
+      auto.orchestratorVarCents = clamp(preset.orchestratorVarCents, +varInput.min, +varInput.max);
+      syncInputsFromState();
+    }
+    function updateDeploymentModeVisibility() {
+      const mode = auto.deploymentMode;
+      const showExistingMode = mode === 'existing-camunda';
+      const showSaas = mode === 'add-camunda-saas';
+      const showInfra = mode === 'self-hosted-camunda' || mode === 'other-stack';
+      const showAllocated = showExistingMode && auto.existingCostMode === 'allocated';
+      document.getElementById('existingCostModeGroup').style.display = showExistingMode ? '' : 'none';
+      document.getElementById('existingAllocatedCostGroup').style.display = showAllocated ? '' : 'none';
+      document.getElementById('saasClusterCountGroup').style.display = showSaas ? '' : 'none';
+      document.getElementById('saasClusterRateGroup').style.display = showSaas ? '' : 'none';
+      document.getElementById('selfManagedInfraGroup').style.display = showInfra ? '' : 'none';
+      const infraLabel = document.getElementById('selfManagedInfraLabel');
+      infraLabel.textContent = mode === 'self-hosted-camunda'
+        ? 'Self-managed infra / year'
+        : 'Platform fixed cost / year';
+    }
+    function normalizeRangeProfile(value) {
+      return Object.hasOwn(RANGE_PROFILES, value) ? value : 'growth';
+    }
+    function normalizeAssumptionProfile(value) {
+      return Object.hasOwn(ASSUMPTION_PROFILES, value) ? value : 'base';
+    }
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+    function inferRangeProfile(source) {
+      if (source?.activeRangeProfile) return normalizeRangeProfile(source.activeRangeProfile);
+      const processes = Number(source?.proc?.processCount);
+      const instancesPerProcess = Number(source?.proc?.instancesPerProcess);
+      const legacyMonthlyInstances = Number(source?.proc?.monthlyInstances);
+      const instances = Number.isFinite(processes) && Number.isFinite(instancesPerProcess)
+        ? processes * instancesPerProcess
+        : legacyMonthlyInstances;
+      if (!Number.isFinite(instances)) return 'growth';
+      const smallMax = RANGE_PROFILES.small.processCount.max * RANGE_PROFILES.small.instancesPerProcess.max;
+      const growthMax = RANGE_PROFILES.growth.processCount.max * RANGE_PROFILES.growth.instancesPerProcess.max;
+      if (instances <= smallMax) return 'small';
+      if (instances <= growthMax) return 'growth';
+      return 'enterprise';
+    }
+
+    /* ===== Persistence ===== */
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        currency, eurRate, activeChartTab, activeRangeProfile, activeAssumptionProfile,
+        impl: { ...impl }, proc: { ...proc }, auto: { ...auto }, fin: { ...fin },
+        implCollapsed, procCollapsed, autoCollapsed, finCollapsed,
+        theme: document.documentElement.dataset.theme,
+      }));
+    }
+
+    function loadState() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+    }
+    function normalizeLoadedState(saved) {
+      if (!saved) return;
+      if (saved.proc) {
+        const hasPortfolio = Number.isFinite(saved.proc.processCount) && Number.isFinite(saved.proc.instancesPerProcess);
+        if (!hasPortfolio) {
+          const monthlyInstances = Number(saved.proc.monthlyInstances);
+          if (Number.isFinite(monthlyInstances) && monthlyInstances > 0) {
+            const inferredProcessCount = monthlyInstances >= 20000 ? 20 : monthlyInstances >= 5000 ? 10 : 5;
+            const processCount = Number.isFinite(saved.proc.processCount) ? saved.proc.processCount : inferredProcessCount;
+            saved.proc.processCount = processCount;
+            saved.proc.instancesPerProcess = Math.max(1, Math.round(monthlyInstances / processCount));
+          }
+        }
+        if (!Number.isFinite(saved.proc.peoplePerInstance)) saved.proc.peoplePerInstance = DEFAULT_PROC.peoplePerInstance;
+      }
+      if (saved.auto) {
+        const deploymentMode = saved.auto.deploymentMode || DEFAULT_AUTO.deploymentMode;
+        const preset = DEPLOYMENT_PRESETS[deploymentMode] || DEPLOYMENT_PRESETS[DEFAULT_AUTO.deploymentMode];
+        if (!Number.isFinite(saved.auto.platformFixedYearly) && Number.isFinite(saved.auto.platformCost)) {
+          saved.auto.platformFixedYearly = saved.auto.platformCost * 12;
+        }
+        const legacyAnnual = Number.isFinite(saved.auto.platformFixedYearly) ? saved.auto.platformFixedYearly : NaN;
+        if (!Number.isFinite(saved.auto.camundaClusters)) {
+          if (deploymentMode === 'add-camunda-saas' && Number.isFinite(legacyAnnual) && legacyAnnual > 0) {
+            saved.auto.camundaClusters = Math.max(1, Math.round(legacyAnnual / 7000));
+          } else {
+            saved.auto.camundaClusters = preset.camundaClusters;
+          }
+        }
+        if (!Number.isFinite(saved.auto.camundaClusterYearlyRate)) {
+          if (deploymentMode === 'add-camunda-saas' && Number.isFinite(legacyAnnual) && saved.auto.camundaClusters > 0) {
+            saved.auto.camundaClusterYearlyRate = Math.max(3000, Math.round(legacyAnnual / saved.auto.camundaClusters));
+          } else {
+            saved.auto.camundaClusterYearlyRate = preset.camundaClusterYearlyRate;
+          }
+        }
+        if (!Number.isFinite(saved.auto.selfManagedInfraYearly)) {
+          if ((deploymentMode === 'self-hosted-camunda' || deploymentMode === 'other-stack') && Number.isFinite(legacyAnnual)) {
+            saved.auto.selfManagedInfraYearly = legacyAnnual;
+          } else {
+            saved.auto.selfManagedInfraYearly = preset.selfManagedInfraYearly;
+          }
+        }
+        if (!Number.isFinite(saved.auto.orchestratorVarCents)) saved.auto.orchestratorVarCents = preset.orchestratorVarCents;
+        if (!saved.auto.deploymentMode) saved.auto.deploymentMode = DEFAULT_AUTO.deploymentMode;
+        if (!saved.auto.existingCostMode) saved.auto.existingCostMode = DEFAULT_AUTO.existingCostMode;
+        if (!Number.isFinite(saved.auto.existingAllocatedYearly)) saved.auto.existingAllocatedYearly = DEFAULT_AUTO.existingAllocatedYearly;
+        if (!Number.isFinite(saved.auto.reviewRate)) saved.auto.reviewRate = DEFAULT_AUTO.reviewRate;
+        if (!Number.isFinite(saved.auto.reviewMinutes)) saved.auto.reviewMinutes = DEFAULT_AUTO.reviewMinutes;
+        if (!Number.isFinite(saved.auto.fallbackRate)) saved.auto.fallbackRate = DEFAULT_AUTO.fallbackRate;
+        if (!saved.auto.qualityConfidence || !Object.hasOwn(CONFIDENCE_SCORES, saved.auto.qualityConfidence)) {
+          saved.auto.qualityConfidence = DEFAULT_AUTO.qualityConfidence;
+        }
+        if (!saved.auto.opsConfidence || !Object.hasOwn(CONFIDENCE_SCORES, saved.auto.opsConfidence)) {
+          saved.auto.opsConfidence = DEFAULT_AUTO.opsConfidence;
+        }
+      }
+      if (saved.fin) {
+        if (!Number.isFinite(saved.fin.capturedValue)) saved.fin.capturedValue = DEFAULT_FIN.capturedValue;
+        if (!Number.isFinite(saved.fin.pilotMonths)) saved.fin.pilotMonths = DEFAULT_FIN.pilotMonths;
+        if (!Number.isFinite(saved.fin.rampMonths)) saved.fin.rampMonths = DEFAULT_FIN.rampMonths;
+        if (!saved.fin.captureConfidence || !Object.hasOwn(CONFIDENCE_SCORES, saved.fin.captureConfidence)) {
+          saved.fin.captureConfidence = DEFAULT_FIN.captureConfidence;
+        }
+      }
+    }
+
+    /* ===== Calculation ===== */
+    function rolloutCoverageFactor(monthIndex, finState) {
+      const pilotMonths = Math.max(0, Math.round(finState.pilotMonths || 0));
+      const rampMonths = Math.max(1, Math.round(finState.rampMonths || 1));
+      const pilotFactor = pilotMonths > 0 ? 0.25 : (rampMonths === 1 ? 1 : 0.25);
+      if (monthIndex <= pilotMonths) return pilotFactor;
+      if (rampMonths <= 1) return 1;
+      const progress = (monthIndex - pilotMonths - 1) / (rampMonths - 1);
+      return clamp(pilotFactor + clamp(progress, 0, 1) * (1 - pilotFactor), pilotFactor, 1);
+    }
+    function monthlyEconomicsForCoverage({ coveragePct, implState, procState, autoState, finState, monthlyManualCost, manualCostPerInstance, totalInstances }) {
+      const effectiveCoverage = clamp(coveragePct, 0, 100);
+      const automatedInstances = totalInstances * (effectiveCoverage / 100);
+      const reviewedInstances = automatedInstances * (autoState.reviewRate / 100);
+      const reviewCostPerInstance = (autoState.reviewMinutes / 60) * procState.hourlyRate;
+      const monthlyReviewCost = reviewedInstances * reviewCostPerInstance;
+      const postReviewInstances = Math.max(0, automatedInstances - reviewedInstances);
+      const fallbackInstances = postReviewInstances * (autoState.fallbackRate / 100);
+      const monthlyFallbackManualCost = fallbackInstances * manualCostPerInstance;
+      const nonAutomatedInstances = Math.max(0, totalInstances - automatedInstances);
+      const monthlyResidualManualCost =
+        nonAutomatedInstances * manualCostPerInstance + monthlyReviewCost + monthlyFallbackManualCost;
+
+      const monthlyLaborSavingsTheoretical = monthlyManualCost - monthlyResidualManualCost;
+      const monthlyLaborBenefitRealized = monthlyLaborSavingsTheoretical >= 0
+        ? monthlyLaborSavingsTheoretical * (finState.capturedValue / 100)
+        : monthlyLaborSavingsTheoretical;
+
+      const monthlyLLMCost = automatedInstances * (autoState.llmCents / 100);
+      const monthlyOrchestratorVariableCost = automatedInstances * (autoState.orchestratorVarCents / 100);
+      const annualPlatformFixedCost = annualPlatformFixedCostFrom(autoState);
+      const monthlyPlatformFixedCost = annualPlatformFixedCost / 12;
+      const monthlyMaintenanceCost = autoState.maintenanceDays * (implState.dailyRate / WORKING_DAYS_PER_MONTH);
+      const monthlyAutomationCost =
+        monthlyLLMCost + monthlyOrchestratorVariableCost + monthlyPlatformFixedCost + monthlyMaintenanceCost;
+      const monthlySavings = monthlyLaborBenefitRealized - monthlyAutomationCost;
+
+      return {
+        effectiveCoverage,
+        automatedInstances,
+        reviewedInstances,
+        fallbackInstances,
+        monthlyResidualManualCost,
+        monthlyLaborSavingsTheoretical,
+        monthlyLaborBenefitRealized,
+        monthlyLLMCost,
+        monthlyOrchestratorVariableCost,
+        annualPlatformFixedCost,
+        monthlyPlatformFixedCost,
+        monthlyMaintenanceCost,
+        monthlyAutomationCost,
+        monthlySavings,
+      };
+    }
+    function compute({ implState = impl, procState = proc, autoState = auto, finState = fin } = {}) {
+      const implementationCost = implState.devDays * implState.dailyRate + implState.infraCost + implState.trainingCost;
+      const totalInstances = procState.processCount * procState.instancesPerProcess;
+      const manualCostPerInstance = (procState.handlingMinutes / 60) * procState.hourlyRate * procState.peoplePerInstance;
+      const monthlyManualCost = totalInstances * manualCostPerInstance;
+      const steady = monthlyEconomicsForCoverage({
+        coveragePct: finState.coverage,
+        implState,
+        procState,
+        autoState,
+        finState,
+        monthlyManualCost,
+        manualCostPerInstance,
+        totalInstances,
+      });
+
+      const horizonMonths = finState.horizon * 12;
+      const monthlySavingsSeries = [];
+      const monthlyCoverageSeries = [];
+      const cumulativeSeries = [-implementationCost];
+      for (let mo = 1; mo <= horizonMonths; mo++) {
+        const factor = rolloutCoverageFactor(mo, finState);
+        const coveragePct = finState.coverage * factor;
+        const point = monthlyEconomicsForCoverage({
+          coveragePct,
+          implState,
+          procState,
+          autoState,
+          finState,
+          monthlyManualCost,
+          manualCostPerInstance,
+          totalInstances,
+        });
+        monthlyCoverageSeries.push(coveragePct);
+        monthlySavingsSeries.push(point.monthlySavings);
+        cumulativeSeries.push(cumulativeSeries[cumulativeSeries.length - 1] + point.monthlySavings);
+      }
+
+      let paybackMonths = Infinity;
+      for (let mo = 1; mo < cumulativeSeries.length; mo++) {
+        if (cumulativeSeries[mo] >= 0) {
+          paybackMonths = mo;
+          break;
+        }
+      }
+
+      const monthlyDiscountRate = (1 + finState.discountRate / 100) ** (1 / 12) - 1;
+      let npv = -implementationCost;
+      for (let mo = 1; mo <= horizonMonths; mo++) {
+        npv += monthlySavingsSeries[mo - 1] / (1 + monthlyDiscountRate) ** mo;
+      }
+
+      const threeYearMonths = Math.min(36, horizonMonths);
+      const threeYearBenefit = monthlySavingsSeries.slice(0, threeYearMonths).reduce((acc, v) => acc + v, 0) - implementationCost;
+      const yearOneMonths = Math.min(12, horizonMonths);
+      const yearOneAvgNet = yearOneMonths > 0
+        ? monthlySavingsSeries.slice(0, yearOneMonths).reduce((acc, v) => acc + v, 0) / yearOneMonths
+        : 0;
+
+      return {
+        implementationCost,
+        totalInstances,
+        manualCostPerInstance,
+        monthlyManualCost,
+        horizonMonths,
+        monthlySavingsSeries,
+        monthlyCoverageSeries,
+        cumulativeSeries,
+        yearOneAvgNet,
+        paybackMonths,
+        threeYearBenefit,
+        npv,
+        monthlySavings: steady.monthlySavings,
+        automatedInstances: steady.automatedInstances,
+        monthlyResidualManualCost: steady.monthlyResidualManualCost,
+        monthlyLaborSavingsTheoretical: steady.monthlyLaborSavingsTheoretical,
+        monthlyLaborBenefitRealized: steady.monthlyLaborBenefitRealized,
+        reviewedInstances: steady.reviewedInstances,
+        fallbackInstances: steady.fallbackInstances,
+        monthlyLLMCost: steady.monthlyLLMCost,
+        monthlyOrchestratorVariableCost: steady.monthlyOrchestratorVariableCost,
+        annualPlatformFixedCost: steady.annualPlatformFixedCost,
+        monthlyPlatformFixedCost: steady.monthlyPlatformFixedCost,
+        monthlyMaintenanceCost: steady.monthlyMaintenanceCost,
+        monthlyAutomationCost: steady.monthlyAutomationCost,
+      };
+    }
+    function buildScenarioInputs(kind) {
+      const finState = { ...fin };
+      const autoState = { ...auto };
+      if (kind === 'conservative') {
+        finState.coverage = clamp(Math.round(fin.coverage * 0.8), 5, 100);
+        finState.capturedValue = clamp(Math.round(fin.capturedValue * 0.7), 0, 100);
+        finState.pilotMonths = clamp(fin.pilotMonths + 1, 0, 12);
+        finState.rampMonths = clamp(fin.rampMonths + 2, 1, 24);
+        autoState.reviewRate = clamp(auto.reviewRate + 12, 0, 100);
+        autoState.reviewMinutes = clamp(auto.reviewMinutes + 4, 1, 120);
+        autoState.fallbackRate = clamp(auto.fallbackRate + 10, 0, 60);
+        autoState.maintenanceDays = auto.maintenanceDays + 2;
+        autoState.llmCents = Math.max(1, Math.round(auto.llmCents * 1.2));
+        autoState.orchestratorVarCents = Math.max(0, Math.round(auto.orchestratorVarCents * 1.2));
+        autoState.camundaClusterYearlyRate = Math.round(auto.camundaClusterYearlyRate * 1.1);
+        autoState.selfManagedInfraYearly = Math.round(auto.selfManagedInfraYearly * 1.15);
+      } else if (kind === 'upside') {
+        finState.coverage = clamp(Math.round(fin.coverage * 1.15), 5, 100);
+        finState.capturedValue = clamp(Math.round(fin.capturedValue * 1.25), 0, 100);
+        finState.pilotMonths = clamp(fin.pilotMonths - 1, 0, 12);
+        finState.rampMonths = clamp(fin.rampMonths - 2, 1, 24);
+        autoState.reviewRate = clamp(auto.reviewRate - 10, 0, 100);
+        autoState.reviewMinutes = clamp(auto.reviewMinutes - 3, 1, 120);
+        autoState.fallbackRate = clamp(auto.fallbackRate - 6, 0, 60);
+        autoState.maintenanceDays = clamp(auto.maintenanceDays - 1, 0, 100);
+        autoState.llmCents = Math.max(1, Math.round(auto.llmCents * 0.9));
+        autoState.orchestratorVarCents = Math.max(0, Math.round(auto.orchestratorVarCents * 0.9));
+        autoState.camundaClusterYearlyRate = Math.round(auto.camundaClusterYearlyRate * 0.95);
+        autoState.selfManagedInfraYearly = Math.round(auto.selfManagedInfraYearly * 0.9);
+      }
+      return { finState, autoState };
+    }
+    function confidenceSnapshot(autoState = auto, finState = fin) {
+      const confidenceMap = {
+        quality: autoState.qualityConfidence || 'estimated',
+        ops: autoState.opsConfidence || 'estimated',
+        value: finState.captureConfidence || 'estimated',
+      };
+      const guessedCount = Object.values(confidenceMap).filter(v => v === 'guessed').length;
+      const estimatedCount = Object.values(confidenceMap).filter(v => v === 'estimated').length;
+      return { confidenceMap, guessedCount, estimatedCount };
+    }
+    function classifySignal(base, conservative, confidence) {
+      if (conservative.monthlySavings > 0 && conservative.paybackMonths <= 36 && conservative.npv > 0) {
+        return confidence.guessedCount === 0 ? 'promising' : 'needs-pilot';
+      }
+      if (base.monthlySavings > 0 && base.npv > 0) return 'needs-pilot';
+      return 'weak';
+    }
+
+    /* ===== Summary cards ===== */
+    function updateSummaryCards(r, conservative) {
+      // Implementation cost
+      document.getElementById('cardImpl').className = 'summary-card';
+      document.getElementById('cardImplValue').textContent = formatMoney(r.implementationCost);
+      document.getElementById('cardImplSub').textContent =
+        `${impl.devDays}d × ${formatMoney(impl.dailyRate)}/day`;
+
+      // Manual baseline
+      document.getElementById('cardManual').className = 'summary-card';
+      document.getElementById('cardManualValue').textContent = formatMoney(r.monthlyManualCost);
+      document.getElementById('cardManualSub').textContent =
+        `${proc.processCount} processes × ${proc.instancesPerProcess.toLocaleString()} inst`;
+
+      // Realized labor benefit
+      const realClass = r.monthlyLaborBenefitRealized > 0 ? 'positive' : r.monthlyLaborBenefitRealized < 0 ? 'negative' : '';
+      document.getElementById('cardRealized').className = `summary-card ${realClass}`;
+      document.getElementById('cardRealizedValue').textContent = formatMoneySigned(r.monthlyLaborBenefitRealized);
+      document.getElementById('cardRealizedSub').textContent = r.monthlyLaborSavingsTheoretical >= 0
+        ? `Captured ${fin.capturedValue}% of ${formatMoney(r.monthlyLaborSavingsTheoretical)} theoretical savings`
+        : `Automation overhead adds ${formatMoney(Math.abs(r.monthlyLaborSavingsTheoretical))}/mo in manual effort`;
+
+      // Net monthly gain
+      const savClass = r.monthlySavings > 0 ? 'positive' : r.monthlySavings < 0 ? 'negative' : '';
+      document.getElementById('cardSavings').className = `summary-card ${savClass}`;
+      document.getElementById('cardSavingsValue').textContent = formatMoneySigned(r.monthlySavings);
+      document.getElementById('cardSavingsSub').textContent =
+        `steady-state only | year-1 avg: ${formatMoneySigned(r.yearOneAvgNet)}/mo`;
+
+      // Payback
+      const payClass = r.paybackMonths <= 24 ? 'positive' : r.paybackMonths <= 48 ? 'caution' : 'negative';
+      document.getElementById('cardPayback').className = `summary-card ${r.monthlySavings > 0 ? payClass : 'negative'}`;
+      document.getElementById('cardPaybackValue').textContent = formatMonths(r.paybackMonths);
+      document.getElementById('cardPaybackSub').textContent = `ramped rollout | conservative: ${formatMonths(conservative.paybackMonths)}`;
+
+      // Conservative monthly net
+      const benClass = conservative.monthlySavings > 0 ? 'positive' : conservative.monthlySavings < 0 ? 'negative' : '';
+      document.getElementById('cardBenefit').className = `summary-card ${benClass}`;
+      document.getElementById('cardBenefitValue').textContent = formatMoneySigned(conservative.monthlySavings);
+      document.getElementById('cardBenefitSub').textContent = `Base: ${formatMoneySigned(r.monthlySavings)}/mo`;
+
+      // NPV
+      const npvClass = r.npv > 0 ? 'positive' : r.npv < 0 ? 'negative' : '';
+      document.getElementById('cardNPV').className = `summary-card ${npvClass}`;
+      document.getElementById('cardNPVLabel').textContent = `${fin.horizon}-Year NPV`;
+      document.getElementById('cardNPVValue').textContent = formatMoneySigned(r.npv);
+      document.getElementById('cardNPVSub').textContent = `at ${fin.discountRate}% discount rate`;
+    }
+
+    /* ===== Decision badge ===== */
+    function updateDecision(r, conservative, signal, confidence) {
+      const badge  = document.getElementById('decisionBadge');
+      const detail = document.getElementById('decisionDetail');
+
+      const labels = {
+        promising: 'Economic Estimate: Promising',
+        'needs-pilot': 'Economic Estimate: Needs Pilot',
+        weak: 'Economic Estimate: Weak',
+      };
+      badge.className = `decision-badge ${signal}`;
+      badge.textContent = labels[signal] || '—';
+
+      let msg = '';
+      if (signal === 'promising') {
+        const d = new Date();
+        d.setMonth(d.getMonth() + Math.ceil(r.paybackMonths));
+        const dateStr = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+        msg = `Ramped base case is favorable: payback <strong>${formatMonths(r.paybackMonths)}</strong> (~${dateStr}). Conservative case remains positive at <strong>${formatMoneySigned(conservative.monthlySavings)}/mo</strong>.`;
+      } else if (signal === 'needs-pilot') {
+        msg = `Base case is positive at <strong>${formatMoneySigned(r.monthlySavings)}/mo</strong>, but confidence/risk remains high. Conservative case is <strong>${formatMoneySigned(conservative.monthlySavings)}/mo</strong>. Validate with a pilot before committing.`;
+      } else {
+        msg = `Current assumptions do not support the investment. Base steady-state net is <strong>${formatMoneySigned(r.monthlySavings)}</strong> and conservative net is <strong>${formatMoneySigned(conservative.monthlySavings)}</strong>. Re-scope before rollout.`;
+      }
+      if (confidence.guessedCount > 0) {
+        msg += ` <strong>${confidence.guessedCount}</strong> key assumption group${confidence.guessedCount === 1 ? ' is' : 's are'} still guessed.`;
+      }
+      detail.innerHTML = msg;
+    }
+
+    /* ===== Chart ===== */
+    const breakEvenPlugin = {
+      id: 'breakEven',
+      afterDraw(chart) {
+        if (activeChartTab !== 'roi') return;
+        const yScale = chart.scales.y;
+        if (!yScale) return;
+        const yPixel = yScale.getPixelForValue(0);
+        if (yPixel < yScale.top || yPixel > yScale.bottom) return;
+        const ctx  = chart.ctx;
+        const area = chart.chartArea;
+        ctx.save();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(34, 197, 94, 0.55)';
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        ctx.moveTo(area.left, yPixel);
+        ctx.lineTo(area.right, yPixel);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.8)';
+        ctx.font = '10px system-ui';
+        ctx.textAlign = 'right';
+        ctx.fillText('Break-even', area.right, yPixel - 4);
+        ctx.restore();
+      }
+    };
+
+    function buildROIChart(theme, r) {
+      const points = r.cumulativeSeries.map((value, idx) => ({ x: idx, y: value }));
+
+      const color = r.monthlySavings >= 0 ? '#FC5D0D' : '#EF4444';
+      return {
+        config: {
+          type: 'scatter',
+          data: {
+            datasets: [{
+              label: 'Cumulative cash flow',
+              data: points,
+              borderColor: color,
+              backgroundColor: color + '18',
+              showLine: true,
+              fill: { target: { value: 0 }, above: 'rgba(34,197,94,0.06)', below: 'rgba(239,68,68,0.06)' },
+              tension: 0,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              borderWidth: 2.5,
+            }],
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 0 },
+            interaction: { intersect: false, mode: 'nearest', axis: 'x' },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => `Month ${Math.round(items[0].parsed.x)}`,
+                  label: (ctx) => {
+                    const v = ctx.parsed.y;
+                    return ` Cumulative: ${formatMoneySigned(v / displayRate())}`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                type: 'linear', min: 0, max: r.horizonMonths,
+                title: { display: true, text: 'Month', color: theme.muted },
+                grid: { color: theme.grid },
+                ticks: {
+                  color: theme.muted,
+                  callback: (v) => Number.isInteger(v) ? v : '',
+                  maxTicksLimit: Math.min(r.horizonMonths + 1, 13),
+                },
+              },
+              y: {
+                title: { display: true, text: `Cumulative Net (${currency})`, color: theme.muted },
+                grid: { color: theme.grid },
+                ticks: { color: theme.muted, callback: (v) => formatMoneySigned(v / displayRate()) },
+              },
+            },
+          },
+        },
+        plugins: [breakEvenPlugin],
+        helperMessages: r.yearOneAvgNet <= 0
+          ? ['No positive gain: run cost exceeds realized labor benefit at current assumptions.']
+          : [],
+      };
+    }
+
+    function buildAnnualChart(theme, r) {
+      const labels = [];
+      const data   = [];
+      const colors = [];
+      for (let yr = 1; yr <= fin.horizon; yr++) {
+        labels.push(`Year ${yr}`);
+        const monthIndex = Math.min(yr * 12, r.horizonMonths);
+        const cumulative = r.cumulativeSeries[monthIndex];
+        data.push(cumulative * displayRate());
+        colors.push(cumulative >= 0 ? 'rgba(34, 197, 94, 0.75)' : 'rgba(239, 68, 68, 0.75)');
+      }
+      return {
+        config: {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Cumulative net benefit',
+              data,
+              backgroundColor: colors,
+              borderRadius: 5,
+              borderSkipped: false,
+            }],
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 0 },
+            interaction: { intersect: true, mode: 'nearest' },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => items[0].label,
+                  label: (ctx) => ` Net benefit: ${formatMoneySigned(ctx.parsed.y / displayRate())}`,
+                },
+              },
+            },
+            scales: {
+              x: { grid: { color: theme.grid }, ticks: { color: theme.muted } },
+              y: {
+                title: { display: true, text: `Cumulative Net (${currency})`, color: theme.muted },
+                grid: { color: theme.grid },
+                ticks: { color: theme.muted, callback: (v) => formatMoneySigned(v / displayRate()) },
+              },
+            },
+          },
+        },
+        plugins: [],
+        helperMessages: [],
+      };
+    }
+
+    function setChartHelper(messages = []) {
+      const el = document.getElementById('chartHelper');
+      if (!messages.length) { el.classList.remove('visible'); el.innerHTML = ''; return; }
+      el.classList.add('visible');
+      el.innerHTML = messages.map(m => `<span>${m}</span>`).join('');
+    }
+
+    function renderActiveChart(r) {
+      const theme = getThemeColors();
+      const spec  = activeChartTab === 'annual' ? buildAnnualChart(theme, r) : buildROIChart(theme, r);
+      setChartHelper(spec.helperMessages);
+
+      const canvas = document.getElementById('roiChart');
+      if (!chart || chart.config.type !== spec.config.type) {
+        if (chart) chart.destroy();
+        chart = new Chart(canvas, { ...spec.config, plugins: spec.plugins });
+        return;
+      }
+      chart.config.data    = spec.config.data;
+      chart.config.options = spec.config.options;
+      chart.config.plugins = spec.plugins;
+      chart.update('none');
+    }
+
+    /* ===== Executive insights ===== */
+    function sensitivityDrivers(baseResult) {
+      const variants = [
+        {
+          label: 'Captured value',
+          run: () => compute({ finState: { ...fin, capturedValue: clamp(fin.capturedValue + 10, 0, 100) } }),
+        },
+        {
+          label: 'Review + fallback overhead',
+          run: () => compute({
+            autoState: {
+              ...auto,
+              reviewRate: clamp(auto.reviewRate + 10, 0, 100),
+              fallbackRate: clamp(auto.fallbackRate + 10, 0, 60),
+            },
+          }),
+        },
+        {
+          label: 'Deployment fixed cost',
+          run: () => compute({
+            autoState: {
+              ...auto,
+              camundaClusterYearlyRate: Math.round(auto.camundaClusterYearlyRate * 1.1),
+              selfManagedInfraYearly: Math.round(auto.selfManagedInfraYearly * 1.1),
+              existingAllocatedYearly: Math.round(auto.existingAllocatedYearly * 1.1),
+            },
+          }),
+        },
+        {
+          label: 'Maintenance effort',
+          run: () => compute({ autoState: { ...auto, maintenanceDays: clamp(auto.maintenanceDays + 2, 0, 100) } }),
+        },
+      ];
+      return variants
+        .map(v => {
+          const result = v.run();
+          return { label: v.label, delta: result.npv - baseResult.npv };
+        })
+        .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+        .slice(0, 3);
+    }
+    function updateInsights(r, conservative, upside, confidence) {
+      const el = document.getElementById('executiveInsight');
+      const chips = [];
+      const addChip = (text, tone = '') => chips.push(`<span class="insight${tone ? ` ${tone}` : ''}">${text}</span>`);
+      const confidenceText = [
+        `Value: ${CONFIDENCE_LABELS[fin.captureConfidence]}`,
+        `Quality: ${CONFIDENCE_LABELS[auto.qualityConfidence]}`,
+        `Ops: ${CONFIDENCE_LABELS[auto.opsConfidence]}`,
+      ].join(' | ');
+
+      addChip(`Range check: Conservative <strong>${formatMoneySigned(conservative.monthlySavings)}/mo</strong> | Base <strong>${formatMoneySigned(r.monthlySavings)}/mo</strong> | Upside <strong>${formatMoneySigned(upside.monthlySavings)}/mo</strong>`);
+      addChip(`Confidence: <strong>${confidenceText}</strong>${confidence.guessedCount > 0 ? ` (${confidence.guessedCount} guessed)` : ''}`, confidence.guessedCount > 0 ? 'warn' : 'ok');
+      addChip(`Rollout: pilot <strong>${fin.pilotMonths} mo</strong> + ramp <strong>${fin.rampMonths} mo</strong>, payback based on ramped cashflow`);
+
+      if (auto.deploymentMode === 'add-camunda-saas') {
+        addChip(`Mode: <strong>${deploymentModeLabel(auto.deploymentMode)}</strong> with ${auto.camundaClusters} clusters x ${formatMoney(auto.camundaClusterYearlyRate)}/cluster/yr (${formatMoney(r.annualPlatformFixedCost)}/yr total)`);
+      } else if (auto.deploymentMode === 'self-hosted-camunda' || auto.deploymentMode === 'other-stack') {
+        addChip(`Mode: <strong>${deploymentModeLabel(auto.deploymentMode)}</strong> with fixed platform+infra cost ${formatMoney(r.annualPlatformFixedCost)}/yr`);
+      } else if (auto.existingCostMode === 'allocated') {
+        addChip(`Mode: <strong>${deploymentModeLabel(auto.deploymentMode)}</strong> with allocated platform cost ${formatMoney(r.annualPlatformFixedCost)}/yr`);
+      } else {
+        addChip(`Mode: <strong>${deploymentModeLabel(auto.deploymentMode)}</strong> (incremental economics only)`);
+      }
+
+      if (r.monthlySavings <= 0) {
+        addChip(`Steady-state run cost <strong>${formatMoney(r.monthlyAutomationCost)}/mo</strong> exceeds realized labor benefit <strong>${formatMoney(r.monthlyLaborBenefitRealized)}/mo</strong>`, 'warn');
+      }
+      if (Number.isFinite(r.paybackMonths)) {
+        const d = new Date();
+        d.setMonth(d.getMonth() + Math.ceil(r.paybackMonths));
+        const dateStr = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+        addChip(`Payback in <strong>${formatMonths(r.paybackMonths)}</strong> (ramped), target date <strong>${dateStr}</strong>`, r.paybackMonths <= 24 ? 'ok' : 'warn');
+      } else {
+        addChip('No payback within analysis horizon under current assumptions.', 'warn');
+      }
+
+      if (r.npv > 0) addChip(`${fin.horizon}-year NPV <strong>${formatMoney(r.npv)}</strong> at ${fin.discountRate}% discount`, 'ok');
+      else addChip(`${fin.horizon}-year NPV is <strong>${formatMoneySigned(r.npv)}</strong>`, 'warn');
+
+      addChip(`Steady-state automated volume: <strong>${Math.round(r.automatedInstances).toLocaleString()} instances/mo</strong> across ${proc.processCount} candidate processes`);
+
+      if (confidence.guessedCount > 0) {
+        addChip('Result quality is limited by guessed assumptions. Validate with pilot metrics before commitment.', 'warn');
+      }
+      const drivers = sensitivityDrivers(r);
+      if (drivers.length) {
+        const lead = drivers[0];
+        const sign = lead.delta >= 0 ? '+' : '-';
+        addChip(`Top sensitivity: <strong>${lead.label}</strong> shifts NPV by ${sign}${formatMoney(Math.abs(lead.delta))}`);
+      }
+      if (drivers.length > 1) {
+        const trailing = drivers.slice(1).map(d => d.label).join(', ');
+        addChip(`Other major drivers: <strong>${trailing}</strong>`);
+      }
+      if (r.threeYearBenefit > 0) {
+        addChip(`3-year net benefit <strong>${formatMoney(r.threeYearBenefit)}</strong> (ramped, undiscounted)`, 'ok');
+      }
+      el.innerHTML = chips.join('');
+    }
+
+    /* ===== Recalculate ===== */
+    function recalculate() {
+      const r = compute();
+      const conservativeInputs = buildScenarioInputs('conservative');
+      const upsideInputs = buildScenarioInputs('upside');
+      const conservative = compute({ autoState: conservativeInputs.autoState, finState: conservativeInputs.finState });
+      const upside = compute({ autoState: upsideInputs.autoState, finState: upsideInputs.finState });
+      const confidence = confidenceSnapshot();
+      const signal = classifySignal(r, conservative, confidence);
+      updateSummaryCards(r, conservative);
+      updateDecision(r, conservative, signal, confidence);
+      renderActiveChart(r);
+      updateInsights(r, conservative, upside, confidence);
+      saveState();
+    }
+
+    /* ===== Display helpers ===== */
+    function updateDisplays() {
+      document.getElementById('devDaysDisplay').textContent      = `${impl.devDays} days`;
+      document.getElementById('dailyRateDisplay').textContent    = `${formatMoney(impl.dailyRate)}/day`;
+      document.getElementById('infraCostDisplay').textContent    = formatMoney(impl.infraCost);
+      document.getElementById('trainingCostDisplay').textContent = formatMoney(impl.trainingCost);
+
+      document.getElementById('processCountDisplay').textContent = `${proc.processCount}`;
+      document.getElementById('instancesPerProcessDisplay').textContent = proc.instancesPerProcess.toLocaleString();
+      document.getElementById('peoplePerInstanceDisplay').textContent = `${proc.peoplePerInstance.toFixed(1)}`;
+      const mins = proc.handlingMinutes;
+      const minDisplay = mins >= 60 ? `${(mins / 60).toFixed(1)}h` : `${mins}min`;
+      document.getElementById('handlingMinutesDisplay').textContent  = minDisplay;
+      document.getElementById('hourlyRateDisplay').textContent       = `${formatMoney(proc.hourlyRate)}/hr`;
+
+      document.getElementById('camundaClustersDisplay').textContent = `${auto.camundaClusters} cluster${auto.camundaClusters === 1 ? '' : 's'}`;
+      document.getElementById('camundaClusterYearlyRateDisplay').textContent = `${formatMoney(auto.camundaClusterYearlyRate)}/cluster/yr`;
+      document.getElementById('existingAllocatedYearlyDisplay').textContent = `${formatMoney(auto.existingAllocatedYearly)}/yr`;
+      document.getElementById('selfManagedInfraDisplay').textContent = `${formatMoney(auto.selfManagedInfraYearly)}/yr`;
+      document.getElementById('orchestratorVarCostDisplay').textContent = `${formatMoney(auto.orchestratorVarCents / 100)}/inst`;
+      document.getElementById('llmCostDisplay').textContent         = `${formatMoney(auto.llmCents / 100)}/inst`;
+      document.getElementById('reviewRateDisplay').textContent      = `${auto.reviewRate}%`;
+      document.getElementById('reviewMinutesDisplay').textContent   = `${auto.reviewMinutes} min`;
+      document.getElementById('fallbackRateDisplay').textContent    = `${auto.fallbackRate}%`;
+      document.getElementById('maintenanceDaysDisplay').textContent = `${auto.maintenanceDays} day${auto.maintenanceDays !== 1 ? 's' : ''}/mo`;
+      document.getElementById('deploymentModeInput').value          = auto.deploymentMode;
+      updateDeploymentModeVisibility();
+
+      document.getElementById('coverageDisplay').textContent     = `${fin.coverage}%`;
+      document.getElementById('capturedValueDisplay').textContent = `${fin.capturedValue}%`;
+      document.getElementById('pilotMonthsDisplay').textContent = `${fin.pilotMonths} month${fin.pilotMonths !== 1 ? 's' : ''}`;
+      document.getElementById('rampMonthsDisplay').textContent = `${fin.rampMonths} month${fin.rampMonths !== 1 ? 's' : ''}`;
+      document.getElementById('discountRateDisplay').textContent = `${fin.discountRate}%/yr`;
+      document.getElementById('horizonDisplay').textContent      = `${fin.horizon} year${fin.horizon !== 1 ? 's' : ''}`;
+      const profileNotes = {
+        conservative: 'Conservative assumes slower rollout, lower realized value, and higher quality overhead.',
+        base: 'Base balances risk and delivery assumptions for planning discussions.',
+        upside: 'Upside assumes faster rollout, lower overhead, and higher value capture.',
+      };
+      document.getElementById('assumptionProfileNote').textContent = profileNotes[activeAssumptionProfile];
+    }
+    function syncInputsFromState() {
+      document.getElementById('devDaysInput').value          = impl.devDays;
+      document.getElementById('dailyRateInput').value        = impl.dailyRate;
+      document.getElementById('infraCostInput').value        = impl.infraCost;
+      document.getElementById('trainingCostInput').value     = impl.trainingCost;
+      document.getElementById('processCountInput').value     = proc.processCount;
+      document.getElementById('instancesPerProcessInput').value = proc.instancesPerProcess;
+      document.getElementById('peoplePerInstanceInput').value = proc.peoplePerInstance;
+      document.getElementById('handlingMinutesInput').value  = proc.handlingMinutes;
+      document.getElementById('hourlyRateInput').value       = proc.hourlyRate;
+      document.getElementById('deploymentModeInput').value   = auto.deploymentMode;
+      document.getElementById('existingCostModeInput').value = auto.existingCostMode;
+      document.getElementById('existingAllocatedYearlyInput').value = auto.existingAllocatedYearly;
+      document.getElementById('camundaClustersInput').value = auto.camundaClusters;
+      document.getElementById('camundaClusterYearlyRateInput').value = auto.camundaClusterYearlyRate;
+      document.getElementById('selfManagedInfraInput').value = auto.selfManagedInfraYearly;
+      document.getElementById('orchestratorVarCostInput').value = auto.orchestratorVarCents;
+      document.getElementById('llmCostInput').value          = auto.llmCents;
+      document.getElementById('reviewRateInput').value       = auto.reviewRate;
+      document.getElementById('reviewMinutesInput').value    = auto.reviewMinutes;
+      document.getElementById('fallbackRateInput').value     = auto.fallbackRate;
+      document.getElementById('maintenanceDaysInput').value  = auto.maintenanceDays;
+      document.getElementById('qualityConfidenceInput').value = auto.qualityConfidence;
+      document.getElementById('opsConfidenceInput').value = auto.opsConfidence;
+      document.getElementById('coverageInput').value         = fin.coverage;
+      document.getElementById('capturedValueInput').value    = fin.capturedValue;
+      document.getElementById('captureConfidenceInput').value = fin.captureConfidence;
+      document.getElementById('pilotMonthsInput').value = fin.pilotMonths;
+      document.getElementById('rampMonthsInput').value = fin.rampMonths;
+      document.getElementById('discountRateInput').value     = fin.discountRate;
+      document.getElementById('horizonInput').value          = fin.horizon;
+      document.getElementById('rangeProfileInput').value     = activeRangeProfile;
+      document.getElementById('assumptionProfileInput').value = activeAssumptionProfile;
+    }
+    function applyAssumptionProfile(profile, { preserveValues = false } = {}) {
+      activeAssumptionProfile = normalizeAssumptionProfile(profile);
+      document.getElementById('assumptionProfileInput').value = activeAssumptionProfile;
+      if (preserveValues) return;
+      const cfg = ASSUMPTION_PROFILES[activeAssumptionProfile];
+      fin.coverage = cfg.coverage;
+      fin.capturedValue = cfg.capturedValue;
+      fin.pilotMonths = cfg.pilotMonths;
+      fin.rampMonths = cfg.rampMonths;
+      fin.discountRate = cfg.discountRate;
+      fin.horizon = cfg.horizon;
+      auto.reviewRate = cfg.reviewRate;
+      auto.reviewMinutes = cfg.reviewMinutes;
+      auto.fallbackRate = cfg.fallbackRate;
+      auto.maintenanceDays = cfg.maintenanceDays;
+      auto.llmCents = cfg.llmCents;
+      auto.orchestratorVarCents = cfg.orchestratorVarCents;
+      syncInputsFromState();
+    }
+    function applyRangeConfig(input, cfg, value) {
+      input.min = cfg.min;
+      input.max = cfg.max;
+      input.step = cfg.step;
+      return clamp(value, cfg.min, cfg.max);
+    }
+    function applyRangeProfile(profile, { preserveValues = true } = {}) {
+      activeRangeProfile = normalizeRangeProfile(profile);
+      const cfg = RANGE_PROFILES[activeRangeProfile];
+      const devDaysInput = document.getElementById('devDaysInput');
+      const infraCostInput = document.getElementById('infraCostInput');
+      const trainingCostInput = document.getElementById('trainingCostInput');
+      const processCountInput = document.getElementById('processCountInput');
+      const instancesPerProcessInput = document.getElementById('instancesPerProcessInput');
+      const camundaClustersInput = document.getElementById('camundaClustersInput');
+      const camundaClusterYearlyRateInput = document.getElementById('camundaClusterYearlyRateInput');
+      const existingAllocatedYearlyInput = document.getElementById('existingAllocatedYearlyInput');
+      const selfManagedInfraInput = document.getElementById('selfManagedInfraInput');
+      const orchestratorVarInput = document.getElementById('orchestratorVarCostInput');
+      const maintenanceDaysInput = document.getElementById('maintenanceDaysInput');
+
+      impl.devDays = applyRangeConfig(devDaysInput, cfg.devDays, preserveValues ? impl.devDays : cfg.devDays.defaultValue);
+      impl.infraCost = applyRangeConfig(infraCostInput, cfg.infraCost, preserveValues ? impl.infraCost : cfg.infraCost.defaultValue);
+      impl.trainingCost = applyRangeConfig(trainingCostInput, cfg.trainingCost, preserveValues ? impl.trainingCost : cfg.trainingCost.defaultValue);
+      proc.processCount = applyRangeConfig(processCountInput, cfg.processCount, preserveValues ? proc.processCount : cfg.processCount.defaultValue);
+      proc.instancesPerProcess = applyRangeConfig(
+        instancesPerProcessInput,
+        cfg.instancesPerProcess,
+        preserveValues ? proc.instancesPerProcess : cfg.instancesPerProcess.defaultValue
+      );
+      auto.camundaClusters = applyRangeConfig(
+        camundaClustersInput,
+        cfg.camundaClusters,
+        preserveValues ? auto.camundaClusters : cfg.camundaClusters.defaultValue
+      );
+      auto.camundaClusterYearlyRate = applyRangeConfig(
+        camundaClusterYearlyRateInput,
+        cfg.camundaClusterYearlyRate,
+        preserveValues ? auto.camundaClusterYearlyRate : cfg.camundaClusterYearlyRate.defaultValue
+      );
+      auto.existingAllocatedYearly = applyRangeConfig(
+        existingAllocatedYearlyInput,
+        cfg.existingAllocatedYearly,
+        preserveValues ? auto.existingAllocatedYearly : cfg.existingAllocatedYearly.defaultValue
+      );
+      auto.selfManagedInfraYearly = applyRangeConfig(
+        selfManagedInfraInput,
+        cfg.selfManagedInfraYearly,
+        preserveValues ? auto.selfManagedInfraYearly : cfg.selfManagedInfraYearly.defaultValue
+      );
+      auto.orchestratorVarCents = applyRangeConfig(
+        orchestratorVarInput,
+        cfg.orchestratorVarCents,
+        preserveValues ? auto.orchestratorVarCents : cfg.orchestratorVarCents.defaultValue
+      );
+      auto.maintenanceDays = applyRangeConfig(maintenanceDaysInput, cfg.maintenanceDays, preserveValues ? auto.maintenanceDays : cfg.maintenanceDays.defaultValue);
+
+      syncInputsFromState();
+    }
+    function getRangeClampWarnings(nextProfile) {
+      const cfg = RANGE_PROFILES[normalizeRangeProfile(nextProfile)];
+      const warnings = [];
+      if (proc.processCount > cfg.processCount.max) warnings.push(`Candidate processes will be capped at ${cfg.processCount.max}.`);
+      if (proc.instancesPerProcess > cfg.instancesPerProcess.max) warnings.push(`Avg. instances / process / month will be capped at ${cfg.instancesPerProcess.max.toLocaleString()}.`);
+      if (impl.devDays > cfg.devDays.max) warnings.push(`Developer days will be capped at ${cfg.devDays.max}.`);
+      if (impl.infraCost > cfg.infraCost.max) warnings.push(`Infrastructure & tooling will be capped at ${formatMoney(cfg.infraCost.max)}.`);
+      if (impl.trainingCost > cfg.trainingCost.max) warnings.push(`Training & change management will be capped at ${formatMoney(cfg.trainingCost.max)}.`);
+      if (auto.camundaClusters > cfg.camundaClusters.max) warnings.push(`Camunda SaaS clusters will be capped at ${cfg.camundaClusters.max}.`);
+      if (auto.camundaClusterYearlyRate > cfg.camundaClusterYearlyRate.max) warnings.push(`Cost per cluster / year will be capped at ${formatMoney(cfg.camundaClusterYearlyRate.max)}.`);
+      if (auto.existingAllocatedYearly > cfg.existingAllocatedYearly.max) warnings.push(`Allocated platform cost / year will be capped at ${formatMoney(cfg.existingAllocatedYearly.max)}.`);
+      if (auto.selfManagedInfraYearly > cfg.selfManagedInfraYearly.max) warnings.push(`Self-managed infra / year will be capped at ${formatMoney(cfg.selfManagedInfraYearly.max)}.`);
+      if (auto.orchestratorVarCents > cfg.orchestratorVarCents.max) warnings.push(`Orchestration variable cost / instance will be capped at ${formatMoney(cfg.orchestratorVarCents.max / 100)}.`);
+      if (auto.maintenanceDays > cfg.maintenanceDays.max) warnings.push(`Maintenance effort / month will be capped at ${cfg.maintenanceDays.max} days.`);
+      return warnings;
+    }
+
+    /* ===== Collapsible panels ===== */
+    function applyPanelStates() {
+      document.getElementById('implPanel').classList.toggle('collapsed', implCollapsed);
+      document.getElementById('procPanel').classList.toggle('collapsed', procCollapsed);
+      document.getElementById('autoPanel').classList.toggle('collapsed', autoCollapsed);
+      document.getElementById('finPanel').classList.toggle('collapsed', finCollapsed);
+    }
+
+    [
+      ['implCollapseBtn', () => { implCollapsed = !implCollapsed; applyPanelStates(); saveState(); }],
+      ['procCollapseBtn', () => { procCollapsed = !procCollapsed; applyPanelStates(); saveState(); }],
+      ['autoCollapseBtn', () => { autoCollapsed = !autoCollapsed; applyPanelStates(); saveState(); }],
+      ['finCollapseBtn',  () => { finCollapsed  = !finCollapsed;  applyPanelStates(); saveState(); }],
+    ].forEach(([id, fn]) => document.getElementById(id).addEventListener('click', fn));
+
+    /* ===== Slider event handlers ===== */
+    const sliderBindings = [
+      ['devDaysInput',         () => { impl.devDays        = +document.getElementById('devDaysInput').value; }],
+      ['dailyRateInput',       () => { impl.dailyRate       = +document.getElementById('dailyRateInput').value; }],
+      ['infraCostInput',       () => { impl.infraCost       = +document.getElementById('infraCostInput').value; }],
+      ['trainingCostInput',    () => { impl.trainingCost    = +document.getElementById('trainingCostInput').value; }],
+      ['processCountInput',    () => { proc.processCount    = +document.getElementById('processCountInput').value; }],
+      ['instancesPerProcessInput', () => { proc.instancesPerProcess = +document.getElementById('instancesPerProcessInput').value; }],
+      ['peoplePerInstanceInput', () => { proc.peoplePerInstance = +document.getElementById('peoplePerInstanceInput').value; }],
+      ['handlingMinutesInput', () => { proc.handlingMinutes = +document.getElementById('handlingMinutesInput').value; }],
+      ['hourlyRateInput',      () => { proc.hourlyRate      = +document.getElementById('hourlyRateInput').value; }],
+      ['camundaClustersInput', () => { auto.camundaClusters = +document.getElementById('camundaClustersInput').value; }],
+      ['camundaClusterYearlyRateInput', () => { auto.camundaClusterYearlyRate = +document.getElementById('camundaClusterYearlyRateInput').value; }],
+      ['existingAllocatedYearlyInput', () => { auto.existingAllocatedYearly = +document.getElementById('existingAllocatedYearlyInput').value; }],
+      ['selfManagedInfraInput', () => { auto.selfManagedInfraYearly = +document.getElementById('selfManagedInfraInput').value; }],
+      ['orchestratorVarCostInput', () => { auto.orchestratorVarCents = +document.getElementById('orchestratorVarCostInput').value; }],
+      ['llmCostInput',         () => { auto.llmCents        = +document.getElementById('llmCostInput').value; }],
+      ['reviewRateInput',      () => { auto.reviewRate      = +document.getElementById('reviewRateInput').value; }],
+      ['reviewMinutesInput',   () => { auto.reviewMinutes   = +document.getElementById('reviewMinutesInput').value; }],
+      ['fallbackRateInput',    () => { auto.fallbackRate    = +document.getElementById('fallbackRateInput').value; }],
+      ['maintenanceDaysInput', () => { auto.maintenanceDays = +document.getElementById('maintenanceDaysInput').value; }],
+      ['coverageInput',        () => { fin.coverage         = +document.getElementById('coverageInput').value; }],
+      ['capturedValueInput',   () => { fin.capturedValue    = +document.getElementById('capturedValueInput').value; }],
+      ['pilotMonthsInput',     () => { fin.pilotMonths      = +document.getElementById('pilotMonthsInput').value; }],
+      ['rampMonthsInput',      () => { fin.rampMonths       = +document.getElementById('rampMonthsInput').value; }],
+      ['discountRateInput',    () => { fin.discountRate      = +document.getElementById('discountRateInput').value; }],
+      ['horizonInput',         () => { fin.horizon           = +document.getElementById('horizonInput').value; }],
+    ];
+
+    sliderBindings.forEach(([id, setter]) => {
+      document.getElementById(id).addEventListener('input', () => {
+        setter();
+        updateDisplays();
+        recalculate();
+      });
+    });
+    document.getElementById('deploymentModeInput').addEventListener('change', () => {
+      auto.deploymentMode = document.getElementById('deploymentModeInput').value;
+      applyDeploymentPreset(auto.deploymentMode);
+      updateDisplays();
+      recalculate();
+    });
+    document.getElementById('existingCostModeInput').addEventListener('change', () => {
+      auto.existingCostMode = document.getElementById('existingCostModeInput').value;
+      updateDisplays();
+      recalculate();
+    });
+    document.getElementById('qualityConfidenceInput').addEventListener('change', () => {
+      auto.qualityConfidence = document.getElementById('qualityConfidenceInput').value;
+      recalculate();
+    });
+    document.getElementById('opsConfidenceInput').addEventListener('change', () => {
+      auto.opsConfidence = document.getElementById('opsConfidenceInput').value;
+      recalculate();
+    });
+    document.getElementById('captureConfidenceInput').addEventListener('change', () => {
+      fin.captureConfidence = document.getElementById('captureConfidenceInput').value;
+      recalculate();
+    });
+    document.getElementById('rangeProfileInput').addEventListener('change', () => {
+      const next = document.getElementById('rangeProfileInput').value;
+      const warnings = getRangeClampWarnings(next);
+      if (warnings.length) {
+        const proceed = confirm(`Changing profile will adjust current values:\n- ${warnings.join('\n- ')}\n\nContinue?`);
+        if (!proceed) {
+          document.getElementById('rangeProfileInput').value = activeRangeProfile;
+          return;
+        }
+      }
+      applyRangeProfile(next, { preserveValues: true });
+      updateDisplays();
+      recalculate();
+    });
+    document.getElementById('assumptionProfileInput').addEventListener('change', () => {
+      applyAssumptionProfile(document.getElementById('assumptionProfileInput').value, { preserveValues: false });
+      updateDisplays();
+      recalculate();
+    });
+
+    /* ===== Chart tabs ===== */
+    const tabButtons = [...document.querySelectorAll('.chart-tabs button[data-tab]')];
+    function setChartTab(tab) {
+      activeChartTab = tab;
+      tabButtons.forEach(btn => btn.setAttribute('aria-pressed', btn.dataset.tab === tab));
+      recalculate();
+    }
+    tabButtons.forEach(btn => btn.addEventListener('click', () => setChartTab(btn.dataset.tab)));
+
+    /* ===== Currency ===== */
+    const btnUSD   = document.getElementById('btnUSD');
+    const btnEUR   = document.getElementById('btnEUR');
+    const rateInput = document.getElementById('rateInput');
+
+    function setCurrency(c) {
+      currency = c;
+      btnUSD.setAttribute('aria-pressed', c === 'USD');
+      btnEUR.setAttribute('aria-pressed', c === 'EUR');
+      document.querySelector('.header-currency').classList.toggle('usd-active', c === 'USD');
+      updateDisplays();
+      recalculate();
+    }
+    btnUSD.addEventListener('click', () => setCurrency('USD'));
+    btnEUR.addEventListener('click', () => setCurrency('EUR'));
+    rateInput.addEventListener('input', () => {
+      const v = parseFloat(rateInput.value);
+      if (v > 0 && isFinite(v)) { eurRate = v; updateDisplays(); recalculate(); }
+    });
+
+    /* ===== Theme ===== */
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const html = document.documentElement;
+      html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+      if (chart) recalculate();
+      saveState();
+    });
+
+    /* ===== Reset ===== */
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      impl = { ...DEFAULT_IMPL };
+      proc = { ...DEFAULT_PROC };
+      auto = { ...DEFAULT_AUTO };
+      fin  = { ...DEFAULT_FIN };
+      activeRangeProfile = 'growth';
+      activeAssumptionProfile = 'base';
+      implCollapsed = false;
+      procCollapsed = false;
+      autoCollapsed = true;
+      finCollapsed = true;
+      applyPanelStates();
+      applyRangeProfile(activeRangeProfile, { preserveValues: false });
+      applyAssumptionProfile(activeAssumptionProfile, { preserveValues: false });
+      syncInputsFromState();
+      updateDisplays();
+      recalculate();
+    });
+
+    document.getElementById('toModelComparison').addEventListener('click', () => {
+      const base = compute();
+      const conservativeInputs = buildScenarioInputs('conservative');
+      const conservative = compute({ autoState: conservativeInputs.autoState, finState: conservativeInputs.finState });
+      const confidence = confidenceSnapshot();
+      const complexity = proc.handlingMinutes >= 60
+        ? { inputTokens: 1500, outputTokens: 700, tools: 8 }
+        : proc.handlingMinutes >= 20
+        ? { inputTokens: 1000, outputTokens: 500, tools: 5 }
+        : { inputTokens: 700, outputTokens: 300, tools: 3 };
+      const payload = {
+        monthlyInstances: Math.max(0, Math.round(base.automatedInstances)),
+        manualCost: Math.max(0, Math.round(base.monthlyManualCost)),
+        budget: Math.max(0, Math.round(base.monthlyAutomationCost * 1.2)),
+        growthRate: 0,
+        forecastMonths: 12,
+        activeChartTab: 'score',
+        processSettings: complexity,
+        context: {
+          deploymentMode: auto.deploymentMode,
+          coverage: fin.coverage,
+          pilotMonths: fin.pilotMonths,
+          rampMonths: fin.rampMonths,
+          horizon: fin.horizon,
+          baseMonthlyNet: Math.round(base.monthlySavings),
+          conservativeMonthlyNet: Math.round(conservative.monthlySavings),
+          confidenceGuessed: confidence.guessedCount,
+        },
+        fromProject: true,
+        createdAt: Date.now(),
+      };
+      localStorage.setItem(STEP2_HANDOFF_KEY, JSON.stringify(payload));
+      location.href = 'index.html#step2';
+    });
+
+    /* ===== Navigation drawer ===== */
+    (function() {
+      const navDrawer   = document.getElementById('navDrawer');
+      const navBackdrop = document.getElementById('navBackdrop');
+      function openNav()  { navDrawer.classList.add('open');    navBackdrop.classList.add('open'); }
+      function closeNav() { navDrawer.classList.remove('open'); navBackdrop.classList.remove('open'); }
+      document.getElementById('navBtn').addEventListener('click', openNav);
+      document.getElementById('navClose').addEventListener('click', closeNav);
+      navBackdrop.addEventListener('click', closeNav);
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNav(); });
+    })();
+
+    /* ===== Init ===== */
+    (function() {
+      const saved = loadState();
+      if (saved) {
+        normalizeLoadedState(saved);
+        if (saved.theme) document.documentElement.dataset.theme = saved.theme;
+        if (saved.currency) { currency = saved.currency; }
+        if (saved.eurRate > 0) { eurRate = saved.eurRate; rateInput.value = eurRate; }
+        if (saved.activeChartTab) activeChartTab = saved.activeChartTab;
+        activeRangeProfile = inferRangeProfile(saved);
+        activeAssumptionProfile = normalizeAssumptionProfile(saved.activeAssumptionProfile || activeAssumptionProfile);
+        if (saved.impl)          Object.assign(impl, saved.impl);
+        if (saved.proc)          Object.assign(proc, saved.proc);
+        if (saved.auto)          Object.assign(auto, saved.auto);
+        if (saved.fin)           Object.assign(fin,  saved.fin);
+        implCollapsed = !!saved.implCollapsed;
+        procCollapsed = !!saved.procCollapsed;
+        autoCollapsed = !!saved.autoCollapsed;
+        finCollapsed  = !!saved.finCollapsed;
+
+        // Sync currency buttons
+        btnUSD.setAttribute('aria-pressed', currency === 'USD');
+        btnEUR.setAttribute('aria-pressed', currency === 'EUR');
+        document.querySelector('.header-currency').classList.toggle('usd-active', currency === 'USD');
+
+        // Sync chart tab buttons
+        tabButtons.forEach(btn => btn.setAttribute('aria-pressed', btn.dataset.tab === activeChartTab));
+      }
+
+      applyRangeProfile(activeRangeProfile, { preserveValues: true });
+      applyAssumptionProfile(activeAssumptionProfile, { preserveValues: !!saved });
+      syncInputsFromState();
+      applyPanelStates();
+      updateDisplays();
+      recalculate();
+    })();
+  </script>
+</body>
+</html>
