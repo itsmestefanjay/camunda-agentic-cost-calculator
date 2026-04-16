@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project Business Case — Camunda</title>
   <link rel="stylesheet" href="style.css">
+  <script>!function(){var t=localStorage.getItem("camunda-theme");if(t)document.documentElement.dataset.theme=t}();</script>
   <style>
     /* --- Page layout --- */
     main {
@@ -38,17 +39,31 @@
   <div class="nav-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="navDrawer" aria-label="Site navigation">
     <div class="nav-drawer-header">
-      <span class="nav-logo">Camunda Calculators</span>
+      <span class="nav-logo">Agentic Orchestration Calculators</span>
       <button class="nav-close" id="navClose" aria-label="Close navigation">&times;</button>
     </div>
-    <div class="nav-section-title">Calculators</div>
     <a href="index.html" class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Cost Comparison
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
     </a>
-    <a href="project.html" class="nav-item active">
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">Calculators</div>
+    <a href="step1.html" class="nav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Project Business Case
+      Step 1: Project Business Case
+    </a>
+    <a href="step2.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Step 2: Process Prioritization
+    </a>
+    <a href="step3.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Step 3: Model Cost &amp; Fit
+    </a>
+    <div class="nav-divider"></div>
+    <a href="about.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      About
     </a>
   </nav>
 
@@ -83,7 +98,7 @@
     <div class="inputs-column">
       <div class="panel settings-panel">
         <div class="settings-header">
-          <div class="settings-title">Company Size Profile</div>
+          <div class="settings-title">Size Profile</div>
         </div>
         <div class="settings-body"><div class="settings-body-inner">
           <div class="slider-group">
@@ -112,24 +127,28 @@
           <button class="settings-collapse-btn" id="implCollapseBtn" title="Collapse">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div class="settings-title">Implementation Cost</div>
+          <div class="settings-title">Build Cost</div>
         </div>
         <div class="settings-body"><div class="settings-body-inner">
           <div class="slider-group">
             <div class="slider-header"><label>Developer days</label><output id="devDaysDisplay"></output></div>
             <input type="range" min="1" max="300" step="1" value="60" id="devDaysInput">
+            <p class="input-note">Total developer days for delivery.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Daily developer rate</label><output id="dailyRateDisplay"></output></div>
             <input type="range" min="100" max="3000" step="50" value="800" id="dailyRateInput">
+            <p class="input-note">Loaded cost per developer day.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Infrastructure &amp; tooling (one-time)</label><output id="infraCostDisplay"></output></div>
             <input type="range" min="0" max="100000" step="1000" value="5000" id="infraCostInput">
+            <p class="input-note">One time setup and tooling cost.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Training &amp; change management</label><output id="trainingCostDisplay"></output></div>
             <input type="range" min="0" max="50000" step="500" value="2000" id="trainingCostInput">
+            <p class="input-note">Training and change rollout cost.</p>
           </div>
         </div></div>
       </div>
@@ -140,32 +159,38 @@
           <button class="settings-collapse-btn" id="procCollapseBtn" title="Collapse">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div class="settings-title">Manual Process Baseline</div>
+          <div class="settings-title">Manual Baseline</div>
         </div>
         <div class="settings-body"><div class="settings-body-inner">
           <div class="slider-group">
             <div class="slider-header"><label>Candidate processes</label><output id="processCountDisplay"></output></div>
             <input type="range" min="1" max="50" step="1" value="12" id="processCountInput">
+            <p class="input-note">Processes targeted for automation.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Avg. instances / process / month</label><output id="instancesPerProcessDisplay"></output></div>
             <input type="range" min="50" max="5000" step="50" value="500" id="instancesPerProcessInput">
+            <p class="input-note">Average runs per process each month.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Avg. people involved / instance</label><output id="peoplePerInstanceDisplay"></output></div>
             <input type="range" min="0.5" max="5" step="0.1" value="1.2" id="peoplePerInstanceInput">
+            <p class="input-note">Average people involved per run.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Avg. handling time / instance</label><output id="handlingMinutesDisplay"></output></div>
             <input type="range" min="1" max="480" step="1" value="30" id="handlingMinutesInput">
+            <p class="input-note">Minutes spent per run per person.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Staff hourly rate</label><output id="hourlyRateDisplay"></output></div>
             <input type="range" min="10" max="300" step="5" value="50" id="hourlyRateInput">
+            <p class="input-note">Loaded hourly labor cost.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Migrated volume share (steady state)</label><output id="coverageDisplay"></output></div>
             <input type="range" min="10" max="100" step="5" value="80" id="coverageInput">
+            <p class="input-note">Percent of volume automated at scale.</p>
           </div>
         </div></div>
       </div>
@@ -176,7 +201,7 @@
           <button class="settings-collapse-btn" id="autoCollapseBtn" title="Collapse">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div class="settings-title">Advanced Assumptions: Delivery Quality &amp; Run Ops</div>
+          <div class="settings-title">Advanced Ops</div>
         </div>
         <div class="settings-body"><div class="settings-body-inner">
           <div class="slider-group">
@@ -198,38 +223,47 @@
           <div class="slider-group" id="existingAllocatedCostGroup">
             <div class="slider-header"><label>Allocated platform cost / year</label><output id="existingAllocatedYearlyDisplay"></output></div>
             <input type="range" min="0" max="2000000" step="5000" value="0" id="existingAllocatedYearlyInput">
+            <p class="input-note">Annual allocated platform cost share.</p>
           </div>
           <div class="slider-group" id="saasClusterCountGroup">
             <div class="slider-header"><label>Camunda SaaS clusters</label><output id="camundaClustersDisplay"></output></div>
             <input type="range" min="1" max="20" step="1" value="3" id="camundaClustersInput">
+            <p class="input-note">Camunda SaaS clusters required.</p>
           </div>
           <div class="slider-group" id="saasClusterRateGroup">
             <div class="slider-header"><label>Cost per cluster / year</label><output id="camundaClusterYearlyRateDisplay"></output></div>
             <input type="range" min="5000" max="15000" step="250" value="7000" id="camundaClusterYearlyRateInput">
+            <p class="input-note">Annual cost per Camunda SaaS cluster.</p>
           </div>
           <div class="slider-group" id="selfManagedInfraGroup">
             <div class="slider-header"><label id="selfManagedInfraLabel">Self-managed infra / year</label><output id="selfManagedInfraDisplay"></output></div>
             <input type="range" min="0" max="800000" step="1000" value="120000" id="selfManagedInfraInput">
+            <p class="input-note">Annual self managed platform cost.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Orchestration variable cost / automated instance</label><output id="orchestratorVarCostDisplay"></output></div>
             <input type="range" min="0" max="200" step="1" value="8" id="orchestratorVarCostInput">
+            <p class="input-note">Variable platform cost per automated run.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>LLM cost / automated instance</label><output id="llmCostDisplay"></output></div>
             <input type="range" min="1" max="500" step="1" value="10" id="llmCostInput">
+            <p class="input-note">LLM spend per automated run.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Human review rate</label><output id="reviewRateDisplay"></output></div>
             <input type="range" min="0" max="100" step="1" value="20" id="reviewRateInput">
+            <p class="input-note">Percent requiring human review.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Review time / reviewed instance</label><output id="reviewMinutesDisplay"></output></div>
             <input type="range" min="1" max="120" step="1" value="8" id="reviewMinutesInput">
+            <p class="input-note">Review minutes per flagged run.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Fallback-to-manual rate</label><output id="fallbackRateDisplay"></output></div>
             <input type="range" min="0" max="60" step="1" value="8" id="fallbackRateInput">
+            <p class="input-note">Percent routed back to manual handling.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Quality assumptions confidence</label></div>
@@ -242,6 +276,7 @@
           <div class="slider-group">
             <div class="slider-header"><label>Maintenance effort / month</label><output id="maintenanceDaysDisplay"></output></div>
             <input type="range" min="0" max="20" step="1" value="3" id="maintenanceDaysInput">
+            <p class="input-note">Developer days monthly for maintenance.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Ops assumptions confidence</label></div>
@@ -260,12 +295,13 @@
           <button class="settings-collapse-btn" id="finCollapseBtn" title="Collapse">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div class="settings-title">Advanced Assumptions: Financial Realization</div>
+          <div class="settings-title">Advanced Finance</div>
         </div>
         <div class="settings-body"><div class="settings-body-inner">
           <div class="slider-group">
             <div class="slider-header"><label>Captured labor value</label><output id="capturedValueDisplay"></output></div>
             <input type="range" min="0" max="100" step="1" value="60" id="capturedValueInput">
+            <p class="input-note">Percent labor capacity captured as savings.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Value-capture assumptions confidence</label></div>
@@ -278,18 +314,22 @@
           <div class="slider-group">
             <div class="slider-header"><label>Pilot phase</label><output id="pilotMonthsDisplay"></output></div>
             <input type="range" min="0" max="12" step="1" value="2" id="pilotMonthsInput">
+            <p class="input-note">Months before production savings start.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Rollout ramp</label><output id="rampMonthsDisplay"></output></div>
             <input type="range" min="1" max="24" step="1" value="6" id="rampMonthsInput">
+            <p class="input-note">Months to full rollout volume.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Discount rate (WACC)</label><output id="discountRateDisplay"></output></div>
             <input type="range" min="0" max="25" step="1" value="8" id="discountRateInput">
+            <p class="input-note">Annual discount rate for cash flows.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Analysis horizon</label><output id="horizonDisplay"></output></div>
             <input type="range" min="1" max="10" step="1" value="5" id="horizonInput">
+            <p class="input-note">Years included in financial analysis.</p>
           </div>
         </div></div>
       </div>
@@ -333,9 +373,7 @@
           <div class="card-sub" id="cardPaybackSub">months to break even</div>
         </div>
         <div class="summary-card" id="cardBenefit">
-          <div class="card-label">Conservative Net / Month</div>
-          <div class="card-value" id="cardBenefitValue">—</div>
-          <div class="card-sub" id="cardBenefitSub">downside stress case</div>
+          <div class="card-label">Scenario Range / Month</div>
         </div>
         <div class="summary-card" id="cardNPV">
           <div class="card-label" id="cardNPVLabel">5-Year NPV</div>
@@ -363,6 +401,12 @@
 
     </div>
   </main>
+
+  <div style="max-width:960px;margin:1.5rem auto 2.5rem;padding:0 1.5rem;display:flex;justify-content:flex-end">
+    <a href="step2.html" style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.65rem 1.4rem;background:var(--accent);color:#fff;border-radius:8px;font-size:0.9rem;font-weight:700;text-decoration:none;transition:opacity 0.15s" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+      Continue to Step 2: Process Prioritization →
+    </a>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <script>
@@ -872,7 +916,7 @@
     }
 
     /* ===== Summary cards ===== */
-    function updateSummaryCards(r, conservative) {
+    function updateSummaryCards(r, conservative, upside) {
       // Implementation cost
       document.getElementById('cardImpl').className = 'summary-card';
       document.getElementById('cardImplValue').textContent = formatMoney(r.implementationCost);
@@ -904,20 +948,36 @@
       const payClass = r.paybackMonths <= 24 ? 'positive' : r.paybackMonths <= 48 ? 'caution' : 'negative';
       document.getElementById('cardPayback').className = `summary-card ${r.monthlySavings > 0 ? payClass : 'negative'}`;
       document.getElementById('cardPaybackValue').textContent = formatMonths(r.paybackMonths);
-      document.getElementById('cardPaybackSub').textContent = `ramped rollout | conservative: ${formatMonths(conservative.paybackMonths)}`;
+      document.getElementById('cardPaybackSub').textContent = `Conservative: ${formatMonths(conservative.paybackMonths)} · Upside: ${formatMonths(upside.paybackMonths)}`;
 
-      // Conservative monthly net
-      const benClass = conservative.monthlySavings > 0 ? 'positive' : conservative.monthlySavings < 0 ? 'negative' : '';
-      document.getElementById('cardBenefit').className = `summary-card ${benClass}`;
-      document.getElementById('cardBenefitValue').textContent = formatMoneySigned(conservative.monthlySavings);
-      document.getElementById('cardBenefitSub').textContent = `Base: ${formatMoneySigned(r.monthlySavings)}/mo`;
+      // Scenario range card
+      const colColor = (v) => v > 0 ? '#22c55e' : v < 0 ? '#ef4444' : 'var(--muted)';
+      document.getElementById('cardBenefit').className = 'summary-card';
+      document.getElementById('cardBenefit').innerHTML = `
+        <div class="card-label">Scenario Range / Month</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-top:0.45rem">
+          <div>
+            <div style="font-size:0.64rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.2rem">Pessimistic</div>
+            <div style="font-size:0.9rem;font-weight:700;font-variant-numeric:tabular-nums;color:${colColor(conservative.monthlySavings)}">${formatMoneySigned(conservative.monthlySavings)}</div>
+          </div>
+          <div>
+            <div style="font-size:0.64rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.2rem">Base</div>
+            <div style="font-size:0.9rem;font-weight:700;font-variant-numeric:tabular-nums;color:${colColor(r.monthlySavings)}">${formatMoneySigned(r.monthlySavings)}</div>
+          </div>
+          <div>
+            <div style="font-size:0.64rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.2rem">Upside</div>
+            <div style="font-size:0.9rem;font-weight:700;font-variant-numeric:tabular-nums;color:${colColor(upside.monthlySavings)}">${formatMoneySigned(upside.monthlySavings)}</div>
+          </div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:0.4rem">steady-state net, all scenarios</div>
+      `;
 
       // NPV
       const npvClass = r.npv > 0 ? 'positive' : r.npv < 0 ? 'negative' : '';
       document.getElementById('cardNPV').className = `summary-card ${npvClass}`;
       document.getElementById('cardNPVLabel').textContent = `${fin.horizon}-Year NPV`;
       document.getElementById('cardNPVValue').textContent = formatMoneySigned(r.npv);
-      document.getElementById('cardNPVSub').textContent = `at ${fin.discountRate}% discount rate`;
+      document.getElementById('cardNPVSub').textContent = `Conservative: ${formatMoneySigned(conservative.npv)} · Upside: ${formatMoneySigned(upside.npv)}`;
     }
 
     /* ===== Decision badge ===== */
@@ -977,52 +1037,81 @@
       }
     };
 
-    function buildROIChart(theme, r) {
-      const points = r.cumulativeSeries.map((value, idx) => ({ x: idx, y: value }));
-
-      const color = r.monthlySavings >= 0 ? '#FC5D0D' : '#EF4444';
+    function buildROIChart(theme, base, conservative, upside) {
+      const toPoints = series => series.map((value, idx) => ({ x: idx, y: value }));
       return {
         config: {
           type: 'scatter',
           data: {
-            datasets: [{
-              label: 'Cumulative cash flow',
-              data: points,
-              borderColor: color,
-              backgroundColor: color + '18',
-              showLine: true,
-              fill: { target: { value: 0 }, above: 'rgba(34,197,94,0.06)', below: 'rgba(239,68,68,0.06)' },
-              tension: 0,
-              pointRadius: 0,
-              pointHoverRadius: 4,
-              borderWidth: 2.5,
-            }],
+            datasets: [
+              {
+                label: 'Conservative',
+                data: toPoints(conservative.cumulativeSeries),
+                borderColor: 'rgba(239,68,68,0.6)',
+                backgroundColor: 'rgba(239,68,68,0.06)',
+                showLine: true,
+                fill: '+1',
+                tension: 0,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                borderWidth: 1.5,
+                borderDash: [5, 4],
+                order: 2,
+              },
+              {
+                label: 'Upside',
+                data: toPoints(upside.cumulativeSeries),
+                borderColor: 'rgba(34,197,94,0.6)',
+                backgroundColor: 'rgba(34,197,94,0.06)',
+                showLine: true,
+                fill: false,
+                tension: 0,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                borderWidth: 1.5,
+                borderDash: [5, 4],
+                order: 2,
+              },
+              {
+                label: 'Base case',
+                data: toPoints(base.cumulativeSeries),
+                borderColor: '#FC5D0D',
+                backgroundColor: '#FC5D0D18',
+                showLine: true,
+                fill: false,
+                tension: 0,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                borderWidth: 2.5,
+                order: 1,
+              },
+            ],
           },
           options: {
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 0 },
             interaction: { intersect: false, mode: 'nearest', axis: 'x' },
             plugins: {
-              legend: { display: false },
+              legend: {
+                display: true,
+                labels: { color: theme.muted, usePointStyle: true, pointStyleWidth: 16, boxHeight: 2, font: { size: 11 } },
+              },
               tooltip: {
                 callbacks: {
                   title: (items) => `Month ${Math.round(items[0].parsed.x)}`,
-                  label: (ctx) => {
-                    const v = ctx.parsed.y;
-                    return ` Cumulative: ${formatMoneySigned(v / displayRate())}`;
-                  },
+                  label: (ctx) => ` ${ctx.dataset.label}: ${formatMoneySigned(ctx.parsed.y / displayRate())}`,
                 },
               },
             },
             scales: {
               x: {
-                type: 'linear', min: 0, max: r.horizonMonths,
+                type: 'linear', min: 0, max: base.horizonMonths,
                 title: { display: true, text: 'Month', color: theme.muted },
                 grid: { color: theme.grid },
                 ticks: {
                   color: theme.muted,
                   callback: (v) => Number.isInteger(v) ? v : '',
-                  maxTicksLimit: Math.min(r.horizonMonths + 1, 13),
+                  maxTicksLimit: Math.min(base.horizonMonths + 1, 13),
                 },
               },
               y: {
@@ -1034,46 +1123,64 @@
           },
         },
         plugins: [breakEvenPlugin],
-        helperMessages: r.yearOneAvgNet <= 0
+        helperMessages: base.yearOneAvgNet <= 0
           ? ['No positive gain: run cost exceeds realized labor benefit at current assumptions.']
           : [],
       };
     }
 
-    function buildAnnualChart(theme, r) {
+    function buildAnnualChart(theme, base, conservative, upside) {
       const labels = [];
-      const data   = [];
-      const colors = [];
+      const baseData = [], conservData = [], upsideData = [];
       for (let yr = 1; yr <= fin.horizon; yr++) {
         labels.push(`Year ${yr}`);
-        const monthIndex = Math.min(yr * 12, r.horizonMonths);
-        const cumulative = r.cumulativeSeries[monthIndex];
-        data.push(cumulative * displayRate());
-        colors.push(cumulative >= 0 ? 'rgba(34, 197, 94, 0.75)' : 'rgba(239, 68, 68, 0.75)');
+        const mo = Math.min(yr * 12, base.horizonMonths);
+        baseData.push(base.cumulativeSeries[mo] * displayRate());
+        conservData.push(conservative.cumulativeSeries[mo] * displayRate());
+        upsideData.push(upside.cumulativeSeries[mo] * displayRate());
       }
       return {
         config: {
           type: 'bar',
           data: {
             labels,
-            datasets: [{
-              label: 'Cumulative net benefit',
-              data,
-              backgroundColor: colors,
-              borderRadius: 5,
-              borderSkipped: false,
-            }],
+            datasets: [
+              {
+                label: 'Conservative',
+                data: conservData,
+                backgroundColor: 'rgba(239,68,68,0.65)',
+                borderRadius: 4,
+                borderSkipped: false,
+              },
+              {
+                label: 'Base',
+                data: baseData,
+                backgroundColor: '#FC5D0Dcc',
+                borderRadius: 4,
+                borderSkipped: false,
+              },
+              {
+                label: 'Upside',
+                data: upsideData,
+                backgroundColor: 'rgba(34,197,94,0.65)',
+                borderRadius: 4,
+                borderSkipped: false,
+              },
+            ],
           },
           options: {
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 0 },
             interaction: { intersect: true, mode: 'nearest' },
             plugins: {
-              legend: { display: false },
+              legend: {
+                display: true,
+                labels: { color: theme.muted, usePointStyle: true, pointStyleWidth: 10, font: { size: 11 } },
+              },
               tooltip: {
                 callbacks: {
                   title: (items) => items[0].label,
-                  label: (ctx) => ` Net benefit: ${formatMoneySigned(ctx.parsed.y / displayRate())}`,
+                  label: (ctx) => ` ${ctx.dataset.label}: ${formatMoneySigned(ctx.parsed.y / displayRate())}`,
                 },
               },
             },
@@ -1099,9 +1206,9 @@
       el.innerHTML = messages.map(m => `<span>${m}</span>`).join('');
     }
 
-    function renderActiveChart(r) {
+    function renderActiveChart(base, conservative, upside) {
       const theme = getThemeColors();
-      const spec  = activeChartTab === 'annual' ? buildAnnualChart(theme, r) : buildROIChart(theme, r);
+      const spec  = activeChartTab === 'annual' ? buildAnnualChart(theme, base, conservative, upside) : buildROIChart(theme, base, conservative, upside);
       setChartHelper(spec.helperMessages);
 
       const canvas = document.getElementById('roiChart');
@@ -1226,9 +1333,9 @@
       const upside = compute({ autoState: upsideInputs.autoState, finState: upsideInputs.finState });
       const confidence = confidenceSnapshot();
       const signal = classifySignal(r, conservative, confidence);
-      updateSummaryCards(r, conservative);
+      updateSummaryCards(r, conservative, upside);
       updateDecision(r, conservative, signal, confidence);
-      renderActiveChart(r);
+      renderActiveChart(r, conservative, upside);
       updateInsights(r, conservative, upside, confidence);
       saveState();
     }
@@ -1268,9 +1375,9 @@
       document.getElementById('discountRateDisplay').textContent = `${fin.discountRate}%/yr`;
       document.getElementById('horizonDisplay').textContent      = `${fin.horizon} year${fin.horizon !== 1 ? 's' : ''}`;
       const profileNotes = {
-        conservative: 'Conservative assumes slower rollout, lower realized value, and higher quality overhead.',
-        base: 'Base balances risk and delivery assumptions for planning discussions.',
-        upside: 'Upside assumes faster rollout, lower overhead, and higher value capture.',
+        conservative: 'Pre-fills inputs conservatively. Pessimistic, base, and upside ranges are always computed and shown.',
+        base: 'Pre-fills balanced inputs. Pessimistic, base, and upside ranges are always computed and shown.',
+        upside: 'Pre-fills optimistic inputs. Pessimistic, base, and upside ranges are always computed and shown.',
       };
       document.getElementById('assumptionProfileNote').textContent = profileNotes[activeAssumptionProfile];
     }
@@ -1587,7 +1694,7 @@
         createdAt: Date.now(),
       };
       localStorage.setItem(STEP2_HANDOFF_KEY, JSON.stringify(payload));
-      location.href = 'index.html#step2';
+      location.href = 'step2.html#step2';
     });
 
     /* ===== Navigation drawer ===== */

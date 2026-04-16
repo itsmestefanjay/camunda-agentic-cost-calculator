@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About · Agentic Orchestration Calculators</title>
+  <link rel="stylesheet" href="style.css">
+  <script>!function(){var t=localStorage.getItem("camunda-theme");if(t)document.documentElement.dataset.theme=t}();</script>
+  <style>
+    /* ===== About layout ===== */
+    .about-wrap {
+      max-width: 720px; margin: 0 auto; padding: 2rem 2rem 4rem;
+    }
+    .about-section {
+      margin-bottom: 2.5rem;
+    }
+    .about-section h2 {
+      font-size: 1.0625rem; font-weight: 700; color: var(--text);
+      letter-spacing: -0.01em; margin-bottom: 0.75rem;
+    }
+    .about-section p {
+      color: var(--muted); font-size: 0.9rem; line-height: 1.75;
+      margin-bottom: 0.75rem;
+      &:last-child { margin-bottom: 0; }
+    }
+    .about-section ul {
+      list-style: none; display: flex; flex-direction: column; gap: 0.4rem;
+      color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 0.75rem;
+      li::before { content: '→ '; color: var(--accent); }
+    }
+    .about-divider {
+      height: 1px; background: var(--border); margin: 2.5rem 0;
+    }
+    .disclaimer-box {
+      background: var(--toggle-bg); border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 10px; padding: 1.25rem 1.5rem;
+    }
+    .disclaimer-box .disclaimer-title {
+      font-size: 0.7rem; font-weight: 700; color: #F59E0B;
+      text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.6rem;
+    }
+    .disclaimer-box p {
+      font-size: 0.85rem; color: var(--muted); line-height: 1.7;
+      margin-bottom: 0.6rem;
+      &:last-child { margin-bottom: 0; }
+    }
+    .author-card {
+      display: flex; align-items: flex-start; gap: 1.25rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+    }
+    .author-avatar {
+      width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #FC5D0D 0%, #f97316 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; font-weight: 700; color: #fff; line-height: 1;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
+    .author-role { font-size: 0.8125rem; color: var(--muted); margin-bottom: 0.6rem; }
+    .author-bio  { font-size: 0.875rem; color: var(--muted); line-height: 1.65; }
+  </style>
+</head>
+<body>
+
+  <div class="nav-backdrop" id="navBackdrop"></div>
+  <nav class="nav-drawer" id="navDrawer" aria-label="Site navigation">
+    <div class="nav-drawer-header">
+      <span class="nav-logo">Agentic Orchestration Calculators</span>
+      <button class="nav-close" id="navClose" aria-label="Close navigation">&times;</button>
+    </div>
+    <a href="index.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">Calculators</div>
+    <a href="step1.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Step 1: Project Business Case
+    </a>
+    <a href="step2.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Step 2: Process Prioritization
+    </a>
+    <a href="step3.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Step 3: Model Cost &amp; Fit
+    </a>
+    <div class="nav-divider"></div>
+    <a href="about.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      About
+    </a>
+  </nav>
+
+  <header>
+    <div class="header-brand">
+      <button class="icon-btn" id="navBtn" title="Navigation menu" aria-label="Open navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="header-copy">
+        <h1>About</h1>
+        <p>Project background, author, and legal notice</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn theme" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="about-wrap">
+
+    <section class="about-section">
+      <h2>About the project</h2>
+      <p>When evaluating whether to automate a process with Camunda's agentic orchestration capabilities, the first questions are always economic: <em>is it worth doing, and which approach fits the budget?</em> These calculators give decision-makers a structured way to answer both quickly.</p>
+      <p>The goal is a directional answer in minutes — not a replacement for a proper business case, but a concrete starting point that makes the conversation grounded and fast.</p>
+      <p>The two-step workflow mirrors how good investment decisions are made:</p>
+      <ul>
+        <li><strong>Step 1</strong> — build a business case: payback, NPV, go/no-go recommendation</li>
+        <li><strong>Step 2</strong> — find a model that fits your cost envelope and quality bar</li>
+      </ul>
+    </section>
+
+    <div class="about-divider"></div>
+
+    <section class="about-section">
+      <h2>About the author</h2>
+      <div class="author-card">
+        <div class="author-avatar" aria-hidden="true">S</div>
+        <div>
+          <p class="author-name">Stefan Schultz</p>
+          <p class="author-role">Camunda Champion</p>
+          <p class="author-bio">A Camunda Champion with a strong interest in agentic orchestration and how teams can evaluate it practically before committing to an implementation. Built these tools to make that conversation more concrete for decision-makers.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="about-divider"></div>
+
+    <div class="disclaimer-box">
+      <p class="disclaimer-title">Legal Disclaimer</p>
+      <p>All values, calculations, outputs, scores, badges, and recommendations produced by these tools are <strong>directional estimates for internal planning and discussion purposes only</strong>. They are not financial advice, investment advice, legal advice, or professional advice of any kind.</p>
+      <p>Inputs are provided by the user and are not validated, verified, or checked for accuracy. The underlying models are simplified and make assumptions that may not reflect your specific situation. Results will differ from real-world outcomes.</p>
+      <p>No output from these tools — including cost estimates, payback periods, NPV figures, decision badges, or any other value — constitutes a binding commitment, guarantee, warranty, or representation of any kind, by any party.</p>
+      <p>Always validate material business decisions with qualified financial, legal, and technical professionals using your own rigorous modelling. Use these tools as a starting point for conversation, not as a basis for commitment.</p>
+      <p>This is an independent tool. Stefan Schultz is not affiliated with, employed by, or acting on behalf of Camunda. Camunda is a trademark of Camunda Services GmbH. All references to Camunda products are for descriptive purposes only.</p>
+    </div>
+
+  </main>
+
+  <script>
+    /* ===== Theme ===== */
+    (function () {
+      const stored = localStorage.getItem('camunda-theme');
+      if (stored) document.documentElement.dataset.theme = stored;
+      document.getElementById('themeBtn').addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem('camunda-theme', next);
+      });
+    })();
+
+    /* ===== Nav drawer ===== */
+    (function () {
+      const navDrawer   = document.getElementById('navDrawer');
+      const navBackdrop = document.getElementById('navBackdrop');
+      function openNav()  { navDrawer.classList.add('open');    navBackdrop.classList.add('open'); }
+      function closeNav() { navDrawer.classList.remove('open'); navBackdrop.classList.remove('open'); }
+      document.getElementById('navBtn').addEventListener('click', openNav);
+      document.getElementById('navClose').addEventListener('click', closeNav);
+      navBackdrop.addEventListener('click', closeNav);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
+    })();
+  </script>
+</body>
+</html>
