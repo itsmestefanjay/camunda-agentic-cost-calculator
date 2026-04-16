@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Cost &amp; Fit — Agentic Orchestration</title>
+  <link rel="stylesheet" href="style.css">
+  <script>!function(){var t=localStorage.getItem("camunda-theme");if(t)document.documentElement.dataset.theme=t}();</script>
+  <style>
+    /* --- Layout --- */
+    main {
+      display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+      gap: 1.5rem; align-items: start;
+      @media (max-width: 860px) { grid-template-columns: 1fr; }
+    }
+
+    .models-column {
+      display: flex; flex-direction: column; gap: 0.75rem;
+      max-height: calc(100dvh - 6rem); overflow-y: auto; padding-right: 0.25rem;
+      @media (max-width: 860px) { max-height: none; padding-right: 0; }
+    }
+    .chart-wrapper { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+
+    /* --- Model panels --- */
+    .section-label {
+      display: flex; justify-content: space-between; align-items: center;
+      .section-title { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    }
+
+    .collapse-all-row {
+      display: flex; gap: 0.35rem;
+      button {
+        background: none; border: none; color: var(--muted); font-size: 0.7rem;
+        padding: 0.2rem 0.4rem; cursor: pointer; transition: color 0.15s; border-radius: 4px;
+        &:hover { color: var(--text); background: var(--hover-bg); }
+      }
+    }
+
+    .model-panel {
+      position: relative;
+      .model-header { display: flex; align-items: center; gap: 0.6rem; }
+      .collapse-btn {
+        background: none; border: none; color: var(--muted); cursor: pointer;
+        padding: 0.15rem; display: flex; align-items: center; transition: transform 0.2s;
+        svg { width: 16px; height: 16px; }
+      }
+      &.collapsed .collapse-btn { transform: rotate(-90deg); }
+      .color-picker-wrap { position: relative; flex-shrink: 0; }
+      .color-dot {
+        width: 20px; height: 20px; border-radius: 50%;
+        border: 2px solid var(--border); cursor: pointer; transition: border-color 0.15s;
+        &:hover { border-color: var(--muted); }
+      }
+      .color-popover {
+        display: none; position: absolute; top: calc(100% + 8px); left: 0; z-index: 10;
+        background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+        padding: 0.75rem; box-shadow: 0 8px 24px rgba(0,0,0,0.25); width: max-content;
+        &.open { display: block; }
+      }
+      .color-swatches { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; }
+      .color-swatch {
+        width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent;
+        cursor: pointer; transition: border-color 0.15s, transform 0.1s;
+        &:hover { transform: scale(1.15); }
+        &.active { border-color: var(--text); }
+      }
+      .hex-row {
+        display: flex; align-items: center; gap: 0.3rem;
+        span { font-size: 0.8125rem; font-weight: 600; color: var(--muted); }
+        input {
+          width: 6.5rem; background: transparent; border: 1px solid var(--input-border);
+          border-radius: 5px; padding: 0.25rem 0.4rem; color: var(--text);
+          font-size: 0.8125rem; font-family: monospace; outline: none;
+          &:focus { border-color: var(--accent); }
+        }
+      }
+      .model-name {
+        flex: 1; background: transparent; border: 1px solid var(--input-border);
+        border-radius: 6px; padding: 0.35rem 0.6rem; color: var(--text);
+        font-size: 0.875rem; font-weight: 600; outline: none;
+        &:focus { border-color: var(--accent); }
+      }
+      .remove-btn {
+        background: none; border: none; color: var(--muted); cursor: pointer;
+        font-size: 1.1rem; padding: 0.2rem 0.4rem; border-radius: 4px; line-height: 1;
+        &:hover { color: var(--text); background: var(--hover-bg); }
+      }
+      .model-body {
+        display: grid; grid-template-rows: 1fr;
+        transition: grid-template-rows 0.2s ease; margin-top: 1rem;
+      }
+      .model-body-inner { overflow: hidden; }
+      &.collapsed .model-body { grid-template-rows: 0fr; margin-top: 0; }
+    }
+
+    .add-model-wrap { position: relative; }
+    .add-model-btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; padding: 0.75rem; background: rgba(252, 93, 13, 0.08);
+      border: 1px dashed rgba(252, 93, 13, 0.3); border-radius: 12px;
+      color: var(--accent); font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+      &:hover { background: rgba(252, 93, 13, 0.15); }
+    }
+    .preset-menu {
+      display: none; position: absolute; z-index: 20; left: 0; right: 0; bottom: calc(100% + 4px);
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.3); max-height: 320px; overflow-y: auto; padding: 0.35rem;
+      &.open { display: block; }
+      .preset-item {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.5rem 0.75rem; border-radius: 6px; cursor: pointer;
+        font-size: 0.8125rem; color: var(--text); transition: background 0.1s;
+        &:hover { background: var(--hover-bg); }
+        .preset-prices { color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+      }
+      .preset-divider { height: 1px; background: var(--border); margin: 0.25rem 0.5rem; }
+    }
+
+    /* --- Table --- */
+    .table-wrap { overflow-x: auto; }
+    .model-table {
+      width: 100%; border-collapse: collapse; font-size: 0.8125rem;
+      th {
+        text-align: left; color: var(--muted); font-weight: 500; padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap;
+        .sort-arrow { display: inline-block; margin-left: 0.25rem; font-size: 0.625rem; opacity: 0; }
+        &.sort-active .sort-arrow { opacity: 1; }
+      }
+      td { padding: 0.5rem 0.75rem; font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--border); }
+      tr:last-child td { border-bottom: none; }
+      .color-cell { width: 10px; padding-right: 0; span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; } }
+      .name-cell { font-weight: 600; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation drawer -->
+  <div class="nav-backdrop" id="navBackdrop"></div>
+  <nav class="nav-drawer" id="navDrawer" aria-label="Site navigation">
+    <div class="nav-drawer-header">
+      <span class="nav-logo">Agentic Orchestration Calculators</span>
+      <button class="nav-close" id="navClose" aria-label="Close navigation">&times;</button>
+    </div>
+    <a href="index.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">Calculators</div>
+    <a href="step1.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Step 1: Project Business Case
+    </a>
+    <a href="step2.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Step 2: Process Prioritization
+    </a>
+    <a href="step3.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Step 3: Model Cost &amp; Fit
+    </a>
+    <div class="nav-divider"></div>
+    <a href="about.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      About
+    </a>
+  </nav>
+
+  <header>
+    <div class="header-brand">
+      <button class="icon-btn" id="navBtn" title="Navigation menu" aria-label="Open navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="header-copy">
+        <h1>Model Cost &amp; Fit Comparison</h1>
+        <p>Step 3: Compare model economics and your manual fit rubric for the scoped workload</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="scenario-bar">
+        <input class="scenario-name" id="scenarioName" type="text" value="Default Scenario" placeholder="Optional scenario name">
+        <button class="action-btn" id="scenarioSave" title="Save scenario">Save</button>
+        <select id="scenarioSelect"><option value="">Load...</option></select>
+        <button class="action-btn" id="scenarioDelete" title="Delete selected">Del</button>
+      </div>
+      <div class="header-currency usd-active">
+        <button id="btnUSD" aria-pressed="true">USD</button>
+        <button id="btnEUR" aria-pressed="false">EUR</button>
+        <span class="rate-field">1 USD = <input type="text" id="rateInput" value="0.92" size="5"> EUR</span>
+      </div>
+      <button class="icon-btn share" id="shareBtn" title="Copy share link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </button>
+      <button class="icon-btn reset" id="resetBtn" title="Reset all data">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </button>
+      <button class="icon-btn theme" id="themeBtn" title="Toggle light/dark mode">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="models-column" id="modelsColumn">
+      <div class="panel settings-panel" id="processSettingsPanel">
+        <div class="settings-header">
+          <button class="settings-collapse-btn" id="processCollapseBtn" title="Collapse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="settings-title">Process</div>
+        </div>
+        <div class="settings-body"><div class="settings-body-inner">
+          <div class="slider-group"><div class="slider-header"><label>Input tokens / tool call</label><output id="psInputTokensDisplay"></output></div><input type="range" min="100" max="10000" step="100" value="1000" id="psInputTokens"><p class="input-note">Input tokens per model call including history.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Output tokens / tool call</label><output id="psOutputTokensDisplay"></output></div><input type="range" min="50" max="5000" step="50" value="500" id="psOutputTokens"><p class="input-note">Output tokens generated per call.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Tools in subprocess</label><output id="psToolsDisplay"></output></div><input type="range" min="1" max="50" step="1" value="5" id="psTools"><p class="input-note">Sequential tool calls per process run.</p></div>
+        </div></div>
+      </div>
+      <div class="panel settings-panel" id="businessSettingsPanel">
+        <div class="settings-header">
+          <button class="settings-collapse-btn" id="businessCollapseBtn" title="Collapse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="settings-title">Business</div>
+        </div>
+        <div class="settings-body"><div class="settings-body-inner">
+          <div class="slider-group"><div class="slider-header"><label>Range profile</label></div><select id="rangeProfileInput" class="profile-select"><option value="small">Small</option><option value="growth" selected>Growth</option><option value="enterprise">Enterprise</option></select></div>
+          <div class="slider-group"><div class="slider-header"><label>Instances / month</label><output id="monthlyInstancesDisplay"></output></div><input type="range" min="0" max="250000" step="1000" value="0" id="monthlyInstancesInput"><p class="input-note">Monthly process volume assumption.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Monthly growth rate</label><output id="growthRateDisplay"></output></div><input type="range" min="0" max="100" step="1" value="0" id="growthRateInput"><p class="input-note">Monthly volume growth assumption.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Forecast horizon</label><output id="forecastMonthsDisplay"></output></div><input type="range" min="1" max="60" step="1" value="12" id="forecastMonthsInput"><p class="input-note">Months projected in forecast.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Monthly budget</label><output id="budgetDisplay"></output></div><input type="range" min="0" max="100000" step="500" value="0" id="budgetInput"><p class="input-note">Monthly spend limit reference line.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Manual cost / month</label><output id="manualCostDisplay"></output></div><input type="range" min="0" max="500000" step="500" value="0" id="manualCostInput"><p class="input-note">Current monthly manual handling cost.</p></div>
+        </div></div>
+      </div>
+      <div class="section-label">
+        <span class="section-title">Models</span>
+        <div class="collapse-all-row">
+          <button id="collapseAll">Collapse all</button>
+          <button id="expandAll">Expand all</button>
+        </div>
+      </div>
+      <div class="add-model-wrap">
+        <button class="add-model-btn" id="addModelBtn">+ Add Model</button>
+        <div class="preset-menu" id="presetMenu"></div>
+      </div>
+    </div>
+
+    <div class="chart-wrapper">
+      <div class="panel chart-container"><canvas id="costChart"></canvas></div>
+      <div class="chart-controls">
+        <div class="chart-tabs">
+          <span>Chart:</span>
+          <button id="tabScore" data-tab="score" aria-pressed="true">Cost vs Score</button>
+          <button id="tabInstances" data-tab="instances" aria-pressed="false">Cost vs Instances</button>
+          <button id="tabForecast" data-tab="forecast" aria-pressed="false">Forecast</button>
+          <button id="tabBreakeven" data-tab="breakeven" aria-pressed="false">Break-even</button>
+        </div>
+      </div>
+      <div class="panel chart-helper" id="chartHelper"></div>
+      <div class="panel chart-helper" id="step2Context"></div>
+      <div class="panel executive-insight" id="executiveInsight"></div>
+      <div class="panel table-wrap">
+        <table class="model-table" id="modelTable">
+          <thead><tr>
+            <th data-sort="name" title="Model name">Model <span class="sort-arrow"></span></th>
+            <th data-sort="decisionScore" title="Average score from your manual fit rubric (0-100).">Your fit (manual rubric) <span class="sort-arrow"></span></th>
+            <th data-sort="costPerInstance" class="sort-active" title="Total LLM cost for one process instance. History accumulates: total input = N·inputTokens + N(N-1)/2·outputTokens, total output = N·outputTokens.">Cost / inst. <span class="sort-arrow">&#9650;</span></th>
+            <th data-sort="monthlyCost" title="Projected monthly cost at your specified instances/month. Set 'Instances / month' to see values.">Monthly <span class="sort-arrow"></span></th>
+            <th data-sort="savingsVsManual" title="Savings compared to manual processing cost. Set 'Manual cost / month' and 'Instances / month' to see values.">vs Manual <span class="sort-arrow"></span></th>
+            <th data-sort="budgetReachInstances" title="Instance volume at which monthly model cost reaches your monthly budget.">Budget reached <span class="sort-arrow"></span></th>
+            <th data-sort="breakevenInstances" title="Number of instances at which automation cost equals manual cost.">Break-even inst. <span class="sort-arrow"></span></th>
+            <th data-sort="breakevenMonths" title="Estimated full months to reach break-even instance volume at your current instances/month.">Break-even months <span class="sort-arrow"></span></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="btn-row">
+        <button class="action-btn" id="downloadPng">Download PNG</button>
+        <button class="action-btn" id="exportCsv">Export CSV</button>
+      </div>
+    </div>
+  </main>
+
+  <div style="max-width:960px;margin:1.5rem auto 2.5rem;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+    <a href="step2.html" style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.65rem 1.4rem;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:8px;font-size:0.9rem;font-weight:600;text-decoration:none;transition:color 0.15s,border-color 0.15s" onmouseover="this.style.color='var(--text)';this.style.borderColor='var(--muted)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">
+      ← Back to Step 2: Process Prioritization
+    </a>
+    <a href="about.html" style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.65rem 1.4rem;background:var(--accent);color:#fff;border-radius:8px;font-size:0.9rem;font-weight:700;text-decoration:none;transition:opacity 0.15s" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+      About this tool →
+    </a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script>
+    /* ===== Custom Chart.js interaction mode ===== */
+    // Only activates elements that belong to intersection datasets (_intersectionKind).
+    // Prevents curve datasets from becoming "active" on hover, which caused lines to disappear.
+    Chart.Interaction.modes.intersectionOnly = function(chart, e, options, useFinalPosition) {
+      const items = Chart.Interaction.modes.nearest(chart, e, options, useFinalPosition);
+      return items.filter(i => chart.data.datasets[i.datasetIndex]?._intersectionKind);
+    };
+
+    /* ===== Constants ===== */
+    const COLORS        = ['#FC5D0D','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#EF4444','#84CC16','#F97316'];
+    const SWATCH_COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
+    const PRICE_IN_MIN  = 1e-7, PRICE_IN_MAX = 1e-4;
+    const PRICE_OUT_MIN = 1e-7, PRICE_OUT_MAX = 4e-4;
+    const CHEVRON_SVG   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    const CURRENCIES    = { USD: '$', EUR: '\u20AC' };
+    const STORAGE_KEY   = 'camunda-cost-calc';
+    const SCENARIO_KEY  = 'camunda-scenarios';
+    const STEP2_HANDOFF_KEY = 'camunda-step2-handoff';
+
+    const MODEL_PRESETS = [
+      { name: 'GPT-4.1',          inPrice: 2.0e-6,  outPrice: 8.0e-6  },
+      { name: 'GPT-4.1 mini',     inPrice: 4.0e-7,  outPrice: 1.6e-6  },
+      { name: 'GPT-4.1 nano',     inPrice: 1.0e-7,  outPrice: 4.0e-7  },
+      { name: 'GPT-4o',           inPrice: 2.5e-6,  outPrice: 1.0e-5  },
+      { name: 'GPT-4o mini',      inPrice: 1.5e-7,  outPrice: 6.0e-7  },
+      { name: 'Claude Opus 4',    inPrice: 1.5e-5,  outPrice: 7.5e-5  },
+      { name: 'Claude Sonnet 4',  inPrice: 3.0e-6,  outPrice: 1.5e-5  },
+      { name: 'Claude Haiku 3.5', inPrice: 8.0e-7,  outPrice: 4.0e-6  },
+      { name: 'Gemini 2.5 Pro',   inPrice: 1.25e-6, outPrice: 1.0e-5  },
+      { name: 'Gemini 2.5 Flash', inPrice: 1.5e-7,  outPrice: 6.0e-7  },
+      { name: 'Llama 4 Maverick', inPrice: 2.0e-7,  outPrice: 6.0e-7  },
+      { name: 'Mistral Large',    inPrice: 2.0e-6,  outPrice: 6.0e-6  },
+    ];
+
+    const DEFAULT_PROCESS = { inputTokens: 1000, outputTokens: 500, tools: 5 };
+    const RANGE_PROFILES = {
+      small: {
+        monthlyInstances: { min: 0, max: 25000, step: 250, defaultValue: 0 },
+        budget: { min: 0, max: 10000, step: 100, defaultValue: 0 },
+        manualCost: { min: 0, max: 30000, step: 250, defaultValue: 0 },
+      },
+      growth: {
+        monthlyInstances: { min: 0, max: 100000, step: 1000, defaultValue: 0 },
+        budget: { min: 0, max: 40000, step: 500, defaultValue: 0 },
+        manualCost: { min: 0, max: 120000, step: 500, defaultValue: 0 },
+      },
+      enterprise: {
+        monthlyInstances: { min: 0, max: 250000, step: 2500, defaultValue: 0 },
+        budget: { min: 0, max: 100000, step: 1000, defaultValue: 0 },
+        manualCost: { min: 0, max: 500000, step: 2500, defaultValue: 0 },
+      },
+    };
+
+    /* ===== State ===== */
+    let processSettings    = { ...DEFAULT_PROCESS };
+    let models             = [];
+    let nextId             = 0;
+    let currency           = 'USD';
+    let eurRate            = 0.92;
+    let budget             = 0;
+    let monthlyInstances   = 0;
+    let manualCost         = 0;
+    let growthRate         = 0;
+    let forecastMonths     = 12;
+    let activeChartTab     = 'score'; // 'instances' | 'forecast' | 'breakeven' | 'score'
+    let activeRangeProfile = 'growth'; // 'small' | 'growth' | 'enterprise'
+    let processPanelCollapsed = true;
+    let businessPanelCollapsed = false;
+    let step2Context = null;
+    let sortKey            = 'costPerInstance';
+    let sortDir            = 'asc';
+    let lastRows           = [];
+    let chart              = null;
+
+    /* ===== Helpers ===== */
+    function logToValue(pos, min, max) {
+      return 10 ** (Math.log10(min) + (Math.log10(max) - Math.log10(min)) * (pos / 1000));
+    }
+    function valueToLog(val, min, max) {
+      return Math.max(0, Math.min(1000, Math.round((Math.log10(val) - Math.log10(min)) / (Math.log10(max) - Math.log10(min)) * 1000)));
+    }
+    function sym() { return CURRENCIES[currency]; }
+    function formatPrice(perToken) { return `${sym()}${(perToken * 1e6).toFixed(2)} / 1M`; }
+    function formatCost(v) {
+      if (v < 0.01) return `${sym()}${v.toFixed(4)}`;
+      if (v < 1000) return `${sym()}${v.toFixed(2)}`;
+      return `${sym()}${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+    }
+    function formatInstances(n) {
+      if (n >= 1e6) return `${(n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1)}M`;
+      if (n >= 1e3) return `${(n / 1e3).toFixed(n % 1e3 === 0 ? 0 : 1)}k`;
+      return n.toString();
+    }
+    function getThemeColors() {
+      const dark = document.documentElement.dataset.theme === 'dark';
+      return { muted: dark ? '#8b8d97' : '#6b7280', grid: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)' };
+    }
+    function normalizeChartTab(value) {
+      if (value === 'annual') return 'forecast';
+      return ['instances', 'forecast', 'breakeven', 'score'].includes(value) ? value : 'instances';
+    }
+    function normalizeRangeProfile(value) {
+      return Object.hasOwn(RANGE_PROFILES, value) ? value : 'growth';
+    }
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+    function normalizeBoolean(value) {
+      return value === true || value === 'true' || value === 1;
+    }
+    function computeManualFitScore(model) {
+      const compliance = Number.isFinite(model.fitCompliance) ? model.fitCompliance : (Number.isFinite(model.decisionScore) ? model.decisionScore : 50);
+      const quality = Number.isFinite(model.fitQuality) ? model.fitQuality : (Number.isFinite(model.decisionScore) ? model.decisionScore : 50);
+      const ops = Number.isFinite(model.fitOps) ? model.fitOps : (Number.isFinite(model.decisionScore) ? model.decisionScore : 50);
+      return Math.round((compliance + quality + ops) / 3);
+    }
+    function normalizeModelFitFields(model) {
+      const fallback = Number.isFinite(model.decisionScore) ? +model.decisionScore : 50;
+      model.fitCompliance = Number.isFinite(model.fitCompliance) ? +model.fitCompliance : fallback;
+      model.fitQuality = Number.isFinite(model.fitQuality) ? +model.fitQuality : fallback;
+      model.fitOps = Number.isFinite(model.fitOps) ? +model.fitOps : fallback;
+      model.decisionScore = computeManualFitScore(model);
+      return model;
+    }
+    function inferRangeProfile(source) {
+      if (source?.activeRangeProfile) return normalizeRangeProfile(source.activeRangeProfile);
+      const b = Number.isFinite(source?.budget) ? +source.budget : 0;
+      if (b <= RANGE_PROFILES.small.budget.max) return 'small';
+      if (b <= RANGE_PROFILES.growth.budget.max) return 'growth';
+      return 'enterprise';
+    }
+
+    /* ===== Currency conversion ===== */
+    function convertPrices(factor) {
+      for (const m of models) {
+        m.inputPrice  = valueToLog(logToValue(m.inputPrice,  PRICE_IN_MIN,  PRICE_IN_MAX)  * factor, PRICE_IN_MIN,  PRICE_IN_MAX);
+        m.outputPrice = valueToLog(logToValue(m.outputPrice, PRICE_OUT_MIN, PRICE_OUT_MAX) * factor, PRICE_OUT_MIN, PRICE_OUT_MAX);
+        const panel = document.getElementById(`model-${m.id}`);
+        if (panel) {
+          panel.querySelector('[data-field="inputPrice"]').value  = m.inputPrice;
+          panel.querySelector('[data-field="outputPrice"]').value = m.outputPrice;
+          updateDisplay(panel, m);
+        }
+      }
+    }
+
+    /* ===== Persistence ===== */
+    function saveState() {
+      const data = models.map(({ id, color, name, inputPrice, outputPrice, fixedCost, decisionScore, fitCompliance, fitQuality, fitOps }) =>
+        ({ id, color, name, inputPrice, outputPrice, fixedCost, decisionScore, fitCompliance, fitQuality, fitOps }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        models: data, nextId, processSettings, currency, eurRate, budget,
+        monthlyInstances, growthRate, forecastMonths, manualCost,
+        activeChartTab, activeRangeProfile,
+        processPanelCollapsed, businessPanelCollapsed,
+        step2Context,
+        theme: document.documentElement.dataset.theme,
+        scenarioName: document.getElementById('scenarioName').value,
+      }));
+    }
+    function loadState() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+    }
+    function loadStep2Handoff() {
+      try { return JSON.parse(localStorage.getItem(STEP2_HANDOFF_KEY)); } catch { return null; }
+    }
+    function encodeState() {
+      return btoa(JSON.stringify({
+        m: models.map(m => ({ n: m.name, c: m.color, ip: m.inputPrice, op: m.outputPrice, fc: m.fixedCost || 0, ds: m.decisionScore ?? 50, f1: m.fitCompliance ?? m.decisionScore ?? 50, f2: m.fitQuality ?? m.decisionScore ?? 50, f3: m.fitOps ?? m.decisionScore ?? 50 })),
+        ps: processSettings, cur: currency, rate: eurRate, bgt: budget,
+        mi: monthlyInstances, gr: growthRate, fm: forecastMonths, mc: manualCost,
+        ct: activeChartTab, rp: activeRangeProfile,
+        pp: processPanelCollapsed, bp: businessPanelCollapsed,
+        s2: step2Context,
+        sn: document.getElementById('scenarioName').value,
+      }));
+    }
+    function decodeState(hash) {
+      try {
+        const d = JSON.parse(atob(hash));
+        if (!d?.m?.length) return null;
+        return {
+          models: d.m.map(m => ({ name: m.n, color: m.c, inputPrice: m.ip, outputPrice: m.op, fixedCost: m.fc || 0, decisionScore: m.ds ?? 50, fitCompliance: m.f1 ?? m.ds ?? 50, fitQuality: m.f2 ?? m.ds ?? 50, fitOps: m.f3 ?? m.ds ?? 50 })),
+          processSettings: d.ps || { ...DEFAULT_PROCESS },
+          currency: d.cur || 'USD', eurRate: d.rate || 0.92, budget: Math.min(100000, Math.max(0, d.bgt || 0)),
+          monthlyInstances: d.mi || 0, growthRate: d.gr || 0, forecastMonths: d.fm || 12, manualCost: d.mc || 0,
+          activeChartTab: normalizeChartTab(d.ct || d.cv || 'score'),
+          activeRangeProfile: normalizeRangeProfile(d.rp || inferRangeProfile({ budget: d.bgt || 0 })),
+          processPanelCollapsed: normalizeBoolean(d.pp),
+          businessPanelCollapsed: normalizeBoolean(d.bp),
+          step2Context: d.s2 || null,
+          scenarioName: d.sn || '',
+        };
+      } catch { return null; }
+    }
+
+    /* ===== Process Settings UI ===== */
+    function updateProcessSettingsDisplay() {
+      document.getElementById('psInputTokensDisplay').textContent = processSettings.inputTokens.toLocaleString();
+      document.getElementById('psOutputTokensDisplay').textContent = processSettings.outputTokens.toLocaleString();
+      document.getElementById('psToolsDisplay').textContent = processSettings.tools;
+    }
+    for (const [key, elId] of [['inputTokens','psInputTokens'],['outputTokens','psOutputTokens'],['tools','psTools']]) {
+      document.getElementById(elId).addEventListener('input', (e) => {
+        processSettings[key] = +e.target.value;
+        updateProcessSettingsDisplay();
+        recalculate();
+      });
+    }
+    updateProcessSettingsDisplay();
+
+    /* ===== Chart ===== */
+    const budgetLinePlugin = {
+      id: 'budgetLine',
+      afterDraw(chart) {
+        if (!budget || !['instances', 'forecast'].includes(activeChartTab)) return;
+        const yScale = chart.scales.y;
+        if (!yScale) return;
+        const yPixel = yScale.getPixelForValue(budget);
+        if (yPixel < yScale.top || yPixel > yScale.bottom) return;
+        const ctx = chart.ctx;
+        const area = chart.chartArea;
+        ctx.save();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.55)'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(area.left, yPixel);
+        ctx.lineTo(area.right, yPixel);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.85)'; ctx.font = '10px system-ui'; ctx.textAlign = 'right';
+        ctx.fillText(`Budget: ${formatCost(budget)}`, area.right, yPixel + 14);
+        ctx.restore();
+      }
+    };
+
+    const manualCostLinePlugin = {
+      id: 'manualCostLine',
+      afterDraw(chart) {
+        if (!manualCost || !['instances', 'forecast'].includes(activeChartTab)) return;
+        const yScale = chart.scales.y;
+        if (!yScale) return;
+        const yPixel = yScale.getPixelForValue(manualCost);
+        if (yPixel < yScale.top || yPixel > yScale.bottom) return;
+        const ctx = chart.ctx;
+        const area = chart.chartArea;
+        ctx.save();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.55)'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(area.left, yPixel);
+        ctx.lineTo(area.right, yPixel);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.85)'; ctx.font = '10px system-ui'; ctx.textAlign = 'right';
+        ctx.fillText(`Manual: ${formatCost(manualCost)}`, area.right, yPixel + 14);
+        ctx.restore();
+      }
+    };
+
+    const volumeMarkerPlugin = {
+      id: 'volumeMarker',
+      afterDraw(chart) {
+        if (activeChartTab !== 'instances' || !monthlyInstances) return;
+        const xScale = chart.scales.x;
+        if (!xScale) return;
+        const xPixel = xScale.getPixelForValue(monthlyInstances);
+        if (xPixel < xScale.left || xPixel > xScale.right) return;
+        const ctx = chart.ctx;
+        const area = chart.chartArea;
+        ctx.save();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(34, 197, 94, 0.7)';
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        ctx.moveTo(xPixel, area.top);
+        ctx.lineTo(xPixel, area.bottom);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.9)';
+        ctx.font = '10px system-ui';
+        ctx.textAlign = 'right';
+        ctx.fillText(`Volume: ${formatInstances(monthlyInstances)}`, xPixel - 6, area.top + 14);
+        ctx.restore();
+      }
+    };
+
+    const budgetReachMarkerPlugin = {
+      id: 'budgetReachMarker',
+      afterDraw(chart) {
+        if (activeChartTab !== 'instances' || !budget || !lastRows.length) return;
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+        if (!xScale || !yScale) return;
+
+        const yPixel = yScale.getPixelForValue(budget);
+        if (yPixel < yScale.top || yPixel > yScale.bottom) return;
+
+        const ctx = chart.ctx;
+        const area = chart.chartArea;
+        ctx.save();
+        for (const row of lastRows) {
+          const reachX = row.budgetAtFixed ? 0 : row.budgetReachInstances;
+          if (!Number.isFinite(reachX) || reachX < xScale.min || reachX > xScale.max) continue;
+          const xPixel = xScale.getPixelForValue(reachX);
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = row.color + '99';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(xPixel, area.bottom);
+          ctx.lineTo(xPixel, yPixel);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    };
+
+    const breakevenMarkerPlugin = {
+      id: 'breakevenMarker',
+      afterDraw(chart) {
+        if (activeChartTab !== 'instances' || !manualCost || !lastRows.length) return;
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+        if (!xScale || !yScale) return;
+
+        const yPixel = yScale.getPixelForValue(manualCost);
+        if (yPixel < yScale.top || yPixel > yScale.bottom) return;
+
+        const ctx = chart.ctx;
+        const area = chart.chartArea;
+        ctx.save();
+        for (const row of lastRows) {
+          if (row.noBreakeven || !(row.breakevenInstances > 0)) continue;
+          if (row.breakevenInstances < xScale.min || row.breakevenInstances > xScale.max) continue;
+          const xPixel = xScale.getPixelForValue(row.breakevenInstances);
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = row.color + '99';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(xPixel, area.bottom);
+          ctx.lineTo(xPixel, yPixel);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    };
+
+    function setChartHelper(messages = []) {
+      const el = document.getElementById('chartHelper');
+      if (!messages.length) {
+        el.classList.remove('visible');
+        el.innerHTML = '';
+        return;
+      }
+      el.classList.add('visible');
+      el.innerHTML = messages.map(msg => `<span>${msg}</span>`).join('');
+    }
+    function updateStep2Context() {
+      const el = document.getElementById('step2Context');
+      if (!step2Context) {
+        el.classList.remove('visible');
+        el.innerHTML = '';
+        return;
+      }
+      const segments = [];
+      const modeLabel = {
+        'existing-camunda': 'Camunda already in place',
+        'add-camunda-saas': 'Add Camunda SaaS',
+        'self-hosted-camunda': 'Self-hosted Camunda',
+        'other-stack': 'Other orchestration stack',
+        'from-step-1': 'Imported from Step 1',
+      };
+      if (step2Context.deploymentMode) segments.push(`Mode: <strong>${modeLabel[step2Context.deploymentMode] || step2Context.deploymentMode}</strong>`);
+      if (Number.isFinite(step2Context.coverage)) segments.push(`Coverage: <strong>${step2Context.coverage}%</strong>`);
+      if (Number.isFinite(step2Context.pilotMonths) && Number.isFinite(step2Context.rampMonths)) {
+        segments.push(`Rollout: <strong>${step2Context.pilotMonths} + ${step2Context.rampMonths} mo</strong>`);
+      }
+      if (Number.isFinite(step2Context.baseMonthlyNet)) segments.push(`Base net: <strong>${formatCost(step2Context.baseMonthlyNet)}/mo</strong>`);
+      if (Number.isFinite(step2Context.conservativeMonthlyNet)) segments.push(`Conservative: <strong>${formatCost(step2Context.conservativeMonthlyNet)}/mo</strong>`);
+      if (Number.isFinite(step2Context.confidenceGuessed)) segments.push(`Guessed groups: <strong>${step2Context.confidenceGuessed}</strong>`);
+      el.classList.add('visible');
+      el.innerHTML = `<span>Scoped from Step 1 | ${segments.join(' | ')}</span>`;
+    }
+
+    function getInstancesChartDomain() {
+      const profileMax = RANGE_PROFILES[activeRangeProfile]?.monthlyInstances?.max || 100000;
+      const xAnchors = [];
+      const yAnchors = [];
+
+      if (monthlyInstances > 0) {
+        xAnchors.push(monthlyInstances);
+        for (const row of lastRows) {
+          const yAtVolume = monthlyInstances * row.costPerInstance + row.fixedCost;
+          if (Number.isFinite(yAtVolume) && yAtVolume >= 0) yAnchors.push(yAtVolume);
+        }
+      }
+
+      if (budget > 0) {
+        yAnchors.push(budget);
+        for (const row of lastRows) {
+          const xAtBudget = row.budgetAtFixed ? 0 : row.budgetReachInstances;
+          if (Number.isFinite(xAtBudget) && xAtBudget >= 0) xAnchors.push(Math.min(xAtBudget, profileMax));
+        }
+      }
+
+      if (manualCost > 0) {
+        yAnchors.push(manualCost);
+        for (const row of lastRows) {
+          if (!row.noBreakeven && row.breakevenInstances > 0) xAnchors.push(Math.min(row.breakevenInstances, profileMax));
+        }
+      }
+
+      if (!xAnchors.length) xAnchors.push(Math.max(1000, Math.ceil(profileMax * 0.1)));
+      const xMax = Math.max(1000, Math.ceil(Math.max(...xAnchors) * 1.1));
+      const yMax = yAnchors.length ? Math.ceil(Math.max(...yAnchors) * 1.25) : undefined;
+      return { xMax, yMax };
+    }
+
+    function buildInstancesXPoints(maxX, count = 64) {
+      if (maxX <= 0) return [0];
+      const points = [];
+      for (let i = 0; i < count; i++) {
+        const x = (i === count - 1) ? maxX : Math.round((maxX * i) / (count - 1));
+        if (!points.length || x > points[points.length - 1]) points.push(x);
+      }
+      if (points[0] !== 0) points.unshift(0);
+      return points;
+    }
+
+    function buildInstancesChart(theme) {
+      const { xMax, yMax } = getInstancesChartDomain();
+      const xPoints = buildInstancesXPoints(xMax);
+      const pointOutline = document.documentElement.dataset.theme === 'dark' ? '#0f1117' : '#ffffff';
+
+      const curveDatasets = lastRows.map(r => ({
+        label: r.name,
+        data: xPoints.map(x => ({ x, y: x * r.costPerInstance + r.fixedCost })),
+        borderColor: r.color,
+        backgroundColor: r.color + '14',
+        showLine: true,
+        fill: false,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        borderWidth: 2.5,
+        order: 1,
+        _inputCostPerInstance: r.inputCostPerInstance,
+        _outputCostPerInstance: r.outputCostPerInstance,
+        _fixedCost: r.fixedCost,
+      }));
+
+      const volumeIntersectionPoints = monthlyInstances > 0
+        ? lastRows.map(row => {
+            const y = monthlyInstances * row.costPerInstance + row.fixedCost;
+            return {
+              x: monthlyInstances,
+              y,
+              color: row.color,
+              model: row.name,
+              costPerInstance: row.costPerInstance,
+              fixedCost: row.fixedCost,
+              deltaToBudget: budget > 0 ? budget - y : null,
+            };
+          }).filter(p => Number.isFinite(p.y))
+        : [];
+
+      const budgetIntersectionPoints = budget > 0
+        ? lastRows.map(row => {
+            const x = row.budgetAtFixed ? 0 : row.budgetReachInstances;
+            return Number.isFinite(x) && x >= 0
+              ? {
+                  x,
+                  y: budget,
+                  color: row.color,
+                  model: row.name,
+                  costPerInstance: row.costPerInstance,
+                  fixedCost: row.fixedCost,
+                  fixedAtBudget: !!row.budgetAtFixed,
+                }
+              : null;
+          }).filter(Boolean)
+        : [];
+
+      const manualCostIntersectionPoints = manualCost > 0
+        ? lastRows.map(row => {
+            if (row.noBreakeven || !(row.breakevenInstances > 0)) return null;
+            return {
+              x: row.breakevenInstances,
+              y: manualCost,
+              color: row.color,
+              model: row.name,
+              costPerInstance: row.costPerInstance,
+              savingsVsManual: row.savingsVsManual,
+            };
+          }).filter(Boolean)
+        : [];
+
+      const intersectionDatasets = [];
+      if (volumeIntersectionPoints.length) {
+        intersectionDatasets.push({
+          label: 'Volume intersections',
+          data: volumeIntersectionPoints,
+          showLine: false,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointHitRadius: 10,
+          pointBackgroundColor: 'rgba(34, 197, 94, 0.9)',
+          pointBorderColor: pointOutline,
+          pointBorderWidth: 1.5,
+          order: 0,
+          _intersectionKind: 'volume',
+          _noLegend: true,
+        });
+      }
+      if (budgetIntersectionPoints.length) {
+        intersectionDatasets.push({
+          label: 'Budget intersections',
+          data: budgetIntersectionPoints,
+          showLine: false,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointHitRadius: 10,
+          pointBackgroundColor: 'rgba(239, 68, 68, 0.85)',
+          pointBorderColor: pointOutline,
+          pointBorderWidth: 1.5,
+          order: 0,
+          _intersectionKind: 'budget',
+          _noLegend: true,
+        });
+      }
+      if (manualCostIntersectionPoints.length) {
+        intersectionDatasets.push({
+          label: 'Break-even intersections',
+          data: manualCostIntersectionPoints,
+          showLine: false,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointHitRadius: 10,
+          pointStyle: 'rectRot',
+          pointBackgroundColor: 'rgba(168, 85, 247, 0.85)',
+          pointBorderColor: pointOutline,
+          pointBorderWidth: 1.5,
+          order: 0,
+          _intersectionKind: 'manualCost',
+          _noLegend: true,
+        });
+      }
+
+      const datasets = [...curveDatasets, ...intersectionDatasets];
+      return {
+        config: {
+          type: 'scatter',
+          data: { datasets },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 0 },
+            interaction: { intersect: true, mode: 'intersectionOnly' },
+            plugins: {
+              legend: {
+                display: true,
+                labels: {
+                  color: theme.muted,
+                  usePointStyle: true,
+                  pointStyle: 'line',
+                  padding: 16,
+                  filter: (item, data) => !data.datasets[item.datasetIndex]?._noLegend,
+                },
+              },
+              tooltip: {
+                filter: (ctx) => !!ctx.dataset?._intersectionKind,
+                callbacks: {
+                  title: (items) => {
+                    const ds = items[0]?.dataset;
+                    if (ds?._intersectionKind === 'volume') return 'At your target volume';
+                    if (ds?._intersectionKind === 'budget') return 'Budget ceiling reached';
+                    if (ds?._intersectionKind === 'manualCost') return 'Automation pays off';
+                    return `${formatInstances(items[0].parsed.x)} instances`;
+                  },
+                  label: (ctx) => {
+                    const ds = ctx.dataset;
+                    const raw = ctx.raw || {};
+                    if (ds._intersectionKind === 'volume') {
+                      const lines = [
+                        `${raw.model}: ${formatCost(raw.y)} / mo`,
+                        `  At ${formatInstances(raw.x)} instances`,
+                        `  Cost / inst: ${formatCost(raw.costPerInstance)}`,
+                      ];
+                      if (budget > 0 && Number.isFinite(raw.deltaToBudget)) {
+                        const sign = raw.deltaToBudget >= 0 ? '+' : '-';
+                        lines.push(`  Budget delta: ${sign}${formatCost(Math.abs(raw.deltaToBudget))} / mo`);
+                      }
+                      return lines;
+                    }
+                    if (ds._intersectionKind === 'budget') {
+                      if (raw.fixedAtBudget) {
+                        return [
+                          `${raw.model}: fixed cost already reaches budget`,
+                          `  Fixed: ${formatCost(raw.fixedCost)} / mo`,
+                          `  Budget: ${formatCost(budget)} / mo`,
+                        ];
+                      }
+                      return [
+                        `${raw.model}: budget reached at ${formatInstances(raw.x)} instances`,
+                        `  Budget: ${formatCost(budget)} / mo`,
+                        `  Cost / inst: ${formatCost(raw.costPerInstance)}`,
+                      ];
+                    }
+                    if (ds._intersectionKind === 'manualCost') {
+                      return [
+                        `${raw.model}: break-even at ${formatInstances(raw.x)} instances`,
+                        `  Manual cost: ${formatCost(manualCost)} / mo`,
+                        `  Cost / inst: ${formatCost(raw.costPerInstance)}`,
+                      ];
+                    }
+                    return '';
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                type: 'linear',
+                title: { display: true, text: 'Process Instances', color: theme.muted },
+                grid: { color: theme.grid },
+                ticks: { color: theme.muted, callback: (v) => formatInstances(v), autoSkip: true, maxTicksLimit: 8 },
+                min: 0,
+                max: xMax,
+              },
+              y: {
+                title: { display: true, text: `Cost (${currency})`, color: theme.muted },
+                beginAtZero: true,
+                max: yMax,
+                grid: { color: theme.grid },
+                ticks: { color: theme.muted, callback: (v) => formatCost(v) },
+              },
+            },
+          },
+        },
+        plugins: [budgetLinePlugin, manualCostLinePlugin, volumeMarkerPlugin, budgetReachMarkerPlugin, breakevenMarkerPlugin],
+        helperMessages: [],
+      };
+    }
+
+    function buildForecastChart(theme) {
+      const datasets = lastRows.map(r => ({
+        label: r.name,
+        data: Array.from({ length: forecastMonths }, (_, mo) => ({
+          x: mo + 1,
+          y: Math.round(monthlyInstances * (1 + growthRate / 100) ** mo) * r.costPerInstance + r.fixedCost,
+        })),
+        borderColor: r.color,
+        backgroundColor: r.color + '14',
+        showLine: true,
+        fill: false,
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        borderWidth: 2.5,
+      }));
+      return {
+        config: {
+          type: 'scatter',
+          data: { datasets },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 0 },
+            interaction: { intersect: false, mode: 'nearest', axis: 'x' },
+            plugins: {
+              legend: { display: true, labels: { color: theme.muted, usePointStyle: true, pointStyle: 'line', padding: 16 } },
+              tooltip: {
+                callbacks: {
+                  title: (items) => `Month ${Math.round(items[0].parsed.x)}`,
+                  label: (ctx) => ` ${ctx.dataset.label}: ${formatCost(ctx.parsed.y)}/mo`,
+                },
+              },
+            },
+            scales: {
+              x: {
+                type: 'linear',
+                min: 0.5,
+                max: forecastMonths + 0.5,
+                title: { display: true, text: 'Month', color: theme.muted },
+                grid: { color: theme.grid },
+                ticks: {
+                  color: theme.muted,
+                  callback: (v) => Number.isInteger(v) ? v : '',
+                  autoSkip: forecastMonths > 24,
+                  maxTicksLimit: Math.min(forecastMonths, 24),
+                },
+              },
+              y: {
+                title: { display: true, text: `Monthly Cost (${currency})`, color: theme.muted },
+                beginAtZero: true,
+                grid: { color: theme.grid },
+                ticks: { color: theme.muted, callback: (v) => formatCost(v) },
+              },
+            },
+          },
+        },
+        plugins: [budgetLinePlugin, manualCostLinePlugin],
+        helperMessages: [],
+      };
+    }
+
+    function buildBreakevenChart(theme) {
+      const helperMessages = [];
+      if (manualCost <= 0) {
+        helperMessages.push('Set Manual cost / month to populate break-even results.');
+      }
+
+      const excluded = lastRows.filter(r => r.noBreakeven).map(r => r.name);
+      const plotted = manualCost > 0
+        ? [...lastRows]
+            .filter(r => !r.noBreakeven && Number.isFinite(r.breakevenInstances) && r.breakevenInstances > 0)
+            .sort((a, b) => a.breakevenInstances - b.breakevenInstances)
+        : [];
+      if (manualCost > 0 && !plotted.length) {
+        helperMessages.push('No model reaches break-even with current assumptions.');
+      }
+      if (excluded.length) {
+        helperMessages.push(`No break-even (fixed costs already exceed manual baseline): ${excluded.join(', ')}.`);
+      }
+
+      return {
+        config: {
+          type: 'bar',
+          data: {
+            labels: plotted.map(r => r.name),
+            datasets: [{
+              label: 'Break-even instances',
+              data: plotted.map(r => ({
+                x: r.breakevenInstances,
+                y: r.name,
+                months: r.breakevenMonths,
+                model: r.name,
+              })),
+              backgroundColor: plotted.map(r => r.color + '88'),
+              borderColor: plotted.map(r => r.color),
+              borderWidth: 1.5,
+            }],
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 0 },
+            interaction: { intersect: true, mode: 'nearest' },
+            indexAxis: 'y',
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items) => items[0].raw?.model || items[0].label,
+                  label: (ctx) => {
+                    const raw = ctx.raw || {};
+                    const lines = [`Break-even at ${formatInstances(raw.x ?? ctx.parsed.x)} instances`];
+                    if (raw.months > 0) lines.push(`  Time to break-even: ${raw.months} mo`);
+                    return lines;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                title: { display: true, text: 'Break-even instances', color: theme.muted },
+                grid: { color: theme.grid },
+                ticks: { color: theme.muted, callback: (v) => formatInstances(v) },
+              },
+              y: {
+                grid: { color: theme.grid },
+                ticks: { color: theme.muted },
+              },
+            },
+          },
+        },
+        plugins: [],
+        helperMessages,
+      };
+    }
+
+    function buildScoreChart(theme) {
+      const helperMessages = [];
+      if (!monthlyInstances) helperMessages.push('Set Instances / month to plot cost vs your manual fit rubric scores.');
+      helperMessages.push('Fit scores are user-entered rubric values, not benchmark-derived rankings.');
+      const datasets = monthlyInstances > 0
+        ? lastRows.map(r => ({
+            label: r.name,
+            data: [{ x: r.monthlyCost, y: r.decisionScore }],
+            borderColor: r.color,
+            backgroundColor: r.color,
+            pointRadius: 5,
+            pointHoverRadius: 6,
+            pointBorderWidth: 1,
+            pointBorderColor: r.color,
+            showLine: false,
+            _row: r,
+          }))
+        : [];
+      return {
+        config: {
+          type: 'scatter',
+          data: { datasets },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 0 },
+            interaction: { intersect: false, mode: 'nearest' },
+            plugins: {
+              legend: { display: true, labels: { color: theme.muted, usePointStyle: true, pointStyle: 'circle', padding: 16 } },
+              tooltip: {
+                callbacks: {
+                  title: (items) => items[0].dataset.label,
+                  label: (ctx) => {
+                    const row = ctx.dataset._row;
+                    const lines = [
+                      `Monthly: ${formatCost(row.monthlyCost)}/mo`,
+                      `Cost / inst.: ${formatCost(row.costPerInstance)}`,
+                      `Your fit (manual): ${row.decisionScore}/100`,
+                      `  Compliance: ${row.fitCompliance}`,
+                      `  Quality: ${row.fitQuality}`,
+                      `  Ops: ${row.fitOps}`,
+                    ];
+                    if (manualCost > 0 && row.monthlyCost > 0) {
+                      const sign = row.savingsVsManual >= 0 ? 'Saves' : 'Above manual by';
+                      lines.push(`${sign}: ${formatCost(Math.abs(row.savingsVsManual))}/mo`);
+                    }
+                    return lines;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                title: { display: true, text: `Monthly Cost (${currency})`, color: theme.muted },
+                grid: { color: theme.grid },
+                ticks: { color: theme.muted, callback: (v) => formatCost(v) },
+              },
+              y: {
+                min: 0,
+                max: 100,
+                title: { display: true, text: 'Your Fit Score (Manual Rubric)', color: theme.muted },
+                grid: { color: theme.grid },
+                ticks: { color: theme.muted, callback: (v) => `${v}` },
+              },
+            },
+          },
+        },
+        plugins: [],
+        helperMessages,
+      };
+    }
+
+    function ensureChart(spec) {
+      const canvas = document.getElementById('costChart');
+      if (!chart || chart.config.type !== spec.config.type) {
+        if (chart) chart.destroy();
+        chart = new Chart(canvas, { ...spec.config, plugins: spec.plugins });
+        return;
+      }
+      chart.config.data = spec.config.data;
+      chart.config.options = spec.config.options;
+      chart.config.plugins = spec.plugins;
+      chart.update('none');
+    }
+
+    function renderActiveChart() {
+      const theme = getThemeColors();
+      let spec;
+      if (activeChartTab === 'forecast') spec = buildForecastChart(theme);
+      else if (activeChartTab === 'breakeven') spec = buildBreakevenChart(theme);
+      else if (activeChartTab === 'score') spec = buildScoreChart(theme);
+      else spec = buildInstancesChart(theme);
+
+      setChartHelper(spec.helperMessages);
+      ensureChart(spec);
+    }
+
+    function updateChartTheme() {
+      if (!lastRows.length && !models.length) return;
+      renderActiveChart();
+    }
+
+    /* ===== Model CRUD ===== */
+    function slider(field, label, min, max, step, value, note = '') {
+      const noteHTML = note ? `<p class="input-note">${note}</p>` : '';
+      return `<div class="slider-group"><div class="slider-header"><label>${label}</label><output data-display="${field}"></output></div><input type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-field="${field}">${noteHTML}</div>`;
+    }
+
+    function updateDisplay(panel, model) {
+      const d = (f) => panel.querySelector(`[data-display="${f}"]`);
+      d('inputPrice').textContent  = formatPrice(logToValue(model.inputPrice, PRICE_IN_MIN, PRICE_IN_MAX));
+      d('outputPrice').textContent = formatPrice(logToValue(model.outputPrice, PRICE_OUT_MIN, PRICE_OUT_MAX));
+      d('fixedCost').textContent   = `${sym()}${model.fixedCost.toLocaleString()} / mo`;
+      d('fitCompliance').textContent = `${model.fitCompliance}/100`;
+      d('fitQuality').textContent = `${model.fitQuality}/100`;
+      d('fitOps').textContent = `${model.fitOps}/100`;
+      d('decisionScore').textContent = `${model.decisionScore}/100`;
+    }
+
+    const addModelWrap = document.querySelector('.add-model-wrap');
+
+    function renderModelPanel(model) {
+      const div = document.createElement('div');
+      div.className = 'panel model-panel';
+      div.id = `model-${model.id}`;
+      const swatchesHTML = SWATCH_COLORS.map(c =>
+        `<div class="color-swatch${c === model.color ? ' active' : ''}" data-color="${c}" style="background:${c}"></div>`
+      ).join('');
+      div.innerHTML = `
+        <div class="model-header">
+          <button class="collapse-btn" title="Collapse">${CHEVRON_SVG}</button>
+          <div class="color-picker-wrap">
+            <div class="color-dot" style="background:${model.color}"></div>
+            <div class="color-popover">
+              <div class="color-swatches">${swatchesHTML}</div>
+              <div class="hex-row"><span>#</span><input type="text" class="hex-input" value="${model.color.slice(1)}" maxlength="6" placeholder="FF5500"></div>
+            </div>
+          </div>
+          <input class="model-name" type="text" value="${model.name}" data-field="name">
+          <button class="remove-btn" title="Remove model">&times;</button>
+        </div>
+        <div class="model-body"><div class="model-body-inner">
+          ${slider('inputPrice',  'Input token price',   0, 1000, 1,  model.inputPrice,  'Cost per million input tokens.')}
+          ${slider('outputPrice', 'Output token price',  0, 1000, 1,  model.outputPrice, 'Cost per million output tokens.')}
+          ${slider('fixedCost',   'Fixed costs / month', 0, 10000, 10, model.fixedCost,  'Fixed monthly platform cost.')}
+          <div class="panel-divider">Manual Fit Rubric</div>
+          ${slider('fitCompliance', 'Compliance & governance fit', 0, 100, 1, model.fitCompliance, 'Compliance and governance suitability score.')}
+          ${slider('fitQuality', 'Output quality fit', 0, 100, 1, model.fitQuality, 'Output quality suitability score.')}
+          ${slider('fitOps', 'Operational fit', 0, 100, 1, model.fitOps, 'Operational reliability suitability score.')}
+          <div class="slider-group">
+            <div class="slider-header"><label>Your fit score (avg)</label><output data-display="decisionScore"></output></div>
+          </div>
+        </div></div>`;
+
+      // Color picker
+      const dot = div.querySelector('.color-dot');
+      const popover = div.querySelector('.color-popover');
+      const hexInput = div.querySelector('.hex-input');
+      function setColor(hex) {
+        model.color = hex;
+        dot.style.background = hex;
+        hexInput.value = hex.slice(1);
+        div.querySelectorAll('.color-swatch').forEach(sw =>
+          sw.classList.toggle('active', sw.dataset.color.toLowerCase() === hex.toLowerCase()));
+        recalculate();
+      }
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.color-popover.open').forEach(p => { if (p !== popover) p.classList.remove('open'); });
+        popover.classList.toggle('open');
+      });
+      popover.addEventListener('click', (e) => e.stopPropagation());
+      div.querySelectorAll('.color-swatch').forEach(sw =>
+        sw.addEventListener('click', () => { setColor(sw.dataset.color); popover.classList.remove('open'); }));
+      hexInput.addEventListener('input', () => {
+        const v = hexInput.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 6);
+        hexInput.value = v;
+        if (v.length === 6) setColor('#' + v);
+      });
+
+      // Other controls
+      div.querySelector('.collapse-btn').addEventListener('click', () => div.classList.toggle('collapsed'));
+      div.querySelector('.remove-btn').addEventListener('click', () => removeModel(model.id));
+      div.querySelector('.model-name').addEventListener('input', (e) => { model.name = e.target.value || 'Model'; recalculate(); });
+      div.querySelectorAll('input[type="range"]').forEach(input =>
+        input.addEventListener('input', () => {
+          model[input.dataset.field] = +input.value;
+          model.decisionScore = computeManualFitScore(model);
+          updateDisplay(div, model);
+          recalculate();
+        }));
+
+      addModelWrap.parentNode.insertBefore(div, addModelWrap);
+      updateDisplay(div, model);
+    }
+
+    function addModel(preset) {
+      const model = {
+        id: nextId++,
+        color: COLORS[models.length % COLORS.length],
+        name: preset?.name || 'Custom Model',
+        inputPrice:  preset?.inPrice  ? valueToLog(preset.inPrice,  PRICE_IN_MIN,  PRICE_IN_MAX)  : 460,
+        outputPrice: preset?.outPrice ? valueToLog(preset.outPrice, PRICE_OUT_MIN, PRICE_OUT_MAX) : 440,
+        fixedCost: 0,
+        fitCompliance: 50,
+        fitQuality: 50,
+        fitOps: 50,
+        decisionScore: 50,
+      };
+      normalizeModelFitFields(model);
+      models.push(model);
+      renderModelPanel(model);
+      recalculate();
+    }
+
+    function addModelFromState(s) {
+      const model = normalizeModelFitFields({ ...s, fixedCost: s.fixedCost || 0, decisionScore: Number.isFinite(s.decisionScore) ? +s.decisionScore : 50, id: nextId++ });
+      models.push(model);
+      renderModelPanel(model);
+    }
+
+    function removeModel(id) {
+      models = models.filter(m => m.id !== id);
+      document.getElementById(`model-${id}`)?.remove();
+      recalculate();
+    }
+
+    /* ===== Recalculate ===== */
+    function recalculate() {
+      const ps = processSettings;
+      lastRows = [];
+      for (const m of models) {
+        normalizeModelFitFields(m);
+        const inP  = logToValue(m.inputPrice,  PRICE_IN_MIN,  PRICE_IN_MAX);
+        const outP = logToValue(m.outputPrice, PRICE_OUT_MIN, PRICE_OUT_MAX);
+        // In agentic orchestration each step sends full history as input:
+        // step k receives inputTokens + (k-1)*outputTokens → total input = N·I + N(N-1)/2·O
+        const N = ps.tools;
+        const totalInputTokens      = N * ps.inputTokens + (N * (N - 1) / 2) * ps.outputTokens;
+        const totalOutputTokens     = N * ps.outputTokens;
+        const inputCostPerInstance  = totalInputTokens * inP;
+        const outputCostPerInstance = totalOutputTokens * outP;
+        const costPerInstance       = inputCostPerInstance + outputCostPerInstance;
+        const fc          = m.fixedCost || 0;
+        const costAt10k   = costPerInstance * 10000 + fc;
+        const costAt100k  = costPerInstance * 100000 + fc;
+        const monthlyCost = monthlyInstances > 0 ? monthlyInstances * costPerInstance + fc : 0;
+        let annualCost = 0;
+        if (monthlyCost > 0) {
+          for (let mo = 0; mo < forecastMonths; mo++) {
+            const inst = Math.round(monthlyInstances * (1 + growthRate / 100) ** mo);
+            annualCost += inst * costPerInstance + fc;
+          }
+        }
+        const savingsVsManual    = (manualCost > 0 && monthlyCost > 0) ? manualCost - monthlyCost : 0;
+        const savingsPct         = (manualCost > 0 && monthlyCost > 0) ? (savingsVsManual / manualCost * 100) : 0;
+        const noBreakeven = manualCost > 0 && fc >= manualCost;
+        const breakevenInstances = (manualCost > 0 && costPerInstance > 0 && !noBreakeven)
+          ? Math.ceil((manualCost - fc) / costPerInstance)
+          : 0;
+        const breakevenMonths = (breakevenInstances > 0 && monthlyInstances > 0 && !noBreakeven)
+          ? Math.ceil(breakevenInstances / monthlyInstances)
+          : 0;
+        const budgetAtFixed = budget > 0 && fc >= budget;
+        const budgetReachInstances = (budget > 0 && costPerInstance > 0 && !budgetAtFixed)
+          ? Math.ceil((budget - fc) / costPerInstance)
+          : 0;
+
+        lastRows.push({
+          name: m.name,
+          color: m.color,
+          decisionScore: m.decisionScore,
+          fitCompliance: m.fitCompliance,
+          fitQuality: m.fitQuality,
+          fitOps: m.fitOps,
+          inP,
+          outP,
+          fixedCost: fc,
+          inputCostPerInstance,
+          outputCostPerInstance,
+          costPerInstance,
+          costAt10k,
+          costAt100k,
+          monthlyCost,
+          annualCost,
+          savingsVsManual,
+          savingsPct,
+          budgetAtFixed,
+          budgetReachInstances,
+          breakevenInstances,
+          breakevenMonths,
+          noBreakeven,
+        });
+      }
+
+      renderActiveChart();
+      renderTable();
+      updateExecutiveInsight();
+      updateStep2Context();
+      saveState();
+    }
+
+    /* ===== Table ===== */
+    function renderTable() {
+      const sorted = [...lastRows].sort((a, b) => {
+        const av = a[sortKey], bv = b[sortKey];
+        return (sortDir === 'asc' ? 1 : -1) * (typeof av === 'string' ? av.localeCompare(bv) : av - bv);
+      });
+      const cheapest = lastRows.length ? Math.min(...lastRows.map(r => r.costPerInstance)) : 0;
+      const dim = '<span style="color:var(--muted)">\u2014</span>';
+
+      document.querySelector('#modelTable tbody').innerHTML = sorted.map(r => {
+        const isCheapest = r.costPerInstance === cheapest && lastRows.length > 1;
+        const savColor = r.savingsVsManual > 0 ? '#22C55E' : r.savingsVsManual < 0 ? '#EF4444' : '';
+        const savStr = r.savingsVsManual !== 0
+          ? `<span style="color:${savColor}">${r.savingsVsManual > 0 ? '+' : ''}${r.savingsPct.toFixed(0)}% (${formatCost(Math.abs(r.savingsVsManual))})</span>`
+          : dim;
+        const beStr = r.noBreakeven
+          ? 'No break-even'
+          : r.breakevenInstances > 0
+          ? formatInstances(r.breakevenInstances)
+          : dim;
+        const budgetReachStr = budget <= 0
+          ? dim
+          : r.budgetAtFixed
+          ? '0 inst (fixed)'
+          : r.budgetReachInstances > 0
+          ? `${formatInstances(r.budgetReachInstances)} inst`
+          : dim;
+        const beMonthsStr = r.noBreakeven
+          ? 'No break-even'
+          : r.breakevenMonths > 0
+          ? `${r.breakevenMonths} mo`
+          : dim;
+        return `<tr>
+          <td class="name-cell"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${r.color};margin-right:6px;vertical-align:middle"></span>${r.name}${isCheapest ? ' <span style="color:#22C55E;font-size:0.65rem;font-weight:400">BEST</span>' : ''}</td>
+          <td>${r.decisionScore}</td>
+          <td>${formatCost(r.costPerInstance)}</td>
+          <td>${r.monthlyCost > 0 ? formatCost(r.monthlyCost) : dim}</td>
+          <td>${savStr}</td>
+          <td>${budgetReachStr}</td>
+          <td>${beStr}</td>
+          <td>${beMonthsStr}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.querySelectorAll('#modelTable th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        else { sortKey = key; sortDir = 'asc'; }
+        document.querySelectorAll('#modelTable th[data-sort]').forEach(h => {
+          h.classList.toggle('sort-active', h.dataset.sort === sortKey);
+          h.querySelector('.sort-arrow').textContent = h.dataset.sort === sortKey ? (sortDir === 'asc' ? '\u25B2' : '\u25BC') : '';
+        });
+        renderTable();
+      });
+    });
+
+    /* ===== Executive insight ===== */
+    function updateExecutiveInsight() {
+      const el = document.getElementById('executiveInsight');
+      if (!lastRows.length) { el.innerHTML = ''; return; }
+
+      const chips = [];
+      const monthlyCostFor = (row, instances) => instances * row.costPerInstance + row.fixedCost;
+      const forecastMonthlyFor = (row, month) => {
+        const growthFactor = (1 + growthRate / 100) ** (month - 1);
+        return monthlyCostFor(row, monthlyInstances * growthFactor);
+      };
+      const forecastTotalFor = (row) => {
+        let total = 0;
+        for (let month = 1; month <= forecastMonths; month++) total += forecastMonthlyFor(row, month);
+        return total;
+      };
+      const addChip = (text, tone = '') => chips.push(`<span class="insight${tone ? ` ${tone}` : ''}">${text}</span>`);
+      const pct = (a, b) => Math.round((1 - a / b) * 100);
+
+      if (activeChartTab === 'instances') {
+        if (monthlyInstances > 0) {
+          const byMonthly = [...lastRows].sort((a, b) => monthlyCostFor(a, monthlyInstances) - monthlyCostFor(b, monthlyInstances));
+          const cheapest = byMonthly[0];
+          const priciest = byMonthly[byMonthly.length - 1];
+          const cheapestMonthly = monthlyCostFor(cheapest, monthlyInstances);
+          const priesiestMonthly = monthlyCostFor(priciest, monthlyInstances);
+
+          // 1. Cost leader at volume
+          if (lastRows.length > 1) {
+            const savings = pct(cheapestMonthly, priesiestMonthly);
+            addChip(`Cost leader at volume:&nbsp;<strong>${cheapest.name}</strong> at ${formatCost(cheapestMonthly)}/mo — ${savings}% cheaper than ${priciest.name}`);
+          } else {
+            addChip(`Cost at volume:&nbsp;<strong>${cheapest.name}</strong> — ${formatCost(cheapestMonthly)}/mo`);
+          }
+
+          // 2. Annual burn range
+          if (lastRows.length > 1) {
+            addChip(`Annual spend at ${formatInstances(monthlyInstances)} inst/mo: ${formatCost(cheapestMonthly * 12)} – ${formatCost(priesiestMonthly * 12)}/yr depending on model`);
+          } else {
+            addChip(`Annual spend: ${formatCost(cheapestMonthly * 12)}/yr at ${formatInstances(monthlyInstances)} inst/mo`);
+          }
+
+          // 3. Savings vs manual
+          if (manualCost > 0) {
+            const belowManual = byMonthly.filter(r => monthlyCostFor(r, monthlyInstances) < manualCost);
+            if (belowManual.length) {
+              const bestSaving = manualCost - monthlyCostFor(belowManual[0], monthlyInstances);
+              addChip(`Automation saves up to ${formatCost(bestSaving)}/mo vs manual — ${belowManual.length} of ${lastRows.length} models already cheaper`, 'ok');
+            } else {
+              const reachable = [...lastRows].filter(r => !r.noBreakeven && r.breakevenInstances > 0).sort((a, b) => a.breakevenInstances - b.breakevenInstances);
+              if (reachable.length) {
+                addChip(`No model beats manual yet — ${reachable[0].name} breaks even at ${formatInstances(reachable[0].breakevenInstances)} inst`, 'warn');
+              } else {
+                addChip(`No model beats manual cost of ${formatCost(manualCost)}/mo under current assumptions`, 'warn');
+              }
+            }
+          }
+
+          // 4. Budget fitness
+          if (budget > 0) {
+            const withinBudget = byMonthly.filter(r => monthlyCostFor(r, monthlyInstances) <= budget);
+            if (withinBudget.length) {
+              const headroom = budget - monthlyCostFor(withinBudget[0], monthlyInstances);
+              addChip(`${withinBudget.length}/${lastRows.length} models within ${formatCost(budget)} budget — ${withinBudget[0].name} leaves ${formatCost(headroom)} headroom`, 'ok');
+            } else {
+              const overage = monthlyCostFor(cheapest, monthlyInstances) - budget;
+              addChip(`All models exceed budget — tightest miss: ${cheapest.name} over by ${formatCost(overage)}/mo`, 'warn');
+            }
+          }
+
+          // 5. Cost spread (only meaningful with 3+ models and >2× ratio)
+          if (lastRows.length > 2 && cheapestMonthly > 0) {
+            const ratio = priesiestMonthly / cheapestMonthly;
+            if (ratio >= 2) {
+              addChip(`${ratio.toFixed(1)}× cost spread across models — model choice is a significant cost lever`);
+            }
+          }
+
+        } else {
+          // No volume set
+          const byInstance = [...lastRows].sort((a, b) => a.costPerInstance - b.costPerInstance);
+          const cheapest = byInstance[0];
+          const priciest = byInstance[byInstance.length - 1];
+          addChip(`Cheapest per instance:&nbsp;<strong>${cheapest.name}</strong> at ${formatCost(cheapest.costPerInstance)}/inst`);
+          if (lastRows.length > 1) {
+            const ratio = (priciest.costPerInstance / cheapest.costPerInstance).toFixed(1);
+            addChip(`${ratio}× cost difference between cheapest and priciest model`);
+          }
+          addChip('Set Instances / month to unlock budget, manual baseline, and annual projections.', 'warn');
+        }
+
+      } else if (activeChartTab === 'forecast') {
+        if (monthlyInstances <= 0) {
+          addChip('Set Instances / month to generate a cost forecast.', 'warn');
+        } else {
+          const totals = lastRows.map(r => ({ row: r, total: forecastTotalFor(r), monthN: forecastMonthlyFor(r, forecastMonths) }));
+          totals.sort((a, b) => a.total - b.total);
+          const winner = totals[0];
+
+          // 1. Long-term winner with delta vs runner-up
+          if (totals.length > 1) {
+            const delta = totals[1].total - winner.total;
+            addChip(`${forecastMonths}-month cost leader:&nbsp;<strong>${winner.row.name}</strong> at ${formatCost(winner.total)} total — saves ${formatCost(delta)} vs next option`);
+          } else {
+            addChip(`${forecastMonths}-month total:&nbsp;<strong>${winner.row.name}</strong> — ${formatCost(winner.total)}`);
+          }
+
+          // 2. Growth risk: first model to cross budget ceiling
+          if (budget > 0 && growthRate > 0) {
+            const risks = [];
+            for (const { row } of totals) {
+              for (let mo = 1; mo <= forecastMonths; mo++) {
+                if (forecastMonthlyFor(row, mo) > budget) { risks.push({ name: row.name, month: mo }); break; }
+              }
+            }
+            if (risks.length) {
+              const first = risks.sort((a, b) => a.month - b.month)[0];
+              addChip(`Growth risk: ${first.name} crosses budget ceiling by month ${first.month} at ${growthRate}% growth`, 'warn');
+            } else {
+              addChip(`All models stay within ${formatCost(budget)} budget across ${forecastMonths} months at ${growthRate}% growth`, 'ok');
+            }
+          }
+
+          // 3. End-state monthly cost
+          addChip(`By month ${forecastMonths}, ${winner.row.name} costs ${formatCost(winner.monthN)}/mo at projected volume`);
+
+          // 4. Manual comparison at end of forecast
+          if (manualCost > 0) {
+            const belowManualAtEnd = totals.filter(t => t.monthN < manualCost);
+            if (belowManualAtEnd.length) {
+              addChip(`${belowManualAtEnd.length} of ${lastRows.length} models below manual cost by month ${forecastMonths}`, 'ok');
+            } else {
+              addChip(`No model below manual cost by month ${forecastMonths} — consider longer forecast horizon or higher volume`, 'warn');
+            }
+          }
+        }
+
+      } else if (activeChartTab === 'breakeven') {
+        if (manualCost <= 0) {
+          addChip('Set Manual cost / month to evaluate break-even and ROI.', 'warn');
+        } else {
+          const reachable = [...lastRows].filter(r => !r.noBreakeven && r.breakevenInstances > 0).sort((a, b) => a.breakevenInstances - b.breakevenInstances);
+          const neverBreakeven = lastRows.filter(r => r.noBreakeven || !(r.breakevenInstances > 0));
+
+          if (reachable.length) {
+            const best = reachable[0];
+
+            // 1. Fastest ROI with projected calendar date
+            let dateLabel = '';
+            if (best.breakevenMonths > 0) {
+              const d = new Date();
+              d.setMonth(d.getMonth() + best.breakevenMonths);
+              dateLabel = ` — pays off by ${d.toLocaleString('default', { month: 'long', year: 'numeric' })}`;
+            }
+            const monthLabel = best.breakevenMonths > 0 ? ` in ${best.breakevenMonths} month${best.breakevenMonths !== 1 ? 's' : ''}` : '';
+            addChip(`Fastest ROI:&nbsp;<strong>${best.name}</strong> breaks even at ${formatInstances(best.breakevenInstances)} inst${monthLabel}${dateLabel}`, 'ok');
+
+            // 2. Post-breakeven annual upside
+            if (monthlyInstances > 0) {
+              const postSavings = manualCost - monthlyCostFor(best, monthlyInstances);
+              if (postSavings > 0) {
+                const annual = postSavings * 12;
+                const roiX = (annual / manualCost).toFixed(1);
+                addChip(`Post break-even,&nbsp;<strong>${best.name}</strong> saves ${formatCost(postSavings)}/mo — ${formatCost(annual)}/yr (${roiX}× annual ROI)`, 'ok');
+              }
+            }
+
+            // 3. How many reach break-even
+            if (lastRows.length > 1) {
+              const tone = reachable.length === lastRows.length ? 'ok' : '';
+              addChip(`${reachable.length} of ${lastRows.length} models reach break-even under current assumptions`, tone);
+            }
+          } else {
+            addChip('No model reaches break-even — lower fixed costs or increase target volume.', 'warn');
+          }
+
+          // 4. Never-break-even flag
+          if (neverBreakeven.length && lastRows.length > 1) {
+            addChip(`${neverBreakeven.length} model${neverBreakeven.length !== 1 ? 's' : ''} can never beat manual cost — fixed costs exceed manual baseline`, 'warn');
+          }
+        }
+
+      } else if (activeChartTab === 'score') {
+        if (monthlyInstances <= 0) {
+          addChip('Set Instances / month to compare cost vs your manual rubric score.', 'warn');
+        } else {
+          addChip('Fit scores are manual rubric inputs from your team, not vendor benchmark rankings.');
+          const view = lastRows.map(r => ({ ...r, currentMonthly: monthlyCostFor(r, monthlyInstances) }));
+          const byCost = [...view].sort((a, b) => a.currentMonthly - b.currentMonthly);
+          const byFit  = [...view].sort((a, b) => (b.decisionScore - a.decisionScore) || (a.currentMonthly - b.currentMonthly));
+          const costLeader = byCost[0];
+          const fitLeader  = byFit[0];
+
+          // 1. Manual fit shortlist: best user-scored model at lowest cost
+          const highFit = view.filter(r => r.decisionScore >= 70).sort((a, b) => a.currentMonthly - b.currentMonthly);
+          if (highFit.length) {
+            const pick = highFit[0];
+            addChip(`Manual-fit pick:&nbsp;<strong>${pick.name}</strong> — fit ${pick.decisionScore} at ${formatCost(pick.currentMonthly)}/mo`, 'ok');
+          } else {
+            addChip(`No model above manual rubric score 70 — highest is&nbsp;<strong>${fitLeader.name}</strong> at ${fitLeader.decisionScore}`, 'warn');
+          }
+
+          // 2. Cost-fit premium: what does the fit leader cost vs the cost leader?
+          if (fitLeader.name !== costLeader.name && lastRows.length > 1) {
+            const premium = ((fitLeader.currentMonthly - costLeader.currentMonthly) / costLeader.currentMonthly * 100).toFixed(0);
+            const fitDelta = fitLeader.decisionScore - costLeader.decisionScore;
+            addChip(`Fit premium:&nbsp;<strong>${fitLeader.name}</strong> costs ${premium}% more than ${costLeader.name} for +${fitDelta} fit points — is the premium justified?`);
+          }
+
+          // 3. Second-best fit trade-off (only with 3+ models)
+          if (view.length >= 3 && byFit.length >= 2) {
+            const runnerUp = byFit[1];
+            if (runnerUp.name !== costLeader.name) {
+              const saving = pct(runnerUp.currentMonthly, fitLeader.currentMonthly);
+              const fitLoss = fitLeader.decisionScore - runnerUp.decisionScore;
+              if (saving > 0 && fitLoss >= 0) {
+                addChip(`Alternative:&nbsp;<strong>${runnerUp.name}</strong> saves ${saving}% vs fit leader for only ${fitLoss} fewer fit points`);
+              }
+            }
+          }
+        }
+      }
+
+      el.innerHTML = chips.join('');
+    }
+
+    /* ===== Event handlers ===== */
+
+    // Close all popovers on outside click
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('.color-popover.open').forEach(p => p.classList.remove('open'));
+      if (!presetMenu.contains(e.target) && e.target !== document.getElementById('addModelBtn')) {
+        presetMenu.classList.remove('open');
+      }
+    });
+
+    // Collapse/Expand
+    document.getElementById('collapseAll').addEventListener('click', () => document.querySelectorAll('.model-panel').forEach(p => p.classList.add('collapsed')));
+    document.getElementById('expandAll').addEventListener('click', () => document.querySelectorAll('.model-panel').forEach(p => p.classList.remove('collapsed')));
+
+    // Chart tabs
+    const chartTabButtons = [...document.querySelectorAll('.chart-tabs button[data-tab]')];
+    function setChartTab(tab, opts = {}) {
+      activeChartTab = normalizeChartTab(tab);
+      chartTabButtons.forEach(btn => btn.setAttribute('aria-pressed', btn.dataset.tab === activeChartTab));
+      if (!opts.skipRecalc) recalculate();
+    }
+    chartTabButtons.forEach(btn => btn.addEventListener('click', () => setChartTab(btn.dataset.tab)));
+
+    // Settings panels
+    const processPanelEl = document.getElementById('processSettingsPanel');
+    const businessPanelEl = document.getElementById('businessSettingsPanel');
+    function setSettingsPanelCollapsed(panel, collapsed) {
+      panel.classList.toggle('collapsed', !!collapsed);
+    }
+    function applySettingsPanelState() {
+      setSettingsPanelCollapsed(processPanelEl, processPanelCollapsed);
+      setSettingsPanelCollapsed(businessPanelEl, businessPanelCollapsed);
+    }
+    document.getElementById('processCollapseBtn').addEventListener('click', () => {
+      processPanelCollapsed = !processPanelCollapsed;
+      applySettingsPanelState();
+      saveState();
+    });
+    document.getElementById('businessCollapseBtn').addEventListener('click', () => {
+      businessPanelCollapsed = !businessPanelCollapsed;
+      applySettingsPanelState();
+      saveState();
+    });
+    applySettingsPanelState();
+
+    // Currency
+    const btnUSD = document.getElementById('btnUSD'), btnEUR = document.getElementById('btnEUR');
+    const rateInput = document.getElementById('rateInput');
+    function setCurrency(c) {
+      const old = currency;
+      currency = c;
+      if (c !== old && models.length) convertPrices(c === 'EUR' ? eurRate : (1 / eurRate));
+      btnUSD.setAttribute('aria-pressed', c === 'USD');
+      btnEUR.setAttribute('aria-pressed', c === 'EUR');
+      document.querySelector('.header-currency').classList.toggle('usd-active', c === 'USD');
+      updateProcessSettingsDisplay();
+      updateBusinessDisplay();
+      recalculate();
+    }
+    btnUSD.addEventListener('click', () => setCurrency('USD'));
+    btnEUR.addEventListener('click', () => setCurrency('EUR'));
+    rateInput.addEventListener('input', () => {
+      const v = parseFloat(rateInput.value);
+      if (v > 0 && isFinite(v)) {
+        if (currency === 'EUR') convertPrices(v / eurRate);
+        eurRate = v;
+        recalculate();
+      }
+    });
+
+    // Business params
+    const budgetInput = document.getElementById('budgetInput');
+    const monthlyInstancesInput = document.getElementById('monthlyInstancesInput');
+    const manualCostInput = document.getElementById('manualCostInput');
+    const rangeProfileInput = document.getElementById('rangeProfileInput');
+
+    const growthRateInput = document.getElementById('growthRateInput');
+    function applyRangeConfig(input, cfg, value) {
+      input.min = cfg.min;
+      input.max = cfg.max;
+      input.step = cfg.step;
+      return clamp(value, cfg.min, cfg.max);
+    }
+    function applyRangeProfile(profile, { preserveValues = true } = {}) {
+      activeRangeProfile = normalizeRangeProfile(profile);
+      rangeProfileInput.value = activeRangeProfile;
+      const cfg = RANGE_PROFILES[activeRangeProfile];
+      monthlyInstances = applyRangeConfig(monthlyInstancesInput, cfg.monthlyInstances, preserveValues ? monthlyInstances : cfg.monthlyInstances.defaultValue);
+      budget = applyRangeConfig(budgetInput, cfg.budget, preserveValues ? budget : cfg.budget.defaultValue);
+      manualCost = applyRangeConfig(manualCostInput, cfg.manualCost, preserveValues ? manualCost : cfg.manualCost.defaultValue);
+      monthlyInstancesInput.value = monthlyInstances;
+      budgetInput.value = budget;
+      manualCostInput.value = manualCost;
+    }
+    function getRangeClampWarnings(nextProfile) {
+      const cfg = RANGE_PROFILES[normalizeRangeProfile(nextProfile)];
+      const warnings = [];
+      if (monthlyInstances > cfg.monthlyInstances.max) warnings.push(`Instances / month will be capped at ${formatInstances(cfg.monthlyInstances.max)}.`);
+      if (budget > cfg.budget.max) warnings.push(`Monthly budget will be capped at ${sym()}${cfg.budget.max.toLocaleString()}.`);
+      if (manualCost > cfg.manualCost.max) warnings.push(`Manual cost / month will be capped at ${sym()}${cfg.manualCost.max.toLocaleString()}.`);
+      return warnings;
+    }
+
+    function updateBusinessDisplay() {
+      document.getElementById('monthlyInstancesDisplay').textContent = formatInstances(monthlyInstances);
+      document.getElementById('growthRateDisplay').textContent = `${growthRate}% / mo`;
+      document.getElementById('forecastMonthsDisplay').textContent = `${forecastMonths} month${forecastMonths !== 1 ? 's' : ''}`;
+      document.getElementById('budgetDisplay').textContent = `${sym()}${budget.toLocaleString()}`;
+      document.getElementById('manualCostDisplay').textContent = `${sym()}${manualCost.toLocaleString()}`;
+    }
+    applyRangeProfile(activeRangeProfile);
+    updateBusinessDisplay();
+
+    rangeProfileInput.addEventListener('change', () => {
+      const warnings = getRangeClampWarnings(rangeProfileInput.value);
+      if (warnings.length) {
+        const proceed = confirm(`Changing profile will adjust current values:\n- ${warnings.join('\n- ')}\n\nContinue?`);
+        if (!proceed) {
+          rangeProfileInput.value = activeRangeProfile;
+          return;
+        }
+      }
+      applyRangeProfile(rangeProfileInput.value, { preserveValues: true });
+      updateBusinessDisplay();
+      recalculate();
+    });
+
+    monthlyInstancesInput.addEventListener('input', () => {
+      monthlyInstances = +monthlyInstancesInput.value;
+      updateBusinessDisplay();
+      recalculate();
+    });
+    growthRateInput.addEventListener('input', () => {
+      growthRate = +growthRateInput.value;
+      updateBusinessDisplay();
+      recalculate();
+    });
+    const forecastMonthsInput = document.getElementById('forecastMonthsInput');
+    forecastMonthsInput.addEventListener('input', () => {
+      forecastMonths = +forecastMonthsInput.value;
+      updateBusinessDisplay();
+      recalculate();
+    });
+    budgetInput.addEventListener('input', () => {
+      budget = +budgetInput.value;
+      updateBusinessDisplay();
+      recalculate();
+    });
+    manualCostInput.addEventListener('input', () => {
+      manualCost = +manualCostInput.value;
+      updateBusinessDisplay();
+      recalculate();
+    });
+
+    // Theme
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const html = document.documentElement;
+      html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+      updateChartTheme();
+      saveState();
+    });
+
+    // Reset
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      for (const m of [...models]) document.getElementById(`model-${m.id}`)?.remove();
+      models = []; nextId = 0;
+      activeRangeProfile = 'growth';
+      applyRangeProfile(activeRangeProfile, { preserveValues: false });
+      setSidebarCollapsed(false, { save: false });
+      processPanelCollapsed = true;
+      businessPanelCollapsed = false;
+      step2Context = null;
+      applySettingsPanelState();
+      growthRate = 0; growthRateInput.value = 0;
+      forecastMonths = 12; forecastMonthsInput.value = 12;
+      updateBusinessDisplay();
+      document.getElementById('scenarioName').value = 'Default Scenario';
+      processSettings = { ...DEFAULT_PROCESS };
+      document.getElementById('psInputTokens').value = DEFAULT_PROCESS.inputTokens;
+      document.getElementById('psOutputTokens').value = DEFAULT_PROCESS.outputTokens;
+      document.getElementById('psTools').value = DEFAULT_PROCESS.tools;
+      updateProcessSettingsDisplay();
+      setChartTab('score', { skipRecalc: true });
+      recalculate();
+    });
+
+    // Share
+    document.getElementById('shareBtn').addEventListener('click', () => {
+      const url = location.origin + location.pathname + '#' + encodeState();
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('shareBtn');
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 1500);
+      });
+    });
+
+    // Export CSV
+    document.getElementById('exportCsv').addEventListener('click', () => {
+      const header = ['Model','Your fit (manual rubric)','Input / 1M','Output / 1M','Cost / instance','Cost @ 10k','Cost @ 100k','Monthly cost','12-mo total','vs Manual','vs Manual %','Budget reached (instances/mo)','Break-even instances','Break-even months'];
+      const rows = [header.join(',')];
+      const sorted = [...lastRows].sort((a, b) => {
+        const av = a[sortKey], bv = b[sortKey];
+        return (sortDir === 'asc' ? 1 : -1) * (typeof av === 'string' ? av.localeCompare(bv) : av - bv);
+      });
+      for (const r of sorted) {
+        const budgetReached = budget <= 0 ? '' : (r.budgetAtFixed ? '0 (fixed cost)' : r.budgetReachInstances);
+        const be = r.noBreakeven ? 'No break-even' : r.breakevenInstances;
+        const beMonths = r.noBreakeven ? 'No break-even' : (r.breakevenMonths > 0 ? r.breakevenMonths : '');
+        rows.push([`"${r.name}"`, r.decisionScore, (r.inP*1e6).toFixed(2), (r.outP*1e6).toFixed(2), r.costPerInstance.toFixed(6), r.costAt10k.toFixed(2), r.costAt100k.toFixed(2), r.monthlyCost.toFixed(2), r.annualCost.toFixed(2), r.savingsVsManual.toFixed(2), r.savingsPct.toFixed(1) + '%', budgetReached, be, beMonths].join(','));
+      }
+      const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'camunda-cost-comparison.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    // Download PNG
+    document.getElementById('downloadPng').addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = chart.toBase64Image('image/png', 1);
+      a.download = 'camunda-cost-chart.png';
+      a.click();
+    });
+
+    // Preset menu
+    const presetMenu = document.getElementById('presetMenu');
+    presetMenu.innerHTML = MODEL_PRESETS.map((p, i) =>
+      `<div class="preset-item" data-idx="${i}"><span>${p.name}</span><span class="preset-prices">In ${sym()}${(p.inPrice*1e6).toFixed(2)} / Out ${sym()}${(p.outPrice*1e6).toFixed(2)} per 1M</span></div>`
+    ).join('') + '<div class="preset-divider"></div><div class="preset-item" data-idx="-1"><span>Custom Model</span><span class="preset-prices">Set your own prices</span></div>';
+
+    presetMenu.addEventListener('click', (e) => {
+      const item = e.target.closest('.preset-item');
+      if (!item) return;
+      const idx = +item.dataset.idx;
+      addModel(idx >= 0 ? MODEL_PRESETS[idx] : null);
+      presetMenu.classList.remove('open');
+    });
+    document.getElementById('addModelBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      presetMenu.classList.toggle('open');
+    });
+
+    // Scenarios
+    function getSavedScenarios() {
+      try { return JSON.parse(localStorage.getItem(SCENARIO_KEY)) || {}; } catch { return {}; }
+    }
+    function refreshScenarioDropdown() {
+      const sel = document.getElementById('scenarioSelect');
+      const scenarios = getSavedScenarios();
+      sel.innerHTML = '<option value="">Load...</option>' + Object.keys(scenarios).map(n => `<option value="${n}">${n}</option>`).join('');
+    }
+    document.getElementById('scenarioSave').addEventListener('click', () => {
+      const name = document.getElementById('scenarioName').value.trim();
+      if (!name) return;
+      const scenarios = getSavedScenarios();
+      scenarios[name] = {
+        models: models.map(({ id, color, name, inputPrice, outputPrice, fixedCost, decisionScore, fitCompliance, fitQuality, fitOps }) => ({ id, color, name, inputPrice, outputPrice, fixedCost, decisionScore, fitCompliance, fitQuality, fitOps })),
+        nextId, processSettings, currency, eurRate, budget, monthlyInstances, growthRate, forecastMonths, manualCost,
+        activeChartTab, activeRangeProfile, processPanelCollapsed, businessPanelCollapsed, step2Context,
+      };
+      localStorage.setItem(SCENARIO_KEY, JSON.stringify(scenarios));
+      refreshScenarioDropdown();
+      const btn = document.getElementById('scenarioSave');
+      btn.textContent = 'Saved!';
+      setTimeout(() => btn.textContent = 'Save', 1200);
+    });
+    document.getElementById('scenarioSelect').addEventListener('change', (e) => {
+      const name = e.target.value;
+      if (!name) return;
+      const source = getSavedScenarios()[name];
+      if (!source) return;
+      for (const m of [...models]) document.getElementById(`model-${m.id}`)?.remove();
+      models = []; nextId = 0;
+      document.getElementById('scenarioName').value = name;
+      loadModels(source);
+    });
+    document.getElementById('scenarioDelete').addEventListener('click', () => {
+      const sel = document.getElementById('scenarioSelect');
+      if (!sel.value) return;
+      const scenarios = getSavedScenarios();
+      delete scenarios[sel.value];
+      localStorage.setItem(SCENARIO_KEY, JSON.stringify(scenarios));
+      refreshScenarioDropdown();
+    });
+    refreshScenarioDropdown();
+
+    function applyStep2Handoff(handoff) {
+      if (!handoff) return false;
+      const inferredProfile = inferRangeProfile({
+        budget: handoff.budget,
+        monthlyInstances: handoff.monthlyInstances,
+        manualCost: handoff.manualCost,
+      });
+      applyRangeProfile(inferredProfile, { preserveValues: true });
+      if (Number.isFinite(handoff.monthlyInstances)) {
+        monthlyInstances = clamp(+handoff.monthlyInstances, +monthlyInstancesInput.min, +monthlyInstancesInput.max);
+      }
+      if (Number.isFinite(handoff.manualCost)) {
+        manualCost = clamp(+handoff.manualCost, +manualCostInput.min, +manualCostInput.max);
+      }
+      if (Number.isFinite(handoff.budget)) {
+        budget = clamp(+handoff.budget, +budgetInput.min, +budgetInput.max);
+      }
+      if (Number.isFinite(handoff.growthRate)) {
+        growthRate = clamp(+handoff.growthRate, +growthRateInput.min, +growthRateInput.max);
+      }
+      if (Number.isFinite(handoff.forecastMonths)) {
+        forecastMonths = clamp(+handoff.forecastMonths, +forecastMonthsInput.min, +forecastMonthsInput.max);
+      }
+      if (handoff.processSettings) {
+        processSettings = { ...DEFAULT_PROCESS, ...handoff.processSettings };
+        document.getElementById('psInputTokens').value = processSettings.inputTokens;
+        document.getElementById('psOutputTokens').value = processSettings.outputTokens;
+        document.getElementById('psTools').value = processSettings.tools;
+        updateProcessSettingsDisplay();
+      }
+      monthlyInstancesInput.value = monthlyInstances;
+      manualCostInput.value = manualCost;
+      budgetInput.value = budget;
+      growthRateInput.value = growthRate;
+      forecastMonthsInput.value = forecastMonths;
+      updateBusinessDisplay();
+      setChartTab(normalizeChartTab(handoff.activeChartTab || 'score'), { skipRecalc: true });
+      step2Context = handoff.context || {
+        deploymentMode: 'from-step-1',
+        coverage: null,
+        pilotMonths: null,
+        rampMonths: null,
+        baseMonthlyNet: null,
+        conservativeMonthlyNet: null,
+        confidenceGuessed: null,
+      };
+      document.getElementById('scenarioName').value = 'From Business Case';
+      return true;
+    }
+
+    /* ===== Init ===== */
+    function loadModels(source) {
+      if (source.eurRate > 0) eurRate = source.eurRate;
+      rateInput.value = eurRate;
+      processPanelCollapsed = normalizeBoolean(source.processPanelCollapsed);
+      businessPanelCollapsed = normalizeBoolean(source.businessPanelCollapsed);
+      applySettingsPanelState();
+      applyRangeProfile(inferRangeProfile(source), { preserveValues: false });
+      budget = Number.isFinite(source.budget) ? Math.min(100000, Math.max(0, +source.budget)) : 0;
+      monthlyInstances = Number.isFinite(source.monthlyInstances) ? +source.monthlyInstances : 0;
+      growthRate = Number.isFinite(source.growthRate) ? +source.growthRate : 0;
+      forecastMonths = Number.isFinite(source.forecastMonths) && source.forecastMonths > 0 ? +source.forecastMonths : 12;
+      manualCost = Number.isFinite(source.manualCost) ? +source.manualCost : 0;
+      step2Context = source.step2Context || null;
+      applyRangeProfile(source.activeRangeProfile || activeRangeProfile, { preserveValues: true });
+      growthRateInput.value = growthRate;
+      forecastMonthsInput.value = forecastMonths;
+      updateBusinessDisplay();
+      if (source.scenarioName) document.getElementById('scenarioName').value = source.scenarioName;
+      if (source.processSettings) {
+        processSettings = { ...DEFAULT_PROCESS, ...source.processSettings };
+        document.getElementById('psInputTokens').value  = processSettings.inputTokens;
+        document.getElementById('psOutputTokens').value = processSettings.outputTokens;
+        document.getElementById('psTools').value         = processSettings.tools;
+        updateProcessSettingsDisplay();
+      }
+      if (source.currency) {
+        currency = source.currency;
+        btnUSD.setAttribute('aria-pressed', currency === 'USD');
+        btnEUR.setAttribute('aria-pressed', currency === 'EUR');
+        document.querySelector('.header-currency').classList.toggle('usd-active', currency === 'USD');
+      }
+      setChartTab(normalizeChartTab(source.activeChartTab || source.activeChartView || 'score'), { skipRecalc: true });
+      nextId = source.nextId || 0;
+      for (const s of source.models) addModelFromState(s);
+      recalculate();
+    }
+
+    /* ===== Navigation drawer ===== */
+    (function() {
+      const navDrawer   = document.getElementById('navDrawer');
+      const navBackdrop = document.getElementById('navBackdrop');
+      function openNav()  { navDrawer.classList.add('open');    navBackdrop.classList.add('open'); }
+      function closeNav() { navDrawer.classList.remove('open'); navBackdrop.classList.remove('open'); }
+      document.getElementById('navBtn').addEventListener('click', openNav);
+      document.getElementById('navClose').addEventListener('click', closeNav);
+      navBackdrop.addEventListener('click', closeNav);
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNav(); });
+    })();
+
+    const hashState = location.hash.length > 1 ? decodeState(location.hash.slice(1)) : null;
+    const step2Handoff = loadStep2Handoff();
+    if (hashState) {
+      loadModels(hashState);
+      history.replaceState(null, '', location.pathname);
+    } else {
+      const saved = loadState();
+      if (saved?.models?.length) {
+        if (saved.theme) { document.documentElement.dataset.theme = saved.theme; updateChartTheme(); }
+        loadModels(saved);
+      } else {
+        addModel(MODEL_PRESETS[0]);
+      }
+    }
+    if (step2Handoff && !hashState) {
+      if (!models.length) addModel(MODEL_PRESETS[0]);
+      applyStep2Handoff(step2Handoff);
+      localStorage.removeItem(STEP2_HANDOFF_KEY);
+      recalculate();
+    }
+  </script>
+</body>
+</html>

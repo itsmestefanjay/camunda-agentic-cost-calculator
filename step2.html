@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Process Prioritization — Agentic Orchestration</title>
+  <link rel="stylesheet" href="style.css">
+  <script>!function(){var t=localStorage.getItem("camunda-theme");if(t)document.documentElement.dataset.theme=t}();</script>
+  <style>
+    /* ===== Layout ===== */
+    main {
+      display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+      gap: 1.5rem; align-items: start;
+      @media (max-width: 860px) { grid-template-columns: 1fr; }
+    }
+    .processes-column {
+      display: flex; flex-direction: column; gap: 0.75rem;
+      max-height: calc(100dvh - 6rem); overflow-y: auto; padding-right: 0.25rem;
+      @media (max-width: 860px) { max-height: none; padding-right: 0; }
+    }
+    .results-column { display: flex; flex-direction: column; gap: 1rem; }
+    #processList { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    /* ===== Section label ===== */
+    .section-label {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .section-title {
+      font-size: 0.75rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .collapse-all-row {
+      display: flex; gap: 0.35rem;
+      button {
+        background: none; border: none; color: var(--muted); font-size: 0.7rem;
+        padding: 0.2rem 0.4rem; cursor: pointer; transition: color 0.15s; border-radius: 4px;
+        &:hover { color: var(--text); background: var(--hover-bg); }
+      }
+    }
+
+    /* ===== Process panels ===== */
+    .process-panel { position: relative; }
+    .process-header { display: flex; align-items: center; gap: 0.6rem; }
+    .proc-collapse-btn {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      padding: 0.15rem; display: flex; align-items: center; transition: transform 0.2s;
+    }
+    .proc-collapse-btn svg { width: 16px; height: 16px; }
+    .process-panel.collapsed .proc-collapse-btn { transform: rotate(-90deg); }
+    .color-picker-wrap { position: relative; flex-shrink: 0; }
+    .color-dot {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid var(--border); cursor: pointer; transition: border-color 0.15s;
+    }
+    .color-dot:hover { border-color: var(--muted); }
+    .color-popover {
+      display: none; position: absolute; top: calc(100% + 8px); left: 0; z-index: 10;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.75rem; box-shadow: 0 8px 24px rgba(0,0,0,0.25); width: max-content;
+    }
+    .color-popover.open { display: block; }
+    .color-swatches { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; }
+    .color-swatch {
+      width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent;
+      cursor: pointer; transition: border-color 0.15s, transform 0.1s;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active { border-color: var(--text); }
+    .hex-row { display: flex; align-items: center; gap: 0.3rem; }
+    .hex-row span { font-size: 0.8125rem; font-weight: 600; color: var(--muted); }
+    .hex-row input {
+      width: 6.5rem; background: transparent; border: 1px solid var(--input-border);
+      border-radius: 5px; padding: 0.25rem 0.4rem; color: var(--text);
+      font-size: 0.8125rem; font-family: monospace; outline: none;
+    }
+    .hex-row input:focus { border-color: var(--accent); }
+    .process-name {
+      flex: 1; background: transparent; border: 1px solid var(--input-border);
+      border-radius: 6px; padding: 0.35rem 0.6rem; color: var(--text);
+      font-size: 0.875rem; font-weight: 600; outline: none;
+    }
+    .process-name:focus { border-color: var(--accent); }
+    .proc-remove-btn {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 1.1rem; padding: 0.2rem 0.4rem; border-radius: 4px; line-height: 1;
+    }
+    .proc-remove-btn:hover { color: var(--text); background: var(--hover-bg); }
+    .process-body {
+      display: grid; grid-template-rows: 1fr;
+      transition: grid-template-rows 0.2s ease; margin-top: 1rem;
+    }
+    .process-body-inner { overflow: hidden; }
+    .process-panel.collapsed .process-body { grid-template-rows: 0fr; margin-top: 0; }
+
+    /* ===== Slider subsections ===== */
+    .slider-subsection {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--muted); opacity: 0.65;
+      margin: 0.9rem 0 0.35rem; padding-top: 0.65rem; border-top: 1px solid var(--border);
+    }
+    .slider-subsection:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+
+    /* ===== Add process button ===== */
+    .add-process-btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; padding: 0.75rem;
+      background: rgba(252, 93, 13, 0.08);
+      border: 1px dashed rgba(252, 93, 13, 0.3); border-radius: 12px;
+      color: var(--accent); font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; transition: background 0.15s, border-color 0.15s;
+    }
+    .add-process-btn:hover {
+      background: rgba(252, 93, 13, 0.14); border-color: rgba(252, 93, 13, 0.55);
+    }
+
+    /* ===== Summary cards row ===== */
+    .summary-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+    }
+    @media (max-width: 640px) { .summary-row { grid-template-columns: 1fr 1fr; } }
+
+    /* ===== Priority table ===== */
+    .priority-table {
+      width: 100%; border-collapse: collapse; font-size: 0.8125rem;
+    }
+    .priority-table th {
+      text-align: left; padding: 0.55rem 0.75rem; color: var(--muted);
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .priority-table td {
+      padding: 0.6rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: middle; font-variant-numeric: tabular-nums;
+    }
+    .priority-table tr:last-child td { border-bottom: none; }
+    .pt-rank { font-weight: 700; color: var(--muted); width: 2rem; }
+    .pt-name { font-weight: 600; color: var(--text); }
+    .pt-muted { color: var(--muted); }
+    .pt-score { font-weight: 700; color: var(--text); }
+
+    /* ===== Inline badge in table ===== */
+    .proc-badge {
+      display: inline-flex; align-items: center;
+      padding: 0.2rem 0.55rem; border-radius: 999px; border: 1px solid;
+      font-size: 0.68rem; font-weight: 700; white-space: nowrap;
+    }
+    .badge-automate  { background: rgba(34,197,94,0.12);  color: #22c55e; border-color: rgba(34,197,94,0.3); }
+    .badge-quickwin  { background: rgba(20,184,166,0.12); color: #14b8a6; border-color: rgba(20,184,166,0.3); }
+    .badge-strategic { background: rgba(99,102,241,0.12); color: #818cf8; border-color: rgba(99,102,241,0.3); }
+    .badge-pilot     { background: rgba(245,158,11,0.12); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+    .badge-defer     { background: rgba(107,114,128,0.12); color: #9ca3af; border-color: rgba(107,114,128,0.3); }
+
+    /* ===== Chart panels ===== */
+    .chart-panel-header {
+      padding: 0.9rem 1.1rem 0.5rem;
+      font-size: 0.8rem; font-weight: 700; color: var(--text);
+      border-bottom: 1px solid var(--border); margin-bottom: 0.75rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .chart-label {
+      font-size: 0.72rem; color: var(--muted);
+    }
+    .table-panel-header {
+      padding: 0.9rem 1.1rem 0.6rem;
+      border-bottom: 1px solid var(--border); margin-bottom: 0;
+      display: flex; align-items: center;
+    }
+    .table-panel-title { font-size: 0.8rem; font-weight: 700; color: var(--text); }
+
+    /* ===== Empty state ===== */
+    .empty-state { padding: 2.5rem 1.5rem; text-align: center; }
+    .empty-state p { color: var(--muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <div class="nav-backdrop" id="navBackdrop"></div>
+  <nav class="nav-drawer" id="navDrawer" aria-label="Site navigation">
+    <div class="nav-drawer-header">
+      <span class="nav-logo">Agentic Orchestration Calculators</span>
+      <button class="nav-close" id="navClose" aria-label="Close navigation">&times;</button>
+    </div>
+    <a href="index.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">Calculators</div>
+    <a href="step1.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Step 1: Project Business Case
+    </a>
+    <a href="step2.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Step 2: Process Prioritization
+    </a>
+    <a href="step3.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Step 3: Model Cost &amp; Fit
+    </a>
+    <div class="nav-divider"></div>
+    <a href="about.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      About
+    </a>
+  </nav>
+
+  <header>
+    <div class="header-brand">
+      <button class="icon-btn" id="navBtn" title="Navigation menu" aria-label="Open navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="header-copy">
+        <h1>Process Prioritization</h1>
+        <p>Step 2 — Which processes to automate, and in what order?</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="header-currency usd-active" id="currencyWrap">
+        <button id="btnUSD" aria-pressed="true">USD</button>
+        <button id="btnEUR" aria-pressed="false">EUR</button>
+        <span class="rate-field" id="currencyRateWrap">1 USD = <input type="text" id="rateInput" value="0.92" size="5"> EUR</span>
+      </div>
+      <button class="icon-btn reset" id="resetBtn" title="Reset all inputs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </button>
+      <button class="icon-btn theme" id="themeBtn" title="Toggle light/dark theme">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== Left: process list ===== -->
+    <div class="processes-column">
+
+      <!-- Global setting -->
+      <div class="panel settings-panel" id="globalPanel">
+        <div class="settings-header">
+          <button class="settings-collapse-btn" id="globalCollapseBtn" title="Collapse">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="settings-title">Global Assumptions</div>
+        </div>
+        <div class="settings-body"><div class="settings-body-inner">
+          <div class="slider-group">
+            <div class="slider-header">
+              <label for="implCostSlider">Implementation cost / week</label>
+              <output id="implCostDisplay">$5,000</output>
+            </div>
+            <input type="range" id="implCostSlider" min="1000" max="20000" step="500" value="5000">
+            <p class="input-note">Loaded weekly team cost to convert effort into implementation cost.</p>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="section-label">
+        <span class="section-title">Processes</span>
+        <div class="collapse-all-row">
+          <button id="collapseAll">Collapse all</button>
+          <button id="expandAll">Expand all</button>
+        </div>
+      </div>
+
+      <div id="processList"></div>
+
+      <button class="add-process-btn" id="addProcessBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add process
+      </button>
+    </div>
+
+    <!-- ===== Right: results ===== -->
+    <div class="results-column">
+
+      <!-- Summary cards -->
+      <div class="summary-row" id="summaryRow">
+        <div class="summary-card">
+          <div class="card-label">Monthly savings (recommended)</div>
+          <div class="card-value" id="cardTotalSavings">—</div>
+          <div class="card-sub">processes rated Automate First, Quick Win, or Strategic Bet</div>
+        </div>
+        <div class="summary-card">
+          <div class="card-label">Total effort (recommended)</div>
+          <div class="card-value" id="cardTotalEffort">—</div>
+          <div class="card-sub">weeks of implementation work</div>
+        </div>
+        <div class="summary-card">
+          <div class="card-label">Processes recommended</div>
+          <div class="card-value" id="cardRecommended">—</div>
+          <div class="card-sub" id="cardRecommendedSub">of — entered</div>
+        </div>
+      </div>
+
+      <!-- Priority table -->
+      <div class="panel" style="padding: 0;">
+        <div class="table-panel-header">
+          <span class="table-panel-title">Prioritized Process List</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <div id="priorityTableWrap"></div>
+        </div>
+      </div>
+
+      <!-- 2×2 matrix chart -->
+      <div class="panel" style="padding: 0;">
+        <div class="chart-panel-header">
+          <span>Value vs Feasibility Matrix</span>
+          <span class="chart-label">Each point is one process. Quadrant = recommended action.</span>
+        </div>
+        <div class="chart-container" style="padding: 0 1rem 1rem;">
+          <canvas id="matrixChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 3-year net benefit chart -->
+      <div class="panel" style="padding: 0;">
+        <div class="chart-panel-header">
+          <span>3-Year Net Benefit by Implementation Order</span>
+          <span class="chart-label">Sorted by composite score. Green = positive ROI.</span>
+        </div>
+        <div class="chart-container" style="padding: 0 1rem 1rem;">
+          <canvas id="savingsChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <div style="max-width:960px;margin:1.5rem auto 2.5rem;padding:0 1.5rem;display:flex;justify-content:flex-end">
+    <a href="step3.html" style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.65rem 1.4rem;background:var(--accent);color:#fff;border-radius:8px;font-size:0.9rem;font-weight:700;text-decoration:none;transition:opacity 0.15s" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+      Continue to Step 3: Model Cost &amp; Fit →
+    </a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script>
+    /* ===== Constants ===== */
+    const STORAGE_KEY   = 'camunda-process-calc';
+    const CHEVRON       = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    const COLORS        = ['#FC5D0D','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#EF4444','#84CC16','#F97316'];
+    const SWATCH_COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
+
+    const DEFAULT_PROCESSES = [
+      { color: '#FC5D0D', name: 'Support Ticket Triage', volume: 2000, manualMinutes: 15, hourlyRate: 55, monthlyErrorCost: 1200, effortWeeks: 6,  strategicPriority: 4, readiness: 'high'   },
+      { color: '#3B82F6', name: 'Invoice Processing',    volume: 800,  manualMinutes: 25, hourlyRate: 60, monthlyErrorCost: 800,  effortWeeks: 10, strategicPriority: 3, readiness: 'medium' },
+      { color: '#10B981', name: 'Customer Onboarding',   volume: 300,  manualMinutes: 45, hourlyRate: 70, monthlyErrorCost: 400,  effortWeeks: 16, strategicPriority: 5, readiness: 'low'    },
+    ];
+    const READINESS_FEASIBILITY = { high: 80, medium: 50, low: 20 };
+
+    /* ===== State ===== */
+    let processes       = JSON.parse(JSON.stringify(DEFAULT_PROCESSES));
+    let implCostPerWeek = 5000;
+    let currency        = 'USD';
+    let eurRate         = 0.92;
+    let nextId          = 0;
+    let matrixChart     = null;
+    let savingsChart    = null;
+
+    /* ===== Persistence ===== */
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ processes, implCostPerWeek, currency, eurRate }));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const d = JSON.parse(raw);
+        if (Array.isArray(d.processes) && d.processes.length) {
+          processes = d.processes.map((p, i) => {
+            // Migrate old errorRate/errorCost fields to monthlyErrorCost
+            const monthlyErrorCost = typeof p.monthlyErrorCost === 'number'
+              ? p.monthlyErrorCost
+              : Math.round((p.volume || 0) * ((p.errorRate || 0) / 100) * (p.errorCost || 0));
+            // Migrate old 1-5 feasibility sliders to readiness
+            let readiness = p.readiness;
+            if (!readiness && (p.dataAvailability || p.processStability || p.complianceRisk)) {
+              const avg = ((p.dataAvailability || 3) + (p.processStability || 3) + (6 - (p.complianceRisk || 2))) / 3;
+              readiness = avg >= 3.5 ? 'high' : avg >= 2.5 ? 'medium' : 'low';
+            }
+            return { color: COLORS[i % COLORS.length], ...p, monthlyErrorCost, readiness: readiness || 'medium' };
+          });
+        }
+        if (typeof d.implCostPerWeek === 'number') implCostPerWeek = d.implCostPerWeek;
+        if (d.currency === 'EUR') currency = 'EUR';
+        if (typeof d.eurRate === 'number' && d.eurRate > 0) eurRate = d.eurRate;
+      } catch (_) { /* ignore */ }
+    }
+
+    /* ===== Scoring ===== */
+    function scoreProcess(p) {
+      const monthlyManualCost  = p.volume * (p.manualMinutes / 60) * p.hourlyRate;
+      const monthlySavings     = monthlyManualCost + (p.monthlyErrorCost || 0);
+      const implementationCost = p.effortWeeks * implCostPerWeek;
+      const paybackMonths      = monthlySavings > 0 ? implementationCost / monthlySavings : Infinity;
+      const netBenefit3yr      = 36 * monthlySavings - implementationCost;
+
+      const savingsScore    = Math.min(100, Math.log10(Math.max(1, monthlySavings)) / Math.log10(150000) * 100);
+      const valueScore      = savingsScore * (p.strategicPriority / 5);
+      const feasibilityScore = READINESS_FEASIBILITY[p.readiness] ?? 50;
+      const compositeScore  = valueScore * 0.6 + feasibilityScore * 0.4;
+
+      return { monthlyManualCost, monthlySavings, implementationCost, paybackMonths, netBenefit3yr, valueScore, feasibilityScore, compositeScore };
+    }
+
+    function getBadge(valueScore, feasibilityScore, compositeScore) {
+      if (compositeScore >= 55 && valueScore >= 50 && feasibilityScore >= 50) return { label: 'Automate First', cls: 'badge-automate' };
+      if (valueScore >= 50 && feasibilityScore < 45)                           return { label: 'Strategic Bet',  cls: 'badge-strategic' };
+      if (feasibilityScore >= 55 && valueScore < 45)                           return { label: 'Quick Win',      cls: 'badge-quickwin' };
+      if (compositeScore >= 30)                                                 return { label: 'Pilot',          cls: 'badge-pilot' };
+      return                                                                           { label: 'Defer',          cls: 'badge-defer' };
+    }
+
+    function isRecommended(badge) {
+      return ['Automate First', 'Strategic Bet', 'Quick Win'].includes(badge.label);
+    }
+
+    /* ===== Formatting ===== */
+    function sym() { return currency === 'EUR' ? '€' : '$'; }
+    function displayRate() { return currency === 'EUR' ? eurRate : 1; }
+    function fmtMoney(v) {
+      const dv = v * displayRate();
+      if (dv >= 1e6) return `${sym()}${(dv / 1e6).toFixed(1)}M`;
+      if (dv >= 1e3) return `${sym()}${(dv / 1e3).toFixed(1)}k`;
+      return `${sym()}${Math.round(dv).toLocaleString()}`;
+    }
+    function fmtHourlyRate(v) { return `${sym()}${Math.round(v * displayRate())}/hr`; }
+    function fmtImplCost(v)   { return `${sym()}${Math.round(v * displayRate()).toLocaleString()}`; }
+    function fmtPayback(months) {
+      if (!isFinite(months)) return '—';
+      if (months < 1) return '<1 mo';
+      if (months > 120) return '>10 yr';
+      if (months < 24) return `${Math.ceil(months)} mo`;
+      return `${(months / 12).toFixed(1)} yr`;
+    }
+
+    /* ===== Theme helpers ===== */
+    function themeColors() {
+      const dark = document.documentElement.dataset.theme !== 'light';
+      return {
+        muted: dark ? '#8b8d97' : '#6b7280',
+        grid:  dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)',
+        text:  dark ? '#e8e8ec' : '#1a1d27',
+      };
+    }
+
+    /* ===== Process panel DOM ===== */
+    function createProcessPanel(p, id) {
+      const el = document.createElement('div');
+      el.className = 'panel process-panel';
+      el.dataset.id = id;
+      const swatchesHTML = SWATCH_COLORS.map(c =>
+        `<div class="color-swatch${c.toLowerCase() === p.color.toLowerCase() ? ' active' : ''}" data-color="${c}" style="background:${c}"></div>`
+      ).join('');
+      el.innerHTML = `
+        <div class="process-header">
+          <button class="proc-collapse-btn" title="Collapse">${CHEVRON}</button>
+          <div class="color-picker-wrap">
+            <div class="color-dot" style="background:${p.color}"></div>
+            <div class="color-popover">
+              <div class="color-swatches">${swatchesHTML}</div>
+              <div class="hex-row"><span>#</span><input type="text" class="hex-input" value="${p.color.slice(1)}" maxlength="6" placeholder="FF5500"></div>
+            </div>
+          </div>
+          <input class="process-name" type="text" value="${p.name}" placeholder="Process name">
+          <button class="proc-remove-btn" title="Remove process">×</button>
+        </div>
+        <div class="process-body"><div class="process-body-inner">
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label>Instances / month</label>
+              <output class="vol-out">${p.volume.toLocaleString()}</output>
+            </div>
+            <input class="s-volume" type="range" min="50" max="10000" step="50" value="${p.volume}">
+            <p class="input-note">How many times this process runs each month.</p>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label>Manual time / instance</label>
+              <output class="mt-out">${p.manualMinutes} min</output>
+            </div>
+            <input class="s-manualMinutes" type="range" min="1" max="480" step="1" value="${p.manualMinutes}">
+            <p class="input-note">Minutes of human effort per run.</p>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label>Hourly labor rate</label>
+              <output class="hr-out">${fmtHourlyRate(p.hourlyRate)}</output>
+            </div>
+            <input class="s-hourlyRate" type="range" min="15" max="300" step="5" value="${p.hourlyRate}">
+            <p class="input-note">Loaded hourly cost of the people doing this work.</p>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label>Monthly error &amp; rework cost</label>
+              <output class="ec-out">${fmtMoney(p.monthlyErrorCost || 0)}/mo</output>
+            </div>
+            <input class="s-monthlyErrorCost" type="range" min="0" max="50000" step="100" value="${p.monthlyErrorCost || 0}">
+            <p class="input-note">Your estimate of monthly rework, SLA penalties, and escalation costs.</p>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label>Implementation effort</label>
+              <output class="ew-out">${p.effortWeeks} wk</output>
+            </div>
+            <input class="s-effortWeeks" type="range" min="1" max="52" step="1" value="${p.effortWeeks}">
+            <p class="input-note">Engineering weeks to automate this process end-to-end.</p>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label>Strategic priority</label>
+              <output class="sp-out">${p.strategicPriority}/5</output>
+            </div>
+            <input class="s-strategicPriority" type="range" min="1" max="5" step="1" value="${p.strategicPriority}">
+            <p class="input-note">Business importance and executive visibility. (1 = low, 5 = critical)</p>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header"><label>Automation readiness</label></div>
+            <select class="s-readiness profile-select">
+              <option value="high"  ${p.readiness === 'high'   ? 'selected' : ''}>High — data ready, stable process, low compliance risk</option>
+              <option value="medium"${p.readiness === 'medium' ? 'selected' : ''}>Medium — some gaps, moderate constraints</option>
+              <option value="low"   ${p.readiness === 'low'    ? 'selected' : ''}>Low — data work needed, volatile or high-risk</option>
+            </select>
+            <p class="input-note">Overall feasibility: data, stability, and compliance combined.</p>
+          </div>
+
+        </div></div>
+      `;
+
+      // Collapse toggle
+      const colBtn = el.querySelector('.proc-collapse-btn');
+      colBtn.addEventListener('click', () => { el.classList.toggle('collapsed'); });
+
+      // Color picker
+      const dot      = el.querySelector('.color-dot');
+      const popover  = el.querySelector('.color-popover');
+      const hexInput = el.querySelector('.hex-input');
+      function setColor(hex) {
+        const idx = findIndex(id);
+        if (idx !== -1) processes[idx].color = hex;
+        dot.style.background = hex;
+        hexInput.value = hex.slice(1);
+        el.querySelectorAll('.color-swatch').forEach(sw =>
+          sw.classList.toggle('active', sw.dataset.color.toLowerCase() === hex.toLowerCase()));
+        saveState(); recalculate();
+      }
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.color-popover.open').forEach(p => { if (p !== popover) p.classList.remove('open'); });
+        popover.classList.toggle('open');
+      });
+      popover.addEventListener('click', (e) => e.stopPropagation());
+      el.querySelectorAll('.color-swatch').forEach(sw =>
+        sw.addEventListener('click', () => { setColor(sw.dataset.color); popover.classList.remove('open'); }));
+      hexInput.addEventListener('input', () => {
+        const v = hexInput.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 6);
+        hexInput.value = v;
+        if (v.length === 6) setColor('#' + v);
+      });
+
+      // Remove
+      el.querySelector('.proc-remove-btn').addEventListener('click', () => {
+        const idx = findIndex(id);
+        if (idx !== -1) { processes.splice(idx, 1); saveState(); render(); }
+      });
+
+      // Name
+      el.querySelector('.process-name').addEventListener('input', e => {
+        const idx = findIndex(id);
+        if (idx !== -1) { processes[idx].name = e.target.value; saveState(); recalculate(); }
+      });
+
+      // Sliders
+      bindSlider(el, '.s-volume',            'vol-out',  id, 'volume',            v => `${Number(v).toLocaleString()}`);
+      bindSlider(el, '.s-manualMinutes',     'mt-out',   id, 'manualMinutes',     v => `${v} min`);
+      bindSlider(el, '.s-hourlyRate',        'hr-out',   id, 'hourlyRate',        v => fmtHourlyRate(v));
+      bindSlider(el, '.s-monthlyErrorCost',  'ec-out',   id, 'monthlyErrorCost',  v => `${fmtMoney(v)}/mo`);
+      bindSlider(el, '.s-effortWeeks',       'ew-out',   id, 'effortWeeks',       v => `${v} wk`);
+      bindSlider(el, '.s-strategicPriority', 'sp-out',   id, 'strategicPriority', v => `${v}/5`);
+
+      // Readiness select
+      const readinessSelect = el.querySelector('.s-readiness');
+      readinessSelect.addEventListener('change', () => {
+        const idx = findIndex(id);
+        if (idx !== -1) { processes[idx].readiness = readinessSelect.value; saveState(); recalculate(); }
+      });
+
+      return el;
+    }
+
+    function bindSlider(panel, sliderSel, outClass, id, field, fmt) {
+      const slider = panel.querySelector(sliderSel);
+      const output = panel.querySelector(`.${outClass}`);
+      slider.addEventListener('input', () => {
+        const val = Number(slider.value);
+        output.textContent = fmt(val);
+        const idx = findIndex(id);
+        if (idx !== -1) { processes[idx][field] = val; saveState(); recalculate(); }
+      });
+    }
+
+    function findIndex(id) {
+      return processes.findIndex((_, i) => panelIds[i] === id);
+    }
+
+    /* ===== Panel ID tracking ===== */
+    let panelIds = [];
+
+    function render() {
+      const list = document.getElementById('processList');
+      list.innerHTML = '';
+      panelIds = processes.map(() => nextId++);
+      processes.forEach((p, i) => {
+        const el = createProcessPanel(p, panelIds[i]);
+        if (processes.length > 1) el.classList.add('collapsed');
+        list.appendChild(el);
+      });
+      recalculate();
+    }
+
+    /* ===== Recalculate ===== */
+    function recalculate() {
+      if (!processes.length) {
+        renderEmptyState();
+        return;
+      }
+
+      const scored = processes.map((p, i) => {
+        const s = scoreProcess(p);
+        const badge = getBadge(s.valueScore, s.feasibilityScore, s.compositeScore);
+        return { ...p, ...s, badge, origIdx: i };
+      });
+
+      const ranked = [...scored].sort((a, b) => b.compositeScore - a.compositeScore);
+
+      updateSummaryCards(ranked);
+      updatePriorityTable(ranked);
+      updateMatrixChart(scored);
+      updateSavingsChart(ranked);
+    }
+
+    function renderEmptyState() {
+      document.getElementById('priorityTableWrap').innerHTML = '<div class="empty-state"><p>Add a process to see prioritization results.</p></div>';
+      document.getElementById('cardTotalSavings').textContent  = '—';
+      document.getElementById('cardTotalEffort').textContent   = '—';
+      document.getElementById('cardRecommended').textContent   = '—';
+      document.getElementById('cardRecommendedSub').textContent = 'of 0 entered';
+    }
+
+    /* ===== Summary cards ===== */
+    function updateSummaryCards(ranked) {
+      const recommended = ranked.filter(p => isRecommended(p.badge));
+      const totalSavings = recommended.reduce((s, p) => s + p.monthlySavings, 0);
+      const totalEffort  = recommended.reduce((s, p) => s + p.effortWeeks, 0);
+
+      const savingsCard = document.getElementById('cardTotalSavings');
+      savingsCard.textContent = fmtMoney(totalSavings) + '/mo';
+      savingsCard.closest('.summary-card').className = 'summary-card' + (totalSavings > 0 ? ' positive' : '');
+
+      document.getElementById('cardTotalEffort').textContent = totalEffort > 0 ? `${totalEffort} wk` : '—';
+      document.getElementById('cardRecommended').textContent = recommended.length;
+      document.getElementById('cardRecommendedSub').textContent = `of ${ranked.length} entered`;
+    }
+
+    /* ===== Priority table ===== */
+    function updatePriorityTable(ranked) {
+      const wrap = document.getElementById('priorityTableWrap');
+      if (!ranked.length) { wrap.innerHTML = '<div class="empty-state"><p>No processes yet.</p></div>'; return; }
+
+      let rows = ranked.map((p, i) => `
+        <tr>
+          <td class="pt-rank">#${i + 1}</td>
+          <td class="pt-name"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color || '#FC5D0D'};margin-right:0.45rem;flex-shrink:0;vertical-align:middle"></span>${escHtml(p.name)}</td>
+          <td><span class="proc-badge ${p.badge.cls}">${p.badge.label}</span></td>
+          <td class="pt-muted">${fmtMoney(p.monthlySavings)}/mo</td>
+          <td class="pt-muted">${fmtPayback(p.paybackMonths)}</td>
+          <td class="pt-score">
+            ${Math.round(p.compositeScore)}
+            <div style="font-size:0.65rem;font-weight:400;color:var(--muted);line-height:1.2;white-space:nowrap">V ${Math.round(p.valueScore)} · F ${Math.round(p.feasibilityScore)}</div>
+          </td>
+        </tr>
+      `).join('');
+
+      wrap.innerHTML = `
+        <table class="priority-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Process</th>
+              <th>Recommendation</th>
+              <th>Monthly savings</th>
+              <th>Payback</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    /* ===== Matrix chart (2×2 scatter) ===== */
+    const quadrantPlugin = {
+      id: 'quadrant',
+      beforeDraw(chart) {
+        const { ctx, chartArea: { top, bottom, left, right }, scales: { x, y } } = chart;
+        const mx = x.getPixelForValue(50);
+        const my = y.getPixelForValue(50);
+        const tc = themeColors();
+
+        ctx.save();
+        ctx.strokeStyle = tc.grid;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(mx, top); ctx.lineTo(mx, bottom); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(left, my); ctx.lineTo(right, my); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.font = '600 10px system-ui, sans-serif';
+        ctx.fillStyle = tc.muted;
+        ctx.fillText('Automate First', left  + 8, top    + 14);
+        ctx.fillText('Strategic Bet',  mx    + 8, top    + 14);
+        ctx.fillText('Quick Win',      left  + 8, bottom - 6);
+        ctx.fillText('Defer',          mx    + 8, bottom - 6);
+        ctx.restore();
+      }
+    };
+
+    function updateMatrixChart(scored) {
+      const tc = themeColors();
+      const datasets = scored.map(p => ({
+        label: p.name,
+        data: [{ x: p.feasibilityScore, y: p.valueScore }],
+        backgroundColor: (p.color || '#FC5D0D') + 'cc',
+        borderColor: p.color || '#FC5D0D',
+        borderWidth: 1.5,
+        pointRadius: 8,
+        pointHoverRadius: 10,
+      }));
+
+      if (!matrixChart) {
+        matrixChart = new Chart(document.getElementById('matrixChart'), {
+          type: 'scatter',
+          data: { datasets },
+          plugins: [quadrantPlugin],
+          options: matrixChartOptions(tc),
+        });
+      } else {
+        matrixChart.data.datasets = datasets;
+        matrixChart.options = matrixChartOptions(tc);
+        matrixChart.update();
+      }
+    }
+
+    function matrixChartOptions(tc) {
+      return {
+        responsive: true, maintainAspectRatio: true, aspectRatio: 1.6,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const p = ctx.dataset.label;
+                return [`${p}`, `Feasibility: ${ctx.parsed.x.toFixed(0)}`, `Value: ${ctx.parsed.y.toFixed(0)}`];
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Feasibility →', color: tc.muted, font: { size: 11 } },
+            min: 0, max: 100,
+            grid: { color: tc.grid },
+            ticks: { color: tc.muted, stepSize: 25 },
+          },
+          y: {
+            title: { display: true, text: 'Value →', color: tc.muted, font: { size: 11 } },
+            min: 0, max: 100,
+            grid: { color: tc.grid },
+            ticks: { color: tc.muted, stepSize: 25 },
+          }
+        }
+      };
+    }
+
+    /* ===== Savings chart (3-year net per process) ===== */
+    function updateSavingsChart(ranked) {
+      const tc      = themeColors();
+      const labels  = ranked.map(p => p.name.length > 22 ? p.name.slice(0, 20) + '…' : p.name);
+      const values  = ranked.map(p => Math.round(p.netBenefit3yr));
+      const colors  = ranked.map(p => p.netBenefit3yr >= 0 ? 'rgba(34,197,94,0.55)' : 'rgba(239,68,68,0.55)');
+      const borders = ranked.map(p => p.netBenefit3yr >= 0 ? '#22c55e' : '#ef4444');
+
+      if (!savingsChart) {
+        savingsChart = new Chart(document.getElementById('savingsChart'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: '3-yr net benefit',
+              data: values,
+              backgroundColor: colors,
+              borderColor: borders,
+              borderWidth: 1.5,
+              borderRadius: 4,
+            }]
+          },
+          options: savingsChartOptions(tc),
+        });
+      } else {
+        savingsChart.data.labels = labels;
+        savingsChart.data.datasets[0].data = values;
+        savingsChart.data.datasets[0].backgroundColor = colors;
+        savingsChart.data.datasets[0].borderColor = borders;
+        savingsChart.options = savingsChartOptions(tc);
+        savingsChart.update();
+      }
+    }
+
+    function savingsChartOptions(tc) {
+      return {
+        responsive: true, maintainAspectRatio: true, aspectRatio: 2.2,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `3-yr net: ${ctx.parsed.y >= 0 ? '' : '-'}${fmtMoney(Math.abs(ctx.parsed.y))}`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { color: tc.grid }, ticks: { color: tc.muted, maxRotation: 30 } },
+          y: {
+            grid: { color: tc.grid },
+            ticks: {
+              color: tc.muted,
+              callback: v => fmtMoney(Math.abs(v)) + (v < 0 ? ' loss' : ''),
+            }
+          }
+        }
+      };
+    }
+
+    /* ===== Currency refresh ===== */
+    function refreshCurrencyDisplays() {
+      // Update global impl cost display
+      document.getElementById('implCostDisplay').textContent = fmtImplCost(Number(document.getElementById('implCostSlider').value));
+      // Update per-process currency-sensitive outputs
+      document.querySelectorAll('.process-panel').forEach(panel => {
+        const hrSlider = panel.querySelector('.s-hourlyRate');
+        const ecSlider = panel.querySelector('.s-monthlyErrorCost');
+        if (hrSlider) panel.querySelector('.hr-out').textContent = fmtHourlyRate(Number(hrSlider.value));
+        if (ecSlider) panel.querySelector('.ec-out').textContent = `${fmtMoney(Number(ecSlider.value))}/mo`;
+      });
+      recalculate();
+    }
+
+    /* ===== Helpers ===== */
+    function escHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* ===== Global settings panel collapse ===== */
+    (function () {
+      const panel = document.getElementById('globalPanel');
+      document.getElementById('globalCollapseBtn').addEventListener('click', () => {
+        panel.classList.toggle('collapsed');
+      });
+    })();
+
+    /* ===== Impl cost slider ===== */
+    (function () {
+      const slider  = document.getElementById('implCostSlider');
+      const display = document.getElementById('implCostDisplay');
+      slider.value  = implCostPerWeek;
+      display.textContent = fmtImplCost(implCostPerWeek);
+      slider.addEventListener('input', () => {
+        implCostPerWeek = Number(slider.value);
+        display.textContent = fmtImplCost(implCostPerWeek);
+        saveState(); recalculate();
+      });
+    })();
+
+    /* ===== Add process ===== */
+    document.getElementById('addProcessBtn').addEventListener('click', () => {
+      processes.push({
+        color: COLORS[processes.length % COLORS.length],
+        name: 'New Process',
+        volume: 500, manualMinutes: 20, hourlyRate: 60,
+        monthlyErrorCost: 0,
+        effortWeeks: 8,
+        strategicPriority: 3, readiness: 'medium',
+      });
+      saveState();
+      render();
+      // Expand the newly added panel
+      const panels = document.querySelectorAll('.process-panel');
+      const last = panels[panels.length - 1];
+      if (last) { last.classList.remove('collapsed'); last.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    });
+
+    /* ===== Reset ===== */
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (!confirm('Reset all processes to defaults?')) return;
+      processes = JSON.parse(JSON.stringify(DEFAULT_PROCESSES));
+      implCostPerWeek = 5000;
+      document.getElementById('implCostSlider').value = 5000;
+      document.getElementById('implCostDisplay').textContent = fmtImplCost(5000);
+      saveState(); render();
+    });
+
+    /* ===== Currency toggle ===== */
+    (function () {
+      const btnUSD  = document.getElementById('btnUSD');
+      const btnEUR  = document.getElementById('btnEUR');
+      const rateWrap = document.getElementById('currencyRateWrap');
+      const rateInput = document.getElementById('rateInput');
+      const currWrap  = document.getElementById('currencyWrap');
+
+      function applyCurrency() {
+        const isUSD = currency === 'USD';
+        btnUSD.setAttribute('aria-pressed', isUSD ? 'true' : 'false');
+        btnEUR.setAttribute('aria-pressed', isUSD ? 'false' : 'true');
+        currWrap.classList.toggle('usd-active', isUSD);
+        rateInput.value = eurRate;
+        refreshCurrencyDisplays();
+      }
+
+      btnUSD.addEventListener('click', () => { currency = 'USD'; saveState(); applyCurrency(); });
+      btnEUR.addEventListener('click', () => { currency = 'EUR'; saveState(); applyCurrency(); });
+      rateInput.addEventListener('change', () => {
+        const v = parseFloat(rateInput.value);
+        if (v > 0 && isFinite(v)) { eurRate = v; saveState(); refreshCurrencyDisplays(); }
+        else rateInput.value = eurRate;
+      });
+
+      applyCurrency();
+    })();
+
+    /* ===== Theme ===== */
+    (function () {
+      const stored = localStorage.getItem('camunda-theme');
+      if (stored) document.documentElement.dataset.theme = stored;
+      document.getElementById('themeBtn').addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem('camunda-theme', next);
+        if (matrixChart)  { matrixChart.options  = matrixChartOptions(themeColors());  matrixChart.update(); }
+        if (savingsChart) { savingsChart.options = savingsChartOptions(themeColors()); savingsChart.update(); }
+      });
+    })();
+
+    /* ===== Nav drawer ===== */
+    (function () {
+      const drawer   = document.getElementById('navDrawer');
+      const backdrop = document.getElementById('navBackdrop');
+      function openNav()  { drawer.classList.add('open');    backdrop.classList.add('open'); }
+      function closeNav() { drawer.classList.remove('open'); backdrop.classList.remove('open'); }
+      document.getElementById('navBtn').addEventListener('click', openNav);
+      document.getElementById('navClose').addEventListener('click', closeNav);
+      backdrop.addEventListener('click', closeNav);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
+    })();
+
+    /* ===== Collapse / expand all ===== */
+    document.getElementById('collapseAll').addEventListener('click', () =>
+      document.querySelectorAll('.process-panel').forEach(p => p.classList.add('collapsed')));
+    document.getElementById('expandAll').addEventListener('click', () =>
+      document.querySelectorAll('.process-panel').forEach(p => p.classList.remove('collapsed')));
+
+    /* ===== Close color popovers on outside click ===== */
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.color-popover.open').forEach(p => p.classList.remove('open'));
+    });
+
+    /* ===== Init ===== */
+    loadState();
+    render();
+  </script>
+</body>
+</html>
