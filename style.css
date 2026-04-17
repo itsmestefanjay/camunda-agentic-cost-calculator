@@ -16,6 +16,7 @@ html {
     --hover-bg: rgba(255, 255, 255, 0.08);
     --toggle-bg: rgba(255, 255, 255, 0.06);
     --toggle-border: rgba(255, 255, 255, 0.1);
+    --focus-ring: rgba(252, 93, 13, 0.45);
   }
 
   &[data-theme="light"] {
@@ -30,6 +31,7 @@ html {
     --hover-bg: rgba(0, 0, 0, 0.05);
     --toggle-bg: rgba(0, 0, 0, 0.04);
     --toggle-border: rgba(0, 0, 0, 0.12);
+    --focus-ring: rgba(200, 70, 5, 0.35);
   }
 }
 
@@ -82,6 +84,7 @@ header {
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   transition: color 0.15s, background 0.15s;
   &:hover { color: var(--text); background: var(--hover-bg); }
+  &:focus-visible { outline: 1px solid var(--focus-ring); outline-offset: 2px; }
   svg { width: 20px; height: 20px; }
 }
 
@@ -114,6 +117,7 @@ header {
     background: none; border: none; color: var(--muted); cursor: pointer;
     padding: 0.15rem; display: flex; align-items: center; transition: transform 0.2s;
     svg { width: 16px; height: 16px; }
+    &:focus-visible { outline: 1px solid var(--focus-ring); outline-offset: 2px; }
   }
   &.collapsed .settings-collapse-btn { transform: rotate(-90deg); }
   .settings-body {
@@ -142,14 +146,17 @@ header {
   .slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.3rem; }
   label  { font-size: 0.75rem; color: var(--muted); font-weight: 500; }
   output { font-size: 0.75rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
-  input[type="range"] { width: 100%; height: 6px; accent-color: var(--accent); cursor: pointer; }
+  input[type="range"]  { width: 100%; height: 6px; accent-color: var(--accent); cursor: pointer; }
+  input[type="range"]:focus-visible { outline: 1px solid var(--focus-ring); outline-offset: 4px; border-radius: 2px; }
+  input[type="number"] { width: calc(100% - 8px); margin-left: 4px; padding: 0.4rem 0.6rem; font-size: 0.875rem; color: var(--text); background: var(--toggle-bg); border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+  input[type="number"]:focus { outline: 1px solid var(--focus-ring); outline-offset: 2px; border-color: var(--accent); }
 }
 
 .profile-select {
   width: 100%; background: transparent; border: 1px solid var(--input-border);
   border-radius: 6px; padding: 0.4rem 0.5rem; color: var(--text); font-size: 0.8125rem;
   outline: none;
-  &:focus { border-color: var(--accent); }
+  &:focus { border-color: var(--accent); outline: 1px solid var(--focus-ring); outline-offset: 2px; }
   option { background: var(--surface); color: var(--text); }
 }
 
@@ -165,6 +172,7 @@ header {
   border-radius: 6px; color: var(--muted); font-size: 0.8125rem;
   padding: 0.4rem 0.9rem; cursor: pointer; transition: color 0.15s, background 0.15s;
   &:hover { color: var(--text); background: var(--hover-bg); }
+  &:focus-visible { outline: 1px solid var(--focus-ring); outline-offset: 2px; }
   &.destructive { color: #ef4444; border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.08); }
   &.destructive:hover { background: rgba(239,68,68,0.16); }
 }
@@ -181,6 +189,7 @@ header {
     padding: 0.35rem 0.75rem; cursor: pointer; transition: all 0.15s;
     &[aria-pressed="true"] { background: rgba(252, 93, 13, 0.15); border-color: var(--accent); color: var(--accent); font-weight: 600; }
     &:hover:not([aria-pressed="true"]) { background: var(--hover-bg); color: var(--text); }
+    &:focus-visible { outline: 1px solid var(--focus-ring); outline-offset: 2px; }
   }
 }
 
@@ -232,6 +241,7 @@ header {
     background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.3rem;
     padding: 0.15rem 0.4rem; border-radius: 4px; line-height: 1;
     &:hover { color: var(--text); background: var(--hover-bg); }
+    &:focus-visible { outline: 1px solid var(--focus-ring); outline-offset: 2px; }
   }
 }
 .nav-section-title {
@@ -246,6 +256,7 @@ header {
   text-decoration: none; transition: background 0.15s; margin-bottom: 0.05rem;
   svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--muted); }
   &:hover { background: var(--hover-bg); }
+  &:focus-visible { outline: 1px solid var(--focus-ring); outline-offset: 2px; }
   &.active { background: rgba(252, 93, 13, 0.12); color: var(--accent); font-weight: 600; svg { color: var(--accent); } }
 }
 .nav-divider { height: 1px; background: var(--border); margin: 0.5rem 0.5rem; }
@@ -265,6 +276,7 @@ header {
   font-size: 0.8rem; font-weight: 500; flex-shrink: 0;
   transition: color 0.15s, background 0.15s;
   &:hover:not(.active) { color: var(--text); background: var(--hover-bg); }
+  &:focus-visible { outline: 1px solid var(--focus-ring); outline-offset: 2px; }
   &.active { color: var(--accent); font-weight: 600; pointer-events: none; }
 }
 .step-bar-num {
@@ -329,7 +341,17 @@ header {
 }
 .handoff-process-item {
   background: var(--toggle-bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: 0.6rem 0.85rem;
+  border-radius: 8px; padding: 0.6rem 0.85rem; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  &:hover { border-color: rgba(252, 93, 13, 0.3); }
+  &.selected {
+    border-color: rgba(252, 93, 13, 0.5); background: rgba(252, 93, 13, 0.06);
+    cursor: default;
+  }
+}
+.handoff-badge {
+  font-size: 0.62rem; font-weight: 700; border-radius: 4px;
+  padding: 0.1rem 0.35rem; border: 1px solid; vertical-align: middle; margin-left: 0.35rem;
 }
 .handoff-process-name {
   font-size: 0.8rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem;

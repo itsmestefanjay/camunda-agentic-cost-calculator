@@ -278,7 +278,7 @@
               <label for="implCostSlider">Implementation cost / week</label>
               <output id="implCostDisplay">$5,000</output>
             </div>
-            <input type="range" id="implCostSlider" min="1000" max="20000" step="500" value="5000">
+            <input type="range" tabindex="0" id="implCostSlider" min="1000" max="20000" step="500" value="5000">
             <p class="input-note">Loaded weekly team cost to convert effort into implementation cost.</p>
           </div>
         </div></div>
@@ -364,7 +364,7 @@
         <p class="handoff-modal-title" id="s2s3ModalTitle">Going to Step 3: Model Cost &amp; Fit</p>
         <button class="handoff-close" id="s2s3Close" aria-label="Close">&times;</button>
       </div>
-      <p class="handoff-modal-sub">Pre-fill the model comparison calculator with the data below, or go without.</p>
+      <p class="handoff-modal-sub">Select the process to size for in Step 3. The top-ranked process is pre-selected.</p>
       <div class="handoff-process-list" id="s2s3ModalContent"></div>
       <div class="handoff-modal-actions">
         <a href="step3.html" class="step-nav-btn primary" id="s2s3Confirm">Continue to Step 3 with data →</a>
@@ -409,13 +409,15 @@
     const AUTOMATION_OVERLAP     = { none: 0, partial: 0.4, bpm: 0.7 };
 
     /* ===== State ===== */
-    let processes       = [];
-    let implCostPerWeek = 5000;
-    let currency        = 'USD';
-    let eurRate         = 0.92;
-    let nextId          = 0;
-    let matrixChart     = null;
-    let savingsChart    = null;
+    let processes        = [];
+    let implCostPerWeek  = 5000;
+    let currency         = 'USD';
+    let eurRate          = 0.92;
+    let nextId           = 0;
+    let matrixChart      = null;
+    let savingsChart     = null;
+    let s2s3ScoredCache  = null;
+    let s2s3SelectedIdx  = 0;
 
     /* ===== Migration ===== */
     function migrateProcess(p, i) {
@@ -581,7 +583,7 @@
               <label>Instances / month</label>
               <output class="vol-out">${p.volume.toLocaleString()}</output>
             </div>
-            <input class="s-volume" type="range" min="50" max="10000" step="50" value="${p.volume}">
+            <input class="s-volume" type="range" tabindex="0" min="50" max="10000" step="50" value="${p.volume}">
             <p class="input-note">How many times this process runs each month.</p>
           </div>
 
@@ -590,7 +592,7 @@
               <label>Manual time / instance</label>
               <output class="mt-out">${p.manualMinutes} min</output>
             </div>
-            <input class="s-manualMinutes" type="range" min="1" max="480" step="1" value="${p.manualMinutes}">
+            <input class="s-manualMinutes" type="range" tabindex="0" min="1" max="480" step="1" value="${p.manualMinutes}">
             <p class="input-note">Minutes of human effort per run.</p>
           </div>
 
@@ -599,7 +601,7 @@
               <label>Hourly labor rate</label>
               <output class="hr-out">${fmtHourlyRate(p.hourlyRate)}</output>
             </div>
-            <input class="s-hourlyRate" type="range" min="15" max="300" step="5" value="${p.hourlyRate}">
+            <input class="s-hourlyRate" type="range" tabindex="0" min="15" max="300" step="5" value="${p.hourlyRate}">
             <p class="input-note">Loaded hourly cost of the people doing this work.</p>
           </div>
 
@@ -608,7 +610,7 @@
               <label>Monthly error &amp; rework cost</label>
               <output class="ec-out">${fmtMoney(p.monthlyErrorCost || 0)}/mo</output>
             </div>
-            <input class="s-monthlyErrorCost" type="range" min="0" max="50000" step="100" value="${p.monthlyErrorCost || 0}">
+            <input class="s-monthlyErrorCost" type="range" tabindex="0" min="0" max="50000" step="100" value="${p.monthlyErrorCost || 0}">
             <p class="input-note">Your estimate of monthly rework, SLA penalties, and escalation costs.</p>
           </div>
 
@@ -617,7 +619,7 @@
               <label>Implementation effort</label>
               <output class="ew-out">${p.effortWeeks} wk</output>
             </div>
-            <input class="s-effortWeeks" type="range" min="1" max="52" step="1" value="${p.effortWeeks}">
+            <input class="s-effortWeeks" type="range" tabindex="0" min="1" max="52" step="1" value="${p.effortWeeks}">
             <p class="input-note">Engineering weeks to automate this process end-to-end.</p>
           </div>
 
@@ -626,7 +628,7 @@
               <label>Strategic priority</label>
               <output class="sp-out">${p.strategicPriority}/5</output>
             </div>
-            <input class="s-strategicPriority" type="range" min="1" max="5" step="1" value="${p.strategicPriority}">
+            <input class="s-strategicPriority" type="range" tabindex="0" min="1" max="5" step="1" value="${p.strategicPriority}">
             <p class="input-note">Business importance and executive visibility. (1 = low, 5 = critical)</p>
           </div>
 
@@ -950,15 +952,15 @@
         scales: {
           x: {
             title: { display: true, text: 'Feasibility →', color: tc.muted, font: { size: 11 } },
-            min: 0, max: 100,
+            min: -6, max: 106,
             grid: { color: tc.grid },
-            ticks: { color: tc.muted, stepSize: 25 },
+            ticks: { color: tc.muted, stepSize: 25, callback: v => (v >= 0 && v <= 100) ? v : '' },
           },
           y: {
             title: { display: true, text: 'Value →', color: tc.muted, font: { size: 11 } },
-            min: 0, max: 100,
+            min: -6, max: 106,
             grid: { color: tc.grid },
-            ticks: { color: tc.muted, stepSize: 25 },
+            ticks: { color: tc.muted, stepSize: 25, callback: v => (v >= 0 && v <= 100) ? v : '' },
           }
         }
       };
@@ -1146,8 +1148,17 @@
     (function () {
       const drawer   = document.getElementById('navDrawer');
       const backdrop = document.getElementById('navBackdrop');
-      function openNav()  { drawer.classList.add('open');    backdrop.classList.add('open'); }
-      function closeNav() { drawer.classList.remove('open'); backdrop.classList.remove('open'); }
+      function openNav() {
+        drawer.classList.add('open');
+        backdrop.classList.add('open');
+        const first = drawer.querySelector('.nav-close, .nav-item');
+        if (first) first.focus();
+      }
+      function closeNav() {
+        drawer.classList.remove('open');
+        backdrop.classList.remove('open');
+        document.getElementById('navBtn').focus();
+      }
       document.getElementById('navBtn').addEventListener('click', openNav);
       document.getElementById('navClose').addEventListener('click', closeNav);
       backdrop.addEventListener('click', closeNav);
@@ -1232,58 +1243,78 @@
     render();
 
     /* ===== Step 2 → Step 3 handoff ===== */
+    function complexityFor(p) {
+      return p.manualMinutes >= 60
+        ? { inputTokens: 1500, outputTokens: 700, tools: 8, label: 'Complex — 1500 in / 700 out / 8 tools' }
+        : p.manualMinutes >= 20
+        ? { inputTokens: 1000, outputTokens: 500, tools: 5, label: 'Medium — 1000 in / 500 out / 5 tools' }
+        : { inputTokens: 700,  outputTokens: 300, tools: 3, label: 'Simple — 700 in / 300 out / 3 tools' };
+    }
+
     function writeS2S3Handoff() {
-      if (!processes.length) return;
-      const scored = processes.map(p => ({ p, s: scoreProcess(p) }));
-      scored.sort((a, b) => b.s.compositeScore - a.s.compositeScore);
-      const { p: top, s: ts } = scored[0];
-      const complexity = top.manualMinutes >= 60
-        ? { inputTokens: 1500, outputTokens: 700, tools: 8 }
-        : top.manualMinutes >= 20
-        ? { inputTokens: 1000, outputTokens: 500, tools: 5 }
-        : { inputTokens: 700, outputTokens: 300, tools: 3 };
+      if (!s2s3ScoredCache) return;
+      const { p: chosen, s: cs } = s2s3ScoredCache[s2s3SelectedIdx];
+      const cx = complexityFor(chosen);
       localStorage.setItem('camunda-step2-handoff', JSON.stringify({
-        monthlyInstances: Math.round(top.volume),
-        manualCost:       Math.round(ts.monthlyManualCost),
-        budget:           Math.round(ts.monthlySavings * 0.3),
+        monthlyInstances: Math.round(chosen.volume),
+        manualCost:       Math.round(cs.monthlyManualCost),
+        budget:           Math.round(cs.monthlySavings * 0.3),
         growthRate: 0, forecastMonths: 12, activeChartTab: 'score',
-        processSettings: complexity,
+        processSettings: { inputTokens: cx.inputTokens, outputTokens: cx.outputTokens, tools: cx.tools },
+        topProcessName: chosen.name,
         context: {
           deploymentMode: 'from-step-2',
-          coverage: null, pilotMonths: null, rampMonths: null,
-          baseMonthlyNet: Math.round(ts.monthlySavings),
-          conservativeMonthlyNet: null, confidenceGuessed: null,
+          baseMonthlyNet: Math.round(cs.monthlySavings),
         },
         fromStep2: true,
         createdAt: Date.now(),
       }));
     }
+
     /* ===== Step 2 → Step 3 modal ===== */
-    function openS2S3Modal() {
-      if (!processes.length) return;
-      const scored = processes.map(p => ({ p, s: scoreProcess(p) }));
-      scored.sort((a, b) => b.s.compositeScore - a.s.compositeScore);
-      const { p: top, s: ts } = scored[0];
+    function renderS2S3ModalContent() {
       const s = sym();
       const rate = displayRate();
-      const complexityLabel = top.manualMinutes >= 60
-        ? 'Complex — 1500 in / 700 out / 8 tools'
-        : top.manualMinutes >= 20
-        ? 'Medium — 1000 in / 500 out / 5 tools'
-        : 'Simple — 700 in / 300 out / 3 tools';
-      document.getElementById('s2s3ModalContent').innerHTML = `
-        <div class="handoff-process-item">
-          <div class="handoff-process-name">${top.name} <span style="font-weight:400;color:var(--muted)">(top-ranked)</span></div>
+      const rows = s2s3ScoredCache.map(({ p, s: sc }, i) => {
+        const badge = getBadge(sc.valueScore, sc.feasibilityScore, sc.agenticFitScore, sc.compositeScore);
+        const cx = complexityFor(p);
+        const sel = i === s2s3SelectedIdx;
+        return `<div class="handoff-process-item${sel ? ' selected' : ''}" data-idx="${i}" role="radio" aria-checked="${sel}" tabindex="0">
+          <div class="handoff-process-name">
+            ${p.name}
+            <span class="handoff-badge ${badge.cls}">${badge.label}</span>
+          </div>
           <div class="handoff-process-meta">
-            <span>${Math.round(top.volume).toLocaleString()} instances/mo</span>
-            <span>${s}${Math.round(ts.monthlyManualCost * rate).toLocaleString()}/mo manual cost</span>
-            <span>${s}${Math.round(ts.monthlySavings * 0.3 * rate).toLocaleString()}/mo AI budget target</span>
-            <span>${complexityLabel}</span>
+            <span>${Math.round(p.volume).toLocaleString()} inst/mo</span>
+            ${sel ? `<span>${s}${Math.round(sc.monthlyManualCost * rate).toLocaleString()}/mo manual</span>
+            <span>${s}${Math.round(sc.monthlySavings * 0.3 * rate).toLocaleString()}/mo budget</span>
+            <span>${cx.label}</span>` : ''}
           </div>
         </div>`;
+      }).join('');
+      const content = document.getElementById('s2s3ModalContent');
+      content.innerHTML = rows;
+      content.querySelectorAll('.handoff-process-item').forEach(el => {
+        el.addEventListener('click', () => {
+          s2s3SelectedIdx = +el.dataset.idx;
+          renderS2S3ModalContent();
+        });
+        el.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+        });
+      });
+    }
+
+    function openS2S3Modal() {
+      if (!processes.length) return;
+      s2s3ScoredCache = processes.map(p => ({ p, s: scoreProcess(p) }));
+      s2s3ScoredCache.sort((a, b) => b.s.compositeScore - a.s.compositeScore);
+      s2s3SelectedIdx = 0;
+      renderS2S3ModalContent();
       document.getElementById('s2s3Backdrop').classList.add('open');
       document.getElementById('s2s3Confirm').focus();
     }
+
     function closeS2S3Modal() { document.getElementById('s2s3Backdrop').classList.remove('open'); }
 
     document.getElementById('navToStep3Btn').addEventListener('click', e => { e.preventDefault(); openS2S3Modal(); });

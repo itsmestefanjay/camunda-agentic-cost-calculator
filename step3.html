@@ -93,6 +93,24 @@
       &.collapsed .model-body { grid-template-rows: 0fr; margin-top: 0; }
     }
 
+    .rubric-anchors {
+      display: flex; justify-content: space-between;
+      font-size: 0.62rem; color: var(--muted); opacity: 0.65;
+      margin-top: 0.15rem; pointer-events: none;
+    }
+
+
+    /* ===== Context summary ===== */
+    .context-summary {
+      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--border);
+    }
+    .context-summary-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-size: 0.72rem; color: var(--muted); padding: 0.15rem 0;
+      &:last-child { color: var(--text); font-weight: 600; }
+    }
+    .context-summary-val { font-variant-numeric: tabular-nums; }
+
     .add-model-wrap { position: relative; }
     .add-model-btn {
       display: flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -220,6 +238,7 @@
 
   <main>
     <div class="models-column" id="modelsColumn">
+
       <div class="panel settings-panel" id="processSettingsPanel">
         <div class="settings-header">
           <button class="settings-collapse-btn" id="processCollapseBtn" title="Collapse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
@@ -229,6 +248,11 @@
           <div class="slider-group"><div class="slider-header"><label>Input tokens / tool call</label><output id="psInputTokensDisplay"></output></div><input type="range" min="100" max="10000" step="100" value="1000" id="psInputTokens"><p class="input-note">Input tokens per model call including history.</p></div>
           <div class="slider-group"><div class="slider-header"><label>Output tokens / tool call</label><output id="psOutputTokensDisplay"></output></div><input type="range" min="50" max="5000" step="50" value="500" id="psOutputTokens"><p class="input-note">Output tokens generated per call.</p></div>
           <div class="slider-group"><div class="slider-header"><label>Tools in subprocess</label><output id="psToolsDisplay"></output></div><input type="range" min="1" max="50" step="1" value="5" id="psTools"><p class="input-note">Sequential tool calls per process run.</p></div>
+          <div class="context-summary" id="contextSummary">
+            <div class="context-summary-row"><span>Total input / run</span><span class="context-summary-val" id="ctxInputDisplay"></span></div>
+            <div class="context-summary-row"><span>Total output / run</span><span class="context-summary-val" id="ctxOutputDisplay"></span></div>
+            <div class="context-summary-row"><span>Total context / run</span><span class="context-summary-val" id="ctxTotalDisplay"></span></div>
+          </div>
         </div></div>
       </div>
       <div class="panel settings-panel" id="businessSettingsPanel">
@@ -496,10 +520,22 @@
     }
 
     /* ===== Process Settings UI ===== */
-    function updateProcessSettingsDisplay() {
+    function updateContextSummary() {
+      const n   = processSettings.tools;
+      const inp = processSettings.inputTokens;
+      const out = processSettings.outputTokens;
+      const totalIn  = n * inp + n * (n - 1) / 2 * out;
+      const totalOut = n * out;
+      document.getElementById('ctxInputDisplay').textContent  = totalIn.toLocaleString() + ' tok';
+      document.getElementById('ctxOutputDisplay').textContent = totalOut.toLocaleString() + ' tok';
+      document.getElementById('ctxTotalDisplay').textContent  = (totalIn + totalOut).toLocaleString() + ' tok';
+    }
+
+function updateProcessSettingsDisplay() {
       document.getElementById('psInputTokensDisplay').textContent = processSettings.inputTokens.toLocaleString();
       document.getElementById('psOutputTokensDisplay').textContent = processSettings.outputTokens.toLocaleString();
       document.getElementById('psToolsDisplay').textContent = processSettings.tools;
+      updateContextSummary();
     }
     for (const [key, elId] of [['inputTokens','psInputTokens'],['outputTokens','psOutputTokens'],['tools','psTools']]) {
       document.getElementById(elId).addEventListener('input', (e) => {
@@ -1142,7 +1178,7 @@
     /* ===== Model CRUD ===== */
     function slider(field, label, min, max, step, value, note = '') {
       const noteHTML = note ? `<p class="input-note">${note}</p>` : '';
-      return `<div class="slider-group"><div class="slider-header"><label>${label}</label><output data-display="${field}"></output></div><input type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-field="${field}">${noteHTML}</div>`;
+      return `<div class="slider-group"><div class="slider-header"><label>${label}</label><output data-display="${field}"></output></div><input type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-field="${field}" tabindex="0">${noteHTML}</div>`;
     }
 
     function updateDisplay(panel, model) {
@@ -1183,9 +1219,9 @@
           ${slider('outputPrice', 'Output token price',  0, 1000, 1,  model.outputPrice, 'Cost per million output tokens.')}
           ${slider('fixedCost',   'Fixed costs / month', 0, 10000, 10, model.fixedCost,  'Fixed monthly platform cost.')}
           <div class="panel-divider">Manual Fit Rubric</div>
-          ${slider('fitCompliance', 'Compliance & governance fit', 0, 100, 1, model.fitCompliance, 'Compliance and governance suitability score.')}
-          ${slider('fitQuality', 'Output quality fit', 0, 100, 1, model.fitQuality, 'Output quality suitability score.')}
-          ${slider('fitOps', 'Operational fit', 0, 100, 1, model.fitOps, 'Operational reliability suitability score.')}
+          <div class="slider-group"><div class="slider-header"><label>Compliance &amp; governance fit</label><output data-display="fitCompliance"></output></div><input type="range" min="0" max="100" step="1" value="${model.fitCompliance}" data-field="fitCompliance" tabindex="0"><div class="rubric-anchors"><span>Non-compliant</span><span>Gaps / workarounds</span><span>Meets requirements</span><span>Audit-ready</span></div></div>
+          <div class="slider-group"><div class="slider-header"><label>Output quality fit</label><output data-display="fitQuality"></output></div><input type="range" min="0" max="100" step="1" value="${model.fitQuality}" data-field="fitQuality" tabindex="0"><div class="rubric-anchors"><span>Unreliable</span><span>Heavy review needed</span><span>Spot-checks OK</span><span>Production-ready</span></div></div>
+          <div class="slider-group"><div class="slider-header"><label>Operational fit</label><output data-display="fitOps"></output></div><input type="range" min="0" max="100" step="1" value="${model.fitOps}" data-field="fitOps" tabindex="0"><div class="rubric-anchors"><span>Unstable</span><span>High ops overhead</span><span>Manageable</span><span>Low overhead</span></div></div>
           <div class="slider-group">
             <div class="slider-header"><label>Your fit score (avg)</label><output data-display="decisionScore"></output></div>
           </div>
@@ -1428,7 +1464,7 @@
       setSettingsPanelCollapsed(processPanelEl, processPanelCollapsed);
       setSettingsPanelCollapsed(businessPanelEl, businessPanelCollapsed);
     }
-    document.getElementById('processCollapseBtn').addEventListener('click', () => {
+document.getElementById('processCollapseBtn').addEventListener('click', () => {
       processPanelCollapsed = !processPanelCollapsed;
       applySettingsPanelState();
       saveState();
@@ -1682,7 +1718,7 @@
       growthRateInput.value = growthRate;
       forecastMonthsInput.value = forecastMonths;
       updateBusinessDisplay();
-      setChartTab(normalizeChartTab(handoff.activeChartTab || 'score'), { skipRecalc: true });
+setChartTab(normalizeChartTab(handoff.activeChartTab || 'score'), { skipRecalc: true });
       return true;
     }
 
@@ -1718,8 +1754,17 @@
     (function() {
       const navDrawer   = document.getElementById('navDrawer');
       const navBackdrop = document.getElementById('navBackdrop');
-      function openNav()  { navDrawer.classList.add('open');    navBackdrop.classList.add('open'); }
-      function closeNav() { navDrawer.classList.remove('open'); navBackdrop.classList.remove('open'); }
+      function openNav() {
+        navDrawer.classList.add('open');
+        navBackdrop.classList.add('open');
+        const first = navDrawer.querySelector('.nav-close, .nav-item');
+        if (first) first.focus();
+      }
+      function closeNav() {
+        navDrawer.classList.remove('open');
+        navBackdrop.classList.remove('open');
+        document.getElementById('navBtn').focus();
+      }
       document.getElementById('navBtn').addEventListener('click', openNav);
       document.getElementById('navClose').addEventListener('click', closeNav);
       navBackdrop.addEventListener('click', closeNav);
