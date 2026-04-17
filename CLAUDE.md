@@ -1,5 +1,13 @@
 # CLAUDE.md
 
+## Focus
+
+This repo provides a tool for CTOs and other deciders for the usage of agentic orchestration. 
+All features and changes must match the usage of this audience. The tool must cater to this audience. 
+The tool must help them in their decision, that is the highest goal. Ask yourself for every change
+if it makes sense or is it just a polishing of a useless feature. Be honest and don't try to just
+impress me. No need to sugar-code anything. Otherwise the product will fail.
+
 ## Scope
 
 - Repo: browser-only calculators for Camunda agentic orchestration decisions

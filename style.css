@@ -52,24 +52,6 @@ header {
 
 .header-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
 
-.scenario-bar {
-  display: flex; align-items: center; gap: 0.4rem;
-  margin-right: 0.75rem; padding-right: 0.75rem; border-right: 1px solid var(--toggle-border);
-  .scenario-name {
-    background: transparent; border: 1px solid var(--input-border); border-radius: 6px;
-    padding: 0.3rem 0.5rem; color: var(--text); font-size: 0.8125rem; font-weight: 600;
-    outline: none; width: 160px;
-    &:focus { border-color: var(--accent); }
-  }
-  select {
-    background: var(--toggle-bg); border: 1px solid var(--toggle-border); border-radius: 6px;
-    color: var(--muted); font-size: 0.75rem; padding: 0.3rem 0.4rem; cursor: pointer;
-    outline: none; max-width: 110px;
-    &:focus { border-color: var(--accent); }
-    option { background: var(--surface); color: var(--text); }
-  }
-}
-
 .header-currency {
   display: flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem;
   color: var(--muted); margin-right: 0.5rem;
@@ -183,6 +165,8 @@ header {
   border-radius: 6px; color: var(--muted); font-size: 0.8125rem;
   padding: 0.4rem 0.9rem; cursor: pointer; transition: color 0.15s, background 0.15s;
   &:hover { color: var(--text); background: var(--hover-bg); }
+  &.destructive { color: #ef4444; border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.08); }
+  &.destructive:hover { background: rgba(239,68,68,0.16); }
 }
 
 /* --- Chart area --- */
@@ -200,33 +184,10 @@ header {
   }
 }
 
-.chart-helper {
-  min-height: 2.25rem; padding: 0.6rem 0.85rem;
-  font-size: 0.78rem; color: var(--muted);
-  display: none; align-items: center; flex-wrap: wrap; gap: 0.5rem;
-  &.visible { display: flex; }
-}
-
-/* --- Executive insights --- */
-.executive-insight {
-  min-height: 2.5rem; padding: 0.65rem 0.8rem;
-  font-size: 0.8rem; color: var(--muted);
-  display: flex; flex-wrap: wrap; gap: 0.5rem;
-  .insight {
-    display: inline-flex; align-items: center;
-    padding: 0.32rem 0.56rem; border-radius: 999px;
-    border: 1px solid var(--border); background: var(--toggle-bg);
-    color: var(--muted);
-    strong { color: var(--text); font-weight: 600; }
-    &.ok   { border-color: rgba(34, 197, 94, 0.4); }
-    &.warn { border-color: rgba(245, 158, 11, 0.45); }
-    &.bad  { border-color: rgba(239, 68, 68, 0.4); }
-  }
-}
 
 /* --- Summary cards (project.html) --- */
 .summary-cards {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.75rem;
 }
 .summary-card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
@@ -250,8 +211,6 @@ header {
   &.empty       { color: var(--muted); border-color: var(--border); background: var(--toggle-bg); }
 }
 
-/* --- Btn row --- */
-.btn-row { display: flex; gap: 0.5rem; justify-content: flex-end; }
 
 /* --- Nav drawer --- */
 .nav-backdrop {
@@ -290,3 +249,110 @@ header {
   &.active { background: rgba(252, 93, 13, 0.12); color: var(--accent); font-weight: 600; svg { color: var(--accent); } }
 }
 .nav-divider { height: 1px; background: var(--border); margin: 0.5rem 0.5rem; }
+
+/* ===== Step progress bar ===== */
+/* Accent-coloured separator = data flows across this boundary */
+.step-bar {
+  display: flex; align-items: center;
+  margin-bottom: 0; gap: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.45rem 0.65rem;
+}
+.step-bar-item {
+  display: flex; align-items: center; gap: 0.4rem;
+  text-decoration: none; color: var(--muted);
+  padding: 0.25rem 0.5rem; border-radius: 6px;
+  font-size: 0.8rem; font-weight: 500; flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+  &:hover:not(.active) { color: var(--text); background: var(--hover-bg); }
+  &.active { color: var(--accent); font-weight: 600; pointer-events: none; }
+}
+.step-bar-num {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6875rem; font-weight: 800; flex-shrink: 0;
+  background: var(--toggle-bg); border: 1px solid var(--border);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.step-bar-item.active .step-bar-num {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.step-bar-sep {
+  flex: 1; text-align: center; color: var(--border);
+  font-size: 1rem; padding: 0 0.15rem; user-select: none; min-width: 1rem;
+  transition: color 0.15s;
+}
+.step-bar-sep.data-link { color: rgba(252, 93, 13, 0.45); }
+@media (max-width: 520px) {
+  .step-bar-label { display: none; }
+  .step-bar-sep { flex: 0; min-width: 0.5rem; }
+}
+
+/* ===== Step navigation (top of page, below step bar) ===== */
+.step-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.6rem 0; margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border); gap: 0.75rem;
+}
+.step-nav-forward {
+  display: flex; align-items: center;
+}
+/* ===== Handoff confirmation modal ===== */
+.handoff-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  background: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center;
+  padding: 1rem;
+  &.open { display: flex; }
+}
+.handoff-modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.5rem; width: 100%; max-width: 460px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+.handoff-modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.25rem;
+}
+.handoff-modal-title {
+  font-size: 1rem; font-weight: 700; color: var(--text);
+}
+.handoff-close {
+  flex-shrink: 0; background: none; border: none; cursor: pointer;
+  font-size: 1.25rem; line-height: 1; color: var(--muted); padding: 0 0.1rem;
+  &:hover { color: var(--text); }
+}
+.handoff-modal-sub {
+  font-size: 0.8125rem; color: var(--muted); margin-bottom: 1.1rem; line-height: 1.5;
+}
+.handoff-process-list {
+  display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem;
+  max-height: 260px; overflow-y: auto;
+}
+.handoff-process-item {
+  background: var(--toggle-bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.6rem 0.85rem;
+}
+.handoff-process-name {
+  font-size: 0.8rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem;
+}
+.handoff-process-meta {
+  display: flex; gap: 0.5rem 1rem; flex-wrap: wrap;
+  font-size: 0.72rem; color: var(--muted);
+}
+.handoff-modal-actions {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 1rem; margin-top: 0.25rem;
+}
+.handoff-skip-link {
+  font-size: 0.8rem; color: var(--muted); text-decoration: underline; text-underline-offset: 2px;
+  &:hover { color: var(--text); }
+}
+
+.step-nav-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.6rem 1.2rem; border-radius: 8px;
+  font-size: 0.875rem; font-weight: 600; text-decoration: none;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+  &.primary { background: var(--accent); color: #fff; }
+  &.primary:hover { opacity: 0.88; }
+  &.secondary { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  &.secondary:hover { color: var(--text); border-color: var(--muted); }
+}

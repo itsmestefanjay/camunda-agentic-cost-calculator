@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Process Prioritization — Agentic Orchestration</title>
   <link rel="stylesheet" href="style.css">
-  <script>!function(){var t=localStorage.getItem("camunda-theme");if(t)document.documentElement.dataset.theme=t}();</script>
+  <script>!function(){try{var g=JSON.parse(localStorage.getItem("camunda-global"));if(g&&g.theme)document.documentElement.dataset.theme=g.theme}catch(e){}}();</script>
   <style>
     /* ===== Layout ===== */
     main {
@@ -145,11 +145,12 @@
       padding: 0.2rem 0.55rem; border-radius: 999px; border: 1px solid;
       font-size: 0.68rem; font-weight: 700; white-space: nowrap;
     }
-    .badge-automate  { background: rgba(34,197,94,0.12);  color: #22c55e; border-color: rgba(34,197,94,0.3); }
-    .badge-quickwin  { background: rgba(20,184,166,0.12); color: #14b8a6; border-color: rgba(20,184,166,0.3); }
-    .badge-strategic { background: rgba(99,102,241,0.12); color: #818cf8; border-color: rgba(99,102,241,0.3); }
-    .badge-pilot     { background: rgba(245,158,11,0.12); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
-    .badge-defer     { background: rgba(107,114,128,0.12); color: #9ca3af; border-color: rgba(107,114,128,0.3); }
+    .badge-automate     { background: rgba(34,197,94,0.12);  color: #22c55e; border-color: rgba(34,197,94,0.3); }
+    .badge-quickwin     { background: rgba(20,184,166,0.12); color: #14b8a6; border-color: rgba(20,184,166,0.3); }
+    .badge-strategic    { background: rgba(99,102,241,0.12); color: #818cf8; border-color: rgba(99,102,241,0.3); }
+    .badge-pilot        { background: rgba(245,158,11,0.12); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+    .badge-defer        { background: rgba(107,114,128,0.12); color: #9ca3af; border-color: rgba(107,114,128,0.3); }
+    .badge-traditional  { background: rgba(249,115,22,0.12); color: #f97316; border-color: rgba(249,115,22,0.3); }
 
     /* ===== Chart panels ===== */
     .chart-panel-header {
@@ -189,15 +190,15 @@
     <div class="nav-section-title">Calculators</div>
     <a href="step1.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Step 1: Project Business Case
+      Business Case
     </a>
     <a href="step2.html" class="nav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      Step 2: Process Prioritization
+      Process Prioritization
     </a>
     <a href="step3.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Step 3: Model Cost &amp; Fit
+      Model Cost &amp; Fit
     </a>
     <div class="nav-divider"></div>
     <a href="about.html" class="nav-item">
@@ -222,15 +223,42 @@
         <button id="btnEUR" aria-pressed="false">EUR</button>
         <span class="rate-field" id="currencyRateWrap">1 USD = <input type="text" id="rateInput" value="0.92" size="5"> EUR</span>
       </div>
+      <button class="icon-btn share" id="shareBtn" title="Copy share link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </button>
       <button class="icon-btn reset" id="resetBtn" title="Reset all inputs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
       </button>
-      <button class="icon-btn theme" id="themeBtn" title="Toggle light/dark theme">
+      <button class="icon-btn theme" id="themeBtn" title="Toggle light/dark mode">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
     </div>
   </header>
+
+  <nav class="step-bar" aria-label="Step progress">
+    <a href="step1.html" class="step-bar-item">
+      <span class="step-bar-num">1</span>
+      <span class="step-bar-label">Business Case</span>
+    </a>
+    <span class="step-bar-sep" aria-hidden="true">›</span>
+    <a href="step2.html" class="step-bar-item active" aria-current="step">
+      <span class="step-bar-num">2</span>
+      <span class="step-bar-label">Prioritization</span>
+    </a>
+    <span class="step-bar-sep data-link" aria-hidden="true">›</span>
+    <a href="step3.html" class="step-bar-item" id="navToStep3" title="Top-ranked process inputs carry over">
+      <span class="step-bar-num">3</span>
+      <span class="step-bar-label">Model Cost &amp; Fit</span>
+    </a>
+  </nav>
+
+  <div class="step-nav">
+    <a href="step1.html" class="step-nav-btn secondary">← Business Case</a>
+    <div class="step-nav-forward">
+      <a href="step3.html" class="step-nav-btn primary" id="navToStep3Btn">Continue to Step 3 →</a>
+    </div>
+  </div>
 
   <main>
     <!-- ===== Left: process list ===== -->
@@ -310,7 +338,7 @@
           <span>Value vs Feasibility Matrix</span>
           <span class="chart-label">Each point is one process. Quadrant = recommended action.</span>
         </div>
-        <div class="chart-container" style="padding: 0 1rem 1rem;">
+        <div class="chart-container" style="padding: 0 1rem 1rem; display: flex; justify-content: center;">
           <canvas id="matrixChart"></canvas>
         </div>
       </div>
@@ -329,10 +357,34 @@
     </div>
   </main>
 
-  <div style="max-width:960px;margin:1.5rem auto 2.5rem;padding:0 1.5rem;display:flex;justify-content:flex-end">
-    <a href="step3.html" style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.65rem 1.4rem;background:var(--accent);color:#fff;border-radius:8px;font-size:0.9rem;font-weight:700;text-decoration:none;transition:opacity 0.15s" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-      Continue to Step 3: Model Cost &amp; Fit →
-    </a>
+  <!-- Step 2 → Step 3 handoff modal -->
+  <div class="handoff-backdrop" id="s2s3Backdrop" role="dialog" aria-modal="true" aria-labelledby="s2s3ModalTitle">
+    <div class="handoff-modal">
+      <div class="handoff-modal-header">
+        <p class="handoff-modal-title" id="s2s3ModalTitle">Going to Step 3: Model Cost &amp; Fit</p>
+        <button class="handoff-close" id="s2s3Close" aria-label="Close">&times;</button>
+      </div>
+      <p class="handoff-modal-sub">Pre-fill the model comparison calculator with the data below, or go without.</p>
+      <div class="handoff-process-list" id="s2s3ModalContent"></div>
+      <div class="handoff-modal-actions">
+        <a href="step3.html" class="step-nav-btn primary" id="s2s3Confirm">Continue to Step 3 with data →</a>
+        <a href="step3.html" class="handoff-skip-link" id="s2s3Skip">Go without pre-filling</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset confirmation modal -->
+  <div class="handoff-backdrop" id="resetBackdrop" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle">
+    <div class="handoff-modal">
+      <div class="handoff-modal-header">
+        <p class="handoff-modal-title" id="resetModalTitle">Reset to defaults</p>
+        <button class="handoff-close" id="resetClose" aria-label="Close">&times;</button>
+      </div>
+      <p class="handoff-modal-sub">All inputs on this step will be reset. This cannot be undone.</p>
+      <div class="handoff-modal-actions">
+        <button class="action-btn destructive" id="resetConfirm">Reset this step</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
@@ -344,14 +396,20 @@
     const SWATCH_COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
 
     const DEFAULT_PROCESSES = [
-      { color: '#FC5D0D', name: 'Support Ticket Triage', volume: 2000, manualMinutes: 15, hourlyRate: 55, monthlyErrorCost: 1200, effortWeeks: 6,  strategicPriority: 4, readiness: 'high'   },
-      { color: '#3B82F6', name: 'Invoice Processing',    volume: 800,  manualMinutes: 25, hourlyRate: 60, monthlyErrorCost: 800,  effortWeeks: 10, strategicPriority: 3, readiness: 'medium' },
-      { color: '#10B981', name: 'Customer Onboarding',   volume: 300,  manualMinutes: 45, hourlyRate: 70, monthlyErrorCost: 400,  effortWeeks: 16, strategicPriority: 5, readiness: 'low'    },
+      { color: '#FC5D0D', name: 'Support Ticket Triage', volume: 2000, manualMinutes: 15, hourlyRate: 55, monthlyErrorCost: 1200, effortWeeks: 6,  strategicPriority: 4, readiness: 'high',   automationState: 'none',    decisionStructure: 'mixed',     inputType: 'semi',         pathVariability: 'branching', changeFrequency: 'stable'    },
+      { color: '#3B82F6', name: 'Invoice Processing',    volume: 800,  manualMinutes: 25, hourlyRate: 60, monthlyErrorCost: 800,  effortWeeks: 10, strategicPriority: 3, readiness: 'medium', automationState: 'partial',  decisionStructure: 'mixed',     inputType: 'semi',         pathVariability: 'branching', changeFrequency: 'quarterly' },
+      { color: '#10B981', name: 'Customer Onboarding',   volume: 300,  manualMinutes: 45, hourlyRate: 70, monthlyErrorCost: 400,  effortWeeks: 16, strategicPriority: 5, readiness: 'low',    automationState: 'bpm',      decisionStructure: 'reasoning', inputType: 'unstructured', pathVariability: 'dynamic',   changeFrequency: 'stable'    },
     ];
-    const READINESS_FEASIBILITY = { high: 80, medium: 50, low: 20 };
+    const READINESS_FEASIBILITY  = { high: 80, medium: 50, low: 20 };
+    const DECISION_SCORES        = { deterministic: 20, mixed: 55, reasoning: 85 };
+    const INPUT_SCORES           = { structured: 20, semi: 55, unstructured: 85 };
+    const PATH_SCORES            = { fixed: 20, branching: 55, dynamic: 85 };
+    const VOLATILITY_PENALTY     = { stable: 0, quarterly: 8, frequent: 20 };
+    // Fraction of potential savings already captured by existing automation
+    const AUTOMATION_OVERLAP     = { none: 0, partial: 0.4, bpm: 0.7 };
 
     /* ===== State ===== */
-    let processes       = JSON.parse(JSON.stringify(DEFAULT_PROCESSES));
+    let processes       = [];
     let implCostPerWeek = 5000;
     let currency        = 'USD';
     let eurRate         = 0.92;
@@ -359,9 +417,43 @@
     let matrixChart     = null;
     let savingsChart    = null;
 
+    /* ===== Migration ===== */
+    function migrateProcess(p, i) {
+      const monthlyErrorCost = typeof p.monthlyErrorCost === 'number'
+        ? p.monthlyErrorCost
+        : Math.round((p.volume || 0) * ((p.errorRate || 0) / 100) * (p.errorCost || 0));
+      let readiness = p.readiness;
+      if (!readiness && (p.dataAvailability || p.processStability || p.complianceRisk)) {
+        const avg = ((p.dataAvailability || 3) + (p.processStability || 3) + (6 - (p.complianceRisk || 2))) / 3;
+        readiness = avg >= 3.5 ? 'high' : avg >= 2.5 ? 'medium' : 'low';
+      }
+      return {
+        color: COLORS[i % COLORS.length], ...p,
+        monthlyErrorCost,
+        readiness:         readiness || 'medium',
+        automationState:   p.automationState   || 'none',
+        decisionStructure: p.decisionStructure || 'mixed',
+        inputType:         p.inputType         || 'semi',
+        pathVariability:   p.pathVariability   || 'branching',
+        changeFrequency:   p.changeFrequency   || 'stable',
+      };
+    }
+
     /* ===== Persistence ===== */
     function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ processes, implCostPerWeek, currency, eurRate }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ processes, implCostPerWeek }));
+      localStorage.setItem('camunda-global', JSON.stringify({ currency, eurRate, theme: document.documentElement.dataset.theme }));
+    }
+
+    function encodeState() {
+      return btoa(JSON.stringify({ pr: processes, ic: implCostPerWeek, cur: currency, rate: eurRate }));
+    }
+    function decodeState(hash) {
+      try {
+        const d = JSON.parse(atob(hash));
+        if (!d?.pr?.length) return null;
+        return { processes: d.pr, implCostPerWeek: d.ic || 5000, currency: d.cur || 'USD', eurRate: d.rate || 0.92 };
+      } catch { return null; }
     }
 
     function loadState() {
@@ -370,48 +462,52 @@
         if (!raw) return;
         const d = JSON.parse(raw);
         if (Array.isArray(d.processes) && d.processes.length) {
-          processes = d.processes.map((p, i) => {
-            // Migrate old errorRate/errorCost fields to monthlyErrorCost
-            const monthlyErrorCost = typeof p.monthlyErrorCost === 'number'
-              ? p.monthlyErrorCost
-              : Math.round((p.volume || 0) * ((p.errorRate || 0) / 100) * (p.errorCost || 0));
-            // Migrate old 1-5 feasibility sliders to readiness
-            let readiness = p.readiness;
-            if (!readiness && (p.dataAvailability || p.processStability || p.complianceRisk)) {
-              const avg = ((p.dataAvailability || 3) + (p.processStability || 3) + (6 - (p.complianceRisk || 2))) / 3;
-              readiness = avg >= 3.5 ? 'high' : avg >= 2.5 ? 'medium' : 'low';
-            }
-            return { color: COLORS[i % COLORS.length], ...p, monthlyErrorCost, readiness: readiness || 'medium' };
-          });
+          processes = d.processes.map(migrateProcess);
         }
         if (typeof d.implCostPerWeek === 'number') implCostPerWeek = d.implCostPerWeek;
-        if (d.currency === 'EUR') currency = 'EUR';
-        if (typeof d.eurRate === 'number' && d.eurRate > 0) eurRate = d.eurRate;
       } catch (_) { /* ignore */ }
     }
 
     /* ===== Scoring ===== */
     function scoreProcess(p) {
       const monthlyManualCost  = p.volume * (p.manualMinutes / 60) * p.hourlyRate;
-      const monthlySavings     = monthlyManualCost + (p.monthlyErrorCost || 0);
+      // Incremental factor: only the savings not already captured by existing automation
+      const incrementalFactor  = 1 - (AUTOMATION_OVERLAP[p.automationState] ?? 0);
+      const monthlySavings     = (monthlyManualCost + (p.monthlyErrorCost || 0)) * incrementalFactor;
       const implementationCost = p.effortWeeks * implCostPerWeek;
       const paybackMonths      = monthlySavings > 0 ? implementationCost / monthlySavings : Infinity;
       const netBenefit3yr      = 36 * monthlySavings - implementationCost;
 
-      const savingsScore    = Math.min(100, Math.log10(Math.max(1, monthlySavings)) / Math.log10(150000) * 100);
-      const valueScore      = savingsScore * (p.strategicPriority / 5);
+      const savingsScore     = Math.min(100, Math.log10(Math.max(1, monthlySavings)) / Math.log10(150000) * 100);
+      // Additive weighting: savings 70%, strategic priority 30% — avoids multiplicative suppression
+      const valueScore       = savingsScore * 0.7 + (p.strategicPriority - 1) * 25 * 0.3;
       const feasibilityScore = READINESS_FEASIBILITY[p.readiness] ?? 50;
-      const compositeScore  = valueScore * 0.6 + feasibilityScore * 0.4;
 
-      return { monthlyManualCost, monthlySavings, implementationCost, paybackMonths, netBenefit3yr, valueScore, feasibilityScore, compositeScore };
+      // Agentic fit: average of three dimensions measuring how much AI reasoning this process needs
+      const agenticFitScore  = (
+        (DECISION_SCORES[p.decisionStructure] ?? 55) +
+        (INPUT_SCORES[p.inputType]             ?? 55) +
+        (PATH_SCORES[p.pathVariability]        ?? 55)
+      ) / 3;
+
+      // Volatility penalty: frequent process changes raise agentic maintenance cost
+      const volatilityPenalty = VOLATILITY_PENALTY[p.changeFrequency] ?? 0;
+
+      const compositeScore = Math.max(0,
+        valueScore * 0.45 + feasibilityScore * 0.30 + agenticFitScore * 0.25 - volatilityPenalty
+      );
+
+      return { monthlyManualCost, monthlySavings, implementationCost, paybackMonths, netBenefit3yr, valueScore, feasibilityScore, agenticFitScore, compositeScore };
     }
 
-    function getBadge(valueScore, feasibilityScore, compositeScore) {
-      if (compositeScore >= 55 && valueScore >= 50 && feasibilityScore >= 50) return { label: 'Automate First', cls: 'badge-automate' };
-      if (valueScore >= 50 && feasibilityScore < 45)                           return { label: 'Strategic Bet',  cls: 'badge-strategic' };
-      if (feasibilityScore >= 55 && valueScore < 45)                           return { label: 'Quick Win',      cls: 'badge-quickwin' };
-      if (compositeScore >= 30)                                                 return { label: 'Pilot',          cls: 'badge-pilot' };
-      return                                                                           { label: 'Defer',          cls: 'badge-defer' };
+    function getBadge(valueScore, feasibilityScore, agenticFitScore, compositeScore) {
+      // Low agentic fit on an otherwise strong process → redirect to traditional automation
+      if (agenticFitScore < 40 && valueScore >= 50 && feasibilityScore >= 50) return { label: 'Traditional First', cls: 'badge-traditional' };
+      if (compositeScore >= 55 && valueScore >= 50 && feasibilityScore >= 50)  return { label: 'Automate First',   cls: 'badge-automate' };
+      if (valueScore >= 50 && feasibilityScore < 45)                            return { label: 'Strategic Bet',   cls: 'badge-strategic' };
+      if (feasibilityScore >= 55 && valueScore < 45)                            return { label: 'Quick Win',       cls: 'badge-quickwin' };
+      if (compositeScore >= 30)                                                  return { label: 'Pilot',           cls: 'badge-pilot' };
+      return                                                                            { label: 'Defer',           cls: 'badge-defer' };
     }
 
     function isRecommended(badge) {
@@ -469,6 +565,16 @@
           <button class="proc-remove-btn" title="Remove process">×</button>
         </div>
         <div class="process-body"><div class="process-body-inner">
+
+          <div class="slider-group">
+            <div class="slider-header"><label>Current automation state</label></div>
+            <select class="s-automationState profile-select">
+              <option value="none"    ${p.automationState === 'none'    ? 'selected' : ''}>Not automated — full manual baseline</option>
+              <option value="partial" ${p.automationState === 'partial' ? 'selected' : ''}>Partially automated — rules or RPA cover ~40%</option>
+              <option value="bpm"     ${p.automationState === 'bpm'     ? 'selected' : ''}>On BPM platform — AI needed for ~30% judgment steps</option>
+            </select>
+            <p class="input-note">Savings shown are incremental — only the value that agentic orchestration adds on top of current automation.</p>
+          </div>
 
           <div class="slider-group">
             <div class="slider-header">
@@ -534,6 +640,50 @@
             <p class="input-note">Overall feasibility: data, stability, and compliance combined.</p>
           </div>
 
+          <div class="slider-subsection">Agentic Fit</div>
+
+          <div class="slider-group">
+            <div class="slider-header"><label>Decision structure</label></div>
+            <select class="s-decisionStructure profile-select">
+              <option value="deterministic" ${p.decisionStructure === 'deterministic' ? 'selected' : ''}>Fully deterministic — rules cover all cases</option>
+              <option value="mixed"         ${p.decisionStructure === 'mixed'         ? 'selected' : ''}>Mixed — rules plus judgment calls</option>
+              <option value="reasoning"     ${p.decisionStructure === 'reasoning'     ? 'selected' : ''}>Primarily reasoning — judgment across ambiguous inputs</option>
+            </select>
+            <p class="input-note">How much of this process needs AI reasoning vs. executable rules. Deterministic processes are better served by BPM or RPA.</p>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header"><label>Input type</label></div>
+            <select class="s-inputType profile-select">
+              <option value="structured"   ${p.inputType === 'structured'   ? 'selected' : ''}>Structured — forms, databases, clean fields</option>
+              <option value="semi"         ${p.inputType === 'semi'         ? 'selected' : ''}>Semi-structured — forms plus text, PDFs, or emails</option>
+              <option value="unstructured" ${p.inputType === 'unstructured' ? 'selected' : ''}>Unstructured — freeform text, documents, conversations</option>
+            </select>
+            <p class="input-note">Whether inputs require AI to extract meaning, or can be accessed as direct structured fields.</p>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header"><label>Path variability</label></div>
+            <select class="s-pathVariability profile-select">
+              <option value="fixed"     ${p.pathVariability === 'fixed'     ? 'selected' : ''}>Fixed sequence — same steps every time</option>
+              <option value="branching" ${p.pathVariability === 'branching' ? 'selected' : ''}>Branching — defined conditions with multiple paths</option>
+              <option value="dynamic"   ${p.pathVariability === 'dynamic'   ? 'selected' : ''}>Dynamic — agent decides next steps at runtime</option>
+            </select>
+            <p class="input-note">Fixed and branching paths suit BPM/RPA. Dynamic paths are where agentic orchestration provides unique value.</p>
+          </div>
+
+          <div class="slider-subsection">Risk</div>
+
+          <div class="slider-group">
+            <div class="slider-header"><label>Change frequency</label></div>
+            <select class="s-changeFrequency profile-select">
+              <option value="stable"    ${p.changeFrequency === 'stable'    ? 'selected' : ''}>Stable — process logic rarely changes</option>
+              <option value="quarterly" ${p.changeFrequency === 'quarterly' ? 'selected' : ''}>Quarterly — occasional logic updates</option>
+              <option value="frequent"  ${p.changeFrequency === 'frequent'  ? 'selected' : ''}>Frequent — logic changes multiple times a year</option>
+            </select>
+            <p class="input-note">Frequent changes raise agentic maintenance cost: prompt updates, re-testing, re-validation.</p>
+          </div>
+
         </div></div>
       `;
 
@@ -595,6 +745,21 @@
         if (idx !== -1) { processes[idx].readiness = readinessSelect.value; saveState(); recalculate(); }
       });
 
+      // Automation state + agentic fit selects
+      [
+        ['.s-automationState',   'automationState'],
+        ['.s-decisionStructure', 'decisionStructure'],
+        ['.s-inputType',         'inputType'],
+        ['.s-pathVariability',   'pathVariability'],
+        ['.s-changeFrequency',   'changeFrequency'],
+      ].forEach(([sel, field]) => {
+        const select = el.querySelector(sel);
+        select.addEventListener('change', () => {
+          const idx = findIndex(id);
+          if (idx !== -1) { processes[idx][field] = select.value; saveState(); recalculate(); }
+        });
+      });
+
       return el;
     }
 
@@ -632,12 +797,14 @@
     function recalculate() {
       if (!processes.length) {
         renderEmptyState();
+        updateMatrixChart([]);
+        updateSavingsChart([]);
         return;
       }
 
       const scored = processes.map((p, i) => {
         const s = scoreProcess(p);
-        const badge = getBadge(s.valueScore, s.feasibilityScore, s.compositeScore);
+        const badge = getBadge(s.valueScore, s.feasibilityScore, s.agenticFitScore, s.compositeScore);
         return { ...p, ...s, badge, origIdx: i };
       });
 
@@ -682,11 +849,11 @@
           <td class="pt-rank">#${i + 1}</td>
           <td class="pt-name"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color || '#FC5D0D'};margin-right:0.45rem;flex-shrink:0;vertical-align:middle"></span>${escHtml(p.name)}</td>
           <td><span class="proc-badge ${p.badge.cls}">${p.badge.label}</span></td>
-          <td class="pt-muted">${fmtMoney(p.monthlySavings)}/mo</td>
+          <td class="pt-muted">${fmtMoney(p.monthlySavings)}/mo${p.automationState !== 'none' ? ' <span style="font-size:0.65rem;opacity:0.65">(incr.)</span>' : ''}</td>
           <td class="pt-muted">${fmtPayback(p.paybackMonths)}</td>
           <td class="pt-score">
             ${Math.round(p.compositeScore)}
-            <div style="font-size:0.65rem;font-weight:400;color:var(--muted);line-height:1.2;white-space:nowrap">V ${Math.round(p.valueScore)} · F ${Math.round(p.feasibilityScore)}</div>
+            <div style="font-size:0.65rem;font-weight:400;color:var(--muted);line-height:1.2;white-space:nowrap">V ${Math.round(p.valueScore)} · F ${Math.round(p.feasibilityScore)} · A ${Math.round(p.agenticFitScore)}</div>
           </td>
         </tr>
       `).join('');
@@ -727,10 +894,10 @@
 
         ctx.font = '600 10px system-ui, sans-serif';
         ctx.fillStyle = tc.muted;
-        ctx.fillText('Automate First', left  + 8, top    + 14);
-        ctx.fillText('Strategic Bet',  mx    + 8, top    + 14);
-        ctx.fillText('Quick Win',      left  + 8, bottom - 6);
-        ctx.fillText('Defer',          mx    + 8, bottom - 6);
+        ctx.fillText('Strategic Bet',  left  + 8, top    + 14);
+        ctx.fillText('Automate First', mx    + 8, top    + 14);
+        ctx.fillText('Defer',          left  + 8, bottom - 6);
+        ctx.fillText('Quick Win',      mx    + 8, bottom - 6);
         ctx.restore();
       }
     };
@@ -739,7 +906,7 @@
       const tc = themeColors();
       const datasets = scored.map(p => ({
         label: p.name,
-        data: [{ x: p.feasibilityScore, y: p.valueScore }],
+        data: [{ x: p.feasibilityScore, y: p.valueScore, agenticFit: p.agenticFitScore }],
         backgroundColor: (p.color || '#FC5D0D') + 'cc',
         borderColor: p.color || '#FC5D0D',
         borderWidth: 1.5,
@@ -763,14 +930,19 @@
 
     function matrixChartOptions(tc) {
       return {
-        responsive: true, maintainAspectRatio: true, aspectRatio: 1.6,
+        responsive: true, maintainAspectRatio: true, aspectRatio: 2,
         plugins: {
           legend: { display: false },
           tooltip: {
             callbacks: {
               label: ctx => {
-                const p = ctx.dataset.label;
-                return [`${p}`, `Feasibility: ${ctx.parsed.x.toFixed(0)}`, `Value: ${ctx.parsed.y.toFixed(0)}`];
+                const d = ctx.raw;
+                return [
+                  ctx.dataset.label,
+                  `Value: ${ctx.parsed.y.toFixed(0)}`,
+                  `Feasibility: ${ctx.parsed.x.toFixed(0)}`,
+                  `Agentic fit: ${d.agenticFit !== undefined ? d.agenticFit.toFixed(0) : '—'}`,
+                ];
               }
             }
           }
@@ -899,6 +1071,9 @@
         monthlyErrorCost: 0,
         effortWeeks: 8,
         strategicPriority: 3, readiness: 'medium',
+        automationState: 'none',
+        decisionStructure: 'mixed', inputType: 'semi',
+        pathVariability: 'branching', changeFrequency: 'stable',
       });
       saveState();
       render();
@@ -909,55 +1084,63 @@
     });
 
     /* ===== Reset ===== */
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      if (!confirm('Reset all processes to defaults?')) return;
-      processes = JSON.parse(JSON.stringify(DEFAULT_PROCESSES));
+    function doReset() {
+      processes = DEFAULT_PROCESSES.map(migrateProcess);
       implCostPerWeek = 5000;
       document.getElementById('implCostSlider').value = 5000;
       document.getElementById('implCostDisplay').textContent = fmtImplCost(5000);
       saveState(); render();
-    });
+    }
+    function openResetModal() { document.getElementById('resetBackdrop').classList.add('open'); document.getElementById('resetConfirm').focus(); }
+    function closeResetModal() { document.getElementById('resetBackdrop').classList.remove('open'); }
+    document.getElementById('resetBtn').addEventListener('click', openResetModal);
+    document.getElementById('resetClose').addEventListener('click', closeResetModal);
+    document.getElementById('resetBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeResetModal(); });
+    document.getElementById('resetConfirm').addEventListener('click', () => { doReset(); closeResetModal(); });
 
     /* ===== Currency toggle ===== */
-    (function () {
-      const btnUSD  = document.getElementById('btnUSD');
-      const btnEUR  = document.getElementById('btnEUR');
-      const rateWrap = document.getElementById('currencyRateWrap');
-      const rateInput = document.getElementById('rateInput');
-      const currWrap  = document.getElementById('currencyWrap');
+    const btnUSD   = document.getElementById('btnUSD');
+    const btnEUR   = document.getElementById('btnEUR');
+    const rateInput = document.getElementById('rateInput');
+    const currWrap  = document.getElementById('currencyWrap');
 
-      function applyCurrency() {
-        const isUSD = currency === 'USD';
-        btnUSD.setAttribute('aria-pressed', isUSD ? 'true' : 'false');
-        btnEUR.setAttribute('aria-pressed', isUSD ? 'false' : 'true');
-        currWrap.classList.toggle('usd-active', isUSD);
-        rateInput.value = eurRate;
-        refreshCurrencyDisplays();
-      }
+    function applyCurrency() {
+      const isUSD = currency === 'USD';
+      btnUSD.setAttribute('aria-pressed', isUSD ? 'true' : 'false');
+      btnEUR.setAttribute('aria-pressed', isUSD ? 'false' : 'true');
+      currWrap.classList.toggle('usd-active', isUSD);
+      rateInput.value = eurRate;
+      refreshCurrencyDisplays();
+    }
 
-      btnUSD.addEventListener('click', () => { currency = 'USD'; saveState(); applyCurrency(); });
-      btnEUR.addEventListener('click', () => { currency = 'EUR'; saveState(); applyCurrency(); });
-      rateInput.addEventListener('change', () => {
-        const v = parseFloat(rateInput.value);
-        if (v > 0 && isFinite(v)) { eurRate = v; saveState(); refreshCurrencyDisplays(); }
-        else rateInput.value = eurRate;
+    btnUSD.addEventListener('click', () => { currency = 'USD'; saveState(); applyCurrency(); });
+    btnEUR.addEventListener('click', () => { currency = 'EUR'; saveState(); applyCurrency(); });
+    rateInput.addEventListener('input', () => {
+      const v = parseFloat(rateInput.value);
+      if (v > 0 && isFinite(v)) { eurRate = v; saveState(); refreshCurrencyDisplays(); }
+      else rateInput.value = eurRate;
+    });
+
+    applyCurrency();
+
+    /* ===== Share button ===== */
+    document.getElementById('shareBtn').addEventListener('click', () => {
+      const url = location.origin + location.pathname + '#' + encodeState();
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('shareBtn');
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 1500);
       });
-
-      applyCurrency();
-    })();
+    });
 
     /* ===== Theme ===== */
-    (function () {
-      const stored = localStorage.getItem('camunda-theme');
-      if (stored) document.documentElement.dataset.theme = stored;
-      document.getElementById('themeBtn').addEventListener('click', () => {
-        const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-        document.documentElement.dataset.theme = next;
-        localStorage.setItem('camunda-theme', next);
-        if (matrixChart)  { matrixChart.options  = matrixChartOptions(themeColors());  matrixChart.update(); }
-        if (savingsChart) { savingsChart.options = savingsChartOptions(themeColors()); savingsChart.update(); }
-      });
-    })();
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+      document.documentElement.dataset.theme = next;
+      saveState();
+      if (matrixChart)  { matrixChart.options  = matrixChartOptions(themeColors());  matrixChart.update(); }
+      if (savingsChart) { savingsChart.options = savingsChartOptions(themeColors()); savingsChart.update(); }
+    });
 
     /* ===== Nav drawer ===== */
     (function () {
@@ -968,7 +1151,13 @@
       document.getElementById('navBtn').addEventListener('click', openNav);
       document.getElementById('navClose').addEventListener('click', closeNav);
       backdrop.addEventListener('click', closeNav);
-      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          if (document.getElementById('resetBackdrop').classList.contains('open')) { closeResetModal(); return; }
+          if (document.getElementById('s2s3Backdrop').classList.contains('open')) { closeS2S3Modal(); return; }
+          closeNav();
+        }
+      });
     })();
 
     /* ===== Collapse / expand all ===== */
@@ -983,8 +1172,124 @@
     });
 
     /* ===== Init ===== */
-    loadState();
+    const hasHashState = location.hash.length > 1;
+    if (hasHashState) {
+      const hs = decodeState(location.hash.slice(1));
+      if (hs) {
+        processes = hs.processes.map(migrateProcess);
+        implCostPerWeek = hs.implCostPerWeek;
+        if (hs.currency) {
+          currency = hs.currency;
+          if (hs.eurRate > 0) eurRate = hs.eurRate;
+          localStorage.setItem('camunda-global', JSON.stringify({ currency, eurRate, theme: document.documentElement.dataset.theme }));
+        }
+      }
+      history.replaceState(null, '', location.pathname);
+    } else {
+      loadState();
+    }
+
+    /* ===== Step 1 → Step 2 handoff ===== */
+    (function() {
+      if (hasHashState) return;
+      try {
+        const raw = localStorage.getItem('camunda-s1s2-handoff');
+        if (!raw) return;
+        const h = JSON.parse(raw);
+        localStorage.removeItem('camunda-s1s2-handoff');
+        if (!h || !h.createdAt) return;
+        const list = Array.isArray(h.processes) ? h.processes : [h];
+        processes = list.map((p, i) => migrateProcess({
+          name: p.processName || `Process ${i + 1}`,
+          volume:            Math.max(1,   p.volume            || 500),
+          manualMinutes:     Math.max(1,   p.manualMinutes     || 20),
+          hourlyRate:        Math.max(1,   p.hourlyRate        || 60),
+          monthlyErrorCost:  Math.max(0,   p.monthlyErrorCost  || 0),
+          effortWeeks:       Math.max(1,   p.effortWeeks       || 8),
+          strategicPriority: Math.min(5, Math.max(1, p.strategicPriority || 3)),
+          readiness: ['high', 'medium', 'low'].includes(p.readiness) ? p.readiness : 'medium',
+        }, i));
+        if (Number.isFinite(h.implCostPerWeek) && h.implCostPerWeek > 0) {
+          implCostPerWeek = Math.min(20000, Math.max(1000, h.implCostPerWeek));
+        }
+        saveState();
+      } catch (_) { /* ignore */ }
+    })();
+
+    // Apply global currency preference (most recently set across any step)
+    try {
+      const g = JSON.parse(localStorage.getItem('camunda-global'));
+      if (g && (g.currency === 'USD' || g.currency === 'EUR')) {
+        currency = g.currency;
+        if (g.eurRate > 0) eurRate = g.eurRate;
+        applyCurrency();
+      }
+    } catch (_) {}
+
+    // Seed defaults on first visit (no saved state, no handoff, no hash)
+    if (!processes.length) processes = DEFAULT_PROCESSES.map(migrateProcess);
+
     render();
+
+    /* ===== Step 2 → Step 3 handoff ===== */
+    function writeS2S3Handoff() {
+      if (!processes.length) return;
+      const scored = processes.map(p => ({ p, s: scoreProcess(p) }));
+      scored.sort((a, b) => b.s.compositeScore - a.s.compositeScore);
+      const { p: top, s: ts } = scored[0];
+      const complexity = top.manualMinutes >= 60
+        ? { inputTokens: 1500, outputTokens: 700, tools: 8 }
+        : top.manualMinutes >= 20
+        ? { inputTokens: 1000, outputTokens: 500, tools: 5 }
+        : { inputTokens: 700, outputTokens: 300, tools: 3 };
+      localStorage.setItem('camunda-step2-handoff', JSON.stringify({
+        monthlyInstances: Math.round(top.volume),
+        manualCost:       Math.round(ts.monthlyManualCost),
+        budget:           Math.round(ts.monthlySavings * 0.3),
+        growthRate: 0, forecastMonths: 12, activeChartTab: 'score',
+        processSettings: complexity,
+        context: {
+          deploymentMode: 'from-step-2',
+          coverage: null, pilotMonths: null, rampMonths: null,
+          baseMonthlyNet: Math.round(ts.monthlySavings),
+          conservativeMonthlyNet: null, confidenceGuessed: null,
+        },
+        fromStep2: true,
+        createdAt: Date.now(),
+      }));
+    }
+    /* ===== Step 2 → Step 3 modal ===== */
+    function openS2S3Modal() {
+      if (!processes.length) return;
+      const scored = processes.map(p => ({ p, s: scoreProcess(p) }));
+      scored.sort((a, b) => b.s.compositeScore - a.s.compositeScore);
+      const { p: top, s: ts } = scored[0];
+      const s = sym();
+      const rate = displayRate();
+      const complexityLabel = top.manualMinutes >= 60
+        ? 'Complex — 1500 in / 700 out / 8 tools'
+        : top.manualMinutes >= 20
+        ? 'Medium — 1000 in / 500 out / 5 tools'
+        : 'Simple — 700 in / 300 out / 3 tools';
+      document.getElementById('s2s3ModalContent').innerHTML = `
+        <div class="handoff-process-item">
+          <div class="handoff-process-name">${top.name} <span style="font-weight:400;color:var(--muted)">(top-ranked)</span></div>
+          <div class="handoff-process-meta">
+            <span>${Math.round(top.volume).toLocaleString()} instances/mo</span>
+            <span>${s}${Math.round(ts.monthlyManualCost * rate).toLocaleString()}/mo manual cost</span>
+            <span>${s}${Math.round(ts.monthlySavings * 0.3 * rate).toLocaleString()}/mo AI budget target</span>
+            <span>${complexityLabel}</span>
+          </div>
+        </div>`;
+      document.getElementById('s2s3Backdrop').classList.add('open');
+      document.getElementById('s2s3Confirm').focus();
+    }
+    function closeS2S3Modal() { document.getElementById('s2s3Backdrop').classList.remove('open'); }
+
+    document.getElementById('navToStep3Btn').addEventListener('click', e => { e.preventDefault(); openS2S3Modal(); });
+    document.getElementById('s2s3Close').addEventListener('click', closeS2S3Modal);
+    document.getElementById('s2s3Backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeS2S3Modal(); });
+    document.getElementById('s2s3Confirm').addEventListener('click', writeS2S3Handoff);
   </script>
 </body>
 </html>
