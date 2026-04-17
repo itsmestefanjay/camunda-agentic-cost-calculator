@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project Business Case — Camunda</title>
+  <title>Business Case — Camunda</title>
   <link rel="stylesheet" href="style.css">
-  <script>!function(){var t=localStorage.getItem("camunda-theme");if(t)document.documentElement.dataset.theme=t}();</script>
+  <script>!function(){try{var g=JSON.parse(localStorage.getItem("camunda-global"));if(g&&g.theme)document.documentElement.dataset.theme=g.theme}catch(e){}}();</script>
   <style>
     /* --- Page layout --- */
     main {
@@ -26,6 +26,9 @@
       line-height: 1.5;
       strong { color: var(--text); }
     }
+
+    /* --- Scenario range card spans 2 columns so its inner 3-column grid has room --- */
+    #cardBenefit { grid-column: span 2; }
 
     /* --- Breakeven indicator line inside ROI chart label --- */
     .roi-note {
@@ -50,15 +53,15 @@
     <div class="nav-section-title">Calculators</div>
     <a href="step1.html" class="nav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Step 1: Project Business Case
+      Business Case
     </a>
     <a href="step2.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      Step 2: Process Prioritization
+      Process Prioritization
     </a>
     <a href="step3.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Step 3: Model Cost &amp; Fit
+      Model Cost &amp; Fit
     </a>
     <div class="nav-divider"></div>
     <a href="about.html" class="nav-item">
@@ -83,6 +86,9 @@
         <button id="btnEUR" aria-pressed="false">EUR</button>
         <span class="rate-field">1 USD = <input type="text" id="rateInput" value="0.92" size="5"> EUR</span>
       </div>
+      <button class="icon-btn share" id="shareBtn" title="Copy share link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </button>
       <button class="icon-btn reset" id="resetBtn" title="Reset all inputs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
       </button>
@@ -92,6 +98,30 @@
       </button>
     </div>
   </header>
+
+  <nav class="step-bar" aria-label="Step progress">
+    <a href="step1.html" class="step-bar-item active" aria-current="step">
+      <span class="step-bar-num">1</span>
+      <span class="step-bar-label">Business Case</span>
+    </a>
+    <span class="step-bar-sep data-link" aria-hidden="true">›</span>
+    <a href="step2.html" class="step-bar-item" id="navToStep2" title="Process inputs carry over">
+      <span class="step-bar-num">2</span>
+      <span class="step-bar-label">Prioritization</span>
+    </a>
+    <span class="step-bar-sep data-link" aria-hidden="true">›</span>
+    <a href="step3.html" class="step-bar-item" title="Volume and cost estimates carry over">
+      <span class="step-bar-num">3</span>
+      <span class="step-bar-label">Model Cost &amp; Fit</span>
+    </a>
+  </nav>
+
+  <div class="step-nav">
+    <a href="index.html" class="step-nav-btn secondary">← Home</a>
+    <div class="step-nav-forward">
+      <a href="step2.html" class="step-nav-btn primary" id="navToStep2Btn">Continue to Step 2 →</a>
+    </div>
+  </div>
 
   <main>
     <!-- ===== Inputs column ===== -->
@@ -117,6 +147,16 @@
               <option value="upside">Upside</option>
             </select>
             <div class="input-note" id="assumptionProfileNote">Conservative assumes slower rollout, lower realized value, and higher quality overhead.</div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Automation context</label></div>
+            <select id="automationContextInput" class="profile-select">
+              <option value="greenfield">Greenfield — process is fully manual today</option>
+              <option value="incremental">Incremental uplift — BPM handles structure, AI needed for judgment</option>
+              <option value="replace">Replacing brittle automation — RPA or rules-based failed</option>
+              <option value="exploring">Exploring options — scope not yet defined</option>
+            </select>
+            <div class="input-note" id="automationContextNote"></div>
           </div>
         </div></div>
       </div>
@@ -391,21 +431,39 @@
           <button id="tabAnnual"  data-tab="annual"  aria-pressed="false">Cumulative Benefit by Year</button>
         </div>
       </div>
-      <div class="panel chart-helper" id="chartHelper"></div>
 
-      <!-- Executive insights -->
-      <div class="panel executive-insight" id="executiveInsight"></div>
-      <div class="btn-row">
-        <button class="action-btn" id="toModelComparison">Step 2: Model Comparison</button>
-      </div>
 
     </div>
   </main>
 
-  <div style="max-width:960px;margin:1.5rem auto 2.5rem;padding:0 1.5rem;display:flex;justify-content:flex-end">
-    <a href="step2.html" style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.65rem 1.4rem;background:var(--accent);color:#fff;border-radius:8px;font-size:0.9rem;font-weight:700;text-decoration:none;transition:opacity 0.15s" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-      Continue to Step 2: Process Prioritization →
-    </a>
+  <!-- Step 1 → Step 2 handoff modal -->
+  <div class="handoff-backdrop" id="s1s2Backdrop" role="dialog" aria-modal="true" aria-labelledby="s1s2ModalTitle">
+    <div class="handoff-modal">
+      <div class="handoff-modal-header">
+        <p class="handoff-modal-title" id="s1s2ModalTitle">Going to Step 2: Prioritization</p>
+        <button class="handoff-close" id="s1s2Close" aria-label="Close">&times;</button>
+      </div>
+      <p class="handoff-modal-sub">Pre-fill the prioritization calculator with the data below, or go without.</p>
+      <div class="handoff-process-list" id="s1s2ModalContent"></div>
+      <div class="handoff-modal-actions">
+        <a href="step2.html" class="step-nav-btn primary" id="s1s2Confirm">Continue to Step 2 with data →</a>
+        <a href="step2.html" class="handoff-skip-link" id="s1s2Skip">Go without pre-filling</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset confirmation modal -->
+  <div class="handoff-backdrop" id="resetBackdrop" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle">
+    <div class="handoff-modal">
+      <div class="handoff-modal-header">
+        <p class="handoff-modal-title" id="resetModalTitle">Reset to defaults</p>
+        <button class="handoff-close" id="resetClose" aria-label="Close">&times;</button>
+      </div>
+      <p class="handoff-modal-sub">All inputs on this step will be reset. This cannot be undone.</p>
+      <div class="handoff-modal-actions">
+        <button class="action-btn destructive" id="resetConfirm">Reset this step</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
@@ -413,7 +471,6 @@
     /* ===== Constants ===== */
     const CURRENCIES  = { USD: '$', EUR: '\u20AC' };
     const STORAGE_KEY = 'camunda-project-calc';
-    const STEP2_HANDOFF_KEY = 'camunda-step2-handoff';
     const CHEVRON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
     const WORKING_DAYS_PER_MONTH = 22;
     const CONFIDENCE_SCORES = { guessed: 0, estimated: 1, measured: 2 };
@@ -522,6 +579,7 @@
     let activeChartTab = 'roi';
     let activeRangeProfile = 'growth';
     let activeAssumptionProfile = 'base';
+    let automationContext = 'greenfield';
     let chart = null;
 
     // All monetary values stored in USD
@@ -647,16 +705,39 @@
     /* ===== Persistence ===== */
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        currency, eurRate, activeChartTab, activeRangeProfile, activeAssumptionProfile,
+        activeChartTab, activeRangeProfile, activeAssumptionProfile, automationContext,
         impl: { ...impl }, proc: { ...proc }, auto: { ...auto }, fin: { ...fin },
         implCollapsed, procCollapsed, autoCollapsed, finCollapsed,
-        theme: document.documentElement.dataset.theme,
       }));
+      localStorage.setItem('camunda-global', JSON.stringify({ currency, eurRate, theme: document.documentElement.dataset.theme }));
     }
 
     function loadState() {
       try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
     }
+
+    function encodeState() {
+      return btoa(JSON.stringify({
+        cur: currency, rate: eurRate, ct: activeChartTab, rp: activeRangeProfile, ap: activeAssumptionProfile,
+        ax: automationContext,
+        impl: { ...impl }, proc: { ...proc }, auto: { ...auto }, fin: { ...fin },
+        ic: implCollapsed ? 1 : 0, pc: procCollapsed ? 1 : 0, ac: autoCollapsed ? 1 : 0, fc: finCollapsed ? 1 : 0,
+      }));
+    }
+    function decodeState(hash) {
+      try {
+        const d = JSON.parse(atob(hash));
+        if (!d) return null;
+        return {
+          currency: d.cur || 'USD', eurRate: d.rate || 0.92,
+          activeChartTab: d.ct, activeRangeProfile: d.rp, activeAssumptionProfile: d.ap,
+          automationContext: d.ax || 'greenfield',
+          impl: d.impl, proc: d.proc, auto: d.auto, fin: d.fin,
+          implCollapsed: !!d.ic, procCollapsed: !!d.pc, autoCollapsed: !!d.ac, finCollapsed: !!d.fc,
+        };
+      } catch { return null; }
+    }
+
     function normalizeLoadedState(saved) {
       if (!saved) return;
       if (saved.proc) {
@@ -1007,6 +1088,14 @@
       if (confidence.guessedCount > 0) {
         msg += ` <strong>${confidence.guessedCount}</strong> key assumption group${confidence.guessedCount === 1 ? ' is' : 's are'} still guessed.`;
       }
+      const contextWarnings = {
+        incremental:  ' Context: incremental uplift — ensure the manual baseline reflects only residual unautomated cost.',
+        replace:      ' Context: replacing existing automation — include decommission and migration costs in your build estimate.',
+        exploring:    ' Context: scope undefined — treat this as directional only until the process is scoped.',
+      };
+      if (contextWarnings[automationContext]) {
+        msg += `<br><span style="color:var(--muted);font-style:italic">${contextWarnings[automationContext]}</span>`;
+      }
       detail.innerHTML = msg;
     }
 
@@ -1199,17 +1288,9 @@
       };
     }
 
-    function setChartHelper(messages = []) {
-      const el = document.getElementById('chartHelper');
-      if (!messages.length) { el.classList.remove('visible'); el.innerHTML = ''; return; }
-      el.classList.add('visible');
-      el.innerHTML = messages.map(m => `<span>${m}</span>`).join('');
-    }
-
     function renderActiveChart(base, conservative, upside) {
       const theme = getThemeColors();
       const spec  = activeChartTab === 'annual' ? buildAnnualChart(theme, base, conservative, upside) : buildROIChart(theme, base, conservative, upside);
-      setChartHelper(spec.helperMessages);
 
       const canvas = document.getElementById('roiChart');
       if (!chart || chart.config.type !== spec.config.type) {
@@ -1221,107 +1302,6 @@
       chart.config.options = spec.config.options;
       chart.config.plugins = spec.plugins;
       chart.update('none');
-    }
-
-    /* ===== Executive insights ===== */
-    function sensitivityDrivers(baseResult) {
-      const variants = [
-        {
-          label: 'Captured value',
-          run: () => compute({ finState: { ...fin, capturedValue: clamp(fin.capturedValue + 10, 0, 100) } }),
-        },
-        {
-          label: 'Review + fallback overhead',
-          run: () => compute({
-            autoState: {
-              ...auto,
-              reviewRate: clamp(auto.reviewRate + 10, 0, 100),
-              fallbackRate: clamp(auto.fallbackRate + 10, 0, 60),
-            },
-          }),
-        },
-        {
-          label: 'Deployment fixed cost',
-          run: () => compute({
-            autoState: {
-              ...auto,
-              camundaClusterYearlyRate: Math.round(auto.camundaClusterYearlyRate * 1.1),
-              selfManagedInfraYearly: Math.round(auto.selfManagedInfraYearly * 1.1),
-              existingAllocatedYearly: Math.round(auto.existingAllocatedYearly * 1.1),
-            },
-          }),
-        },
-        {
-          label: 'Maintenance effort',
-          run: () => compute({ autoState: { ...auto, maintenanceDays: clamp(auto.maintenanceDays + 2, 0, 100) } }),
-        },
-      ];
-      return variants
-        .map(v => {
-          const result = v.run();
-          return { label: v.label, delta: result.npv - baseResult.npv };
-        })
-        .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
-        .slice(0, 3);
-    }
-    function updateInsights(r, conservative, upside, confidence) {
-      const el = document.getElementById('executiveInsight');
-      const chips = [];
-      const addChip = (text, tone = '') => chips.push(`<span class="insight${tone ? ` ${tone}` : ''}">${text}</span>`);
-      const confidenceText = [
-        `Value: ${CONFIDENCE_LABELS[fin.captureConfidence]}`,
-        `Quality: ${CONFIDENCE_LABELS[auto.qualityConfidence]}`,
-        `Ops: ${CONFIDENCE_LABELS[auto.opsConfidence]}`,
-      ].join(' | ');
-
-      addChip(`Range check: Conservative <strong>${formatMoneySigned(conservative.monthlySavings)}/mo</strong> | Base <strong>${formatMoneySigned(r.monthlySavings)}/mo</strong> | Upside <strong>${formatMoneySigned(upside.monthlySavings)}/mo</strong>`);
-      addChip(`Confidence: <strong>${confidenceText}</strong>${confidence.guessedCount > 0 ? ` (${confidence.guessedCount} guessed)` : ''}`, confidence.guessedCount > 0 ? 'warn' : 'ok');
-      addChip(`Rollout: pilot <strong>${fin.pilotMonths} mo</strong> + ramp <strong>${fin.rampMonths} mo</strong>, payback based on ramped cashflow`);
-
-      if (auto.deploymentMode === 'add-camunda-saas') {
-        addChip(`Mode: <strong>${deploymentModeLabel(auto.deploymentMode)}</strong> with ${auto.camundaClusters} clusters x ${formatMoney(auto.camundaClusterYearlyRate)}/cluster/yr (${formatMoney(r.annualPlatformFixedCost)}/yr total)`);
-      } else if (auto.deploymentMode === 'self-hosted-camunda' || auto.deploymentMode === 'other-stack') {
-        addChip(`Mode: <strong>${deploymentModeLabel(auto.deploymentMode)}</strong> with fixed platform+infra cost ${formatMoney(r.annualPlatformFixedCost)}/yr`);
-      } else if (auto.existingCostMode === 'allocated') {
-        addChip(`Mode: <strong>${deploymentModeLabel(auto.deploymentMode)}</strong> with allocated platform cost ${formatMoney(r.annualPlatformFixedCost)}/yr`);
-      } else {
-        addChip(`Mode: <strong>${deploymentModeLabel(auto.deploymentMode)}</strong> (incremental economics only)`);
-      }
-
-      if (r.monthlySavings <= 0) {
-        addChip(`Steady-state run cost <strong>${formatMoney(r.monthlyAutomationCost)}/mo</strong> exceeds realized labor benefit <strong>${formatMoney(r.monthlyLaborBenefitRealized)}/mo</strong>`, 'warn');
-      }
-      if (Number.isFinite(r.paybackMonths)) {
-        const d = new Date();
-        d.setMonth(d.getMonth() + Math.ceil(r.paybackMonths));
-        const dateStr = d.toLocaleString('default', { month: 'long', year: 'numeric' });
-        addChip(`Payback in <strong>${formatMonths(r.paybackMonths)}</strong> (ramped), target date <strong>${dateStr}</strong>`, r.paybackMonths <= 24 ? 'ok' : 'warn');
-      } else {
-        addChip('No payback within analysis horizon under current assumptions.', 'warn');
-      }
-
-      if (r.npv > 0) addChip(`${fin.horizon}-year NPV <strong>${formatMoney(r.npv)}</strong> at ${fin.discountRate}% discount`, 'ok');
-      else addChip(`${fin.horizon}-year NPV is <strong>${formatMoneySigned(r.npv)}</strong>`, 'warn');
-
-      addChip(`Steady-state automated volume: <strong>${Math.round(r.automatedInstances).toLocaleString()} instances/mo</strong> across ${proc.processCount} candidate processes`);
-
-      if (confidence.guessedCount > 0) {
-        addChip('Result quality is limited by guessed assumptions. Validate with pilot metrics before commitment.', 'warn');
-      }
-      const drivers = sensitivityDrivers(r);
-      if (drivers.length) {
-        const lead = drivers[0];
-        const sign = lead.delta >= 0 ? '+' : '-';
-        addChip(`Top sensitivity: <strong>${lead.label}</strong> shifts NPV by ${sign}${formatMoney(Math.abs(lead.delta))}`);
-      }
-      if (drivers.length > 1) {
-        const trailing = drivers.slice(1).map(d => d.label).join(', ');
-        addChip(`Other major drivers: <strong>${trailing}</strong>`);
-      }
-      if (r.threeYearBenefit > 0) {
-        addChip(`3-year net benefit <strong>${formatMoney(r.threeYearBenefit)}</strong> (ramped, undiscounted)`, 'ok');
-      }
-      el.innerHTML = chips.join('');
     }
 
     /* ===== Recalculate ===== */
@@ -1336,7 +1316,6 @@
       updateSummaryCards(r, conservative, upside);
       updateDecision(r, conservative, signal, confidence);
       renderActiveChart(r, conservative, upside);
-      updateInsights(r, conservative, upside, confidence);
       saveState();
     }
 
@@ -1380,6 +1359,14 @@
         upside: 'Pre-fills optimistic inputs. Pessimistic, base, and upside ranges are always computed and shown.',
       };
       document.getElementById('assumptionProfileNote').textContent = profileNotes[activeAssumptionProfile];
+      const contextNotes = {
+        greenfield:   'Full process is manual today. Your baseline cost reflects the complete current effort.',
+        incremental:  'Set your manual baseline to the residual unautomated labor cost only — not the full process cost.',
+        replace:      'Factor decommission and migration costs into your build estimate. Increase your assumption profile risk.',
+        exploring:    'Directional only. Results carry high uncertainty until scope is defined.',
+      };
+      document.getElementById('automationContextNote').textContent = contextNotes[automationContext] || '';
+      document.getElementById('automationContextInput').value = automationContext;
     }
     function syncInputsFromState() {
       document.getElementById('devDaysInput').value          = impl.devDays;
@@ -1603,6 +1590,11 @@
       updateDisplays();
       recalculate();
     });
+    document.getElementById('automationContextInput').addEventListener('change', () => {
+      automationContext = document.getElementById('automationContextInput').value;
+      updateDisplays();
+      recalculate();
+    });
 
     /* ===== Chart tabs ===== */
     const tabButtons = [...document.querySelectorAll('.chart-tabs button[data-tab]')];
@@ -1625,12 +1617,23 @@
       document.querySelector('.header-currency').classList.toggle('usd-active', c === 'USD');
       updateDisplays();
       recalculate();
+      saveState();
     }
     btnUSD.addEventListener('click', () => setCurrency('USD'));
     btnEUR.addEventListener('click', () => setCurrency('EUR'));
     rateInput.addEventListener('input', () => {
       const v = parseFloat(rateInput.value);
-      if (v > 0 && isFinite(v)) { eurRate = v; updateDisplays(); recalculate(); }
+      if (v > 0 && isFinite(v)) { eurRate = v; updateDisplays(); recalculate(); saveState(); }
+    });
+
+    /* ===== Share button ===== */
+    document.getElementById('shareBtn').addEventListener('click', () => {
+      const url = location.origin + location.pathname + '#' + encodeState();
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('shareBtn');
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 1500);
+      });
     });
 
     /* ===== Theme ===== */
@@ -1642,60 +1645,92 @@
     });
 
     /* ===== Reset ===== */
-    document.getElementById('resetBtn').addEventListener('click', () => {
+    function doReset() {
       localStorage.removeItem(STORAGE_KEY);
-      impl = { ...DEFAULT_IMPL };
-      proc = { ...DEFAULT_PROC };
-      auto = { ...DEFAULT_AUTO };
-      fin  = { ...DEFAULT_FIN };
       activeRangeProfile = 'growth';
       activeAssumptionProfile = 'base';
+      automationContext = 'greenfield';
+      // Configure slider ranges first (preserveValues: false sets range defaults which we then override)
+      applyRangeProfile(activeRangeProfile, { preserveValues: false });
+      // Zero all numeric inputs
+      impl.devDays = 0; impl.dailyRate = 0; impl.infraCost = 0; impl.trainingCost = 0;
+      proc.processCount = 0; proc.instancesPerProcess = 0; proc.peoplePerInstance = 0;
+      proc.handlingMinutes = 0; proc.hourlyRate = 0;
+      auto.existingAllocatedYearly = 0; auto.camundaClusters = 0; auto.camundaClusterYearlyRate = 0;
+      auto.selfManagedInfraYearly = 0; auto.orchestratorVarCents = 0; auto.llmCents = 0;
+      auto.reviewRate = 0; auto.reviewMinutes = 0; auto.fallbackRate = 0; auto.maintenanceDays = 0;
+      fin.coverage = 0; fin.capturedValue = 0; fin.pilotMonths = 0;
+      fin.rampMonths = 0; fin.discountRate = 0; fin.horizon = 0;
       implCollapsed = false;
       procCollapsed = false;
       autoCollapsed = true;
       finCollapsed = true;
       applyPanelStates();
-      applyRangeProfile(activeRangeProfile, { preserveValues: false });
-      applyAssumptionProfile(activeAssumptionProfile, { preserveValues: false });
       syncInputsFromState();
       updateDisplays();
       recalculate();
-    });
+    }
+    function openResetModal() { document.getElementById('resetBackdrop').classList.add('open'); document.getElementById('resetConfirm').focus(); }
+    function closeResetModal() { document.getElementById('resetBackdrop').classList.remove('open'); }
+    document.getElementById('resetBtn').addEventListener('click', openResetModal);
+    document.getElementById('resetClose').addEventListener('click', closeResetModal);
+    document.getElementById('resetBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeResetModal(); });
+    document.getElementById('resetConfirm').addEventListener('click', () => { doReset(); closeResetModal(); });
 
-    document.getElementById('toModelComparison').addEventListener('click', () => {
-      const base = compute();
-      const conservativeInputs = buildScenarioInputs('conservative');
-      const conservative = compute({ autoState: conservativeInputs.autoState, finState: conservativeInputs.finState });
-      const confidence = confidenceSnapshot();
-      const complexity = proc.handlingMinutes >= 60
-        ? { inputTokens: 1500, outputTokens: 700, tools: 8 }
-        : proc.handlingMinutes >= 20
-        ? { inputTokens: 1000, outputTokens: 500, tools: 5 }
-        : { inputTokens: 700, outputTokens: 300, tools: 3 };
-      const payload = {
-        monthlyInstances: Math.max(0, Math.round(base.automatedInstances)),
-        manualCost: Math.max(0, Math.round(base.monthlyManualCost)),
-        budget: Math.max(0, Math.round(base.monthlyAutomationCost * 1.2)),
-        growthRate: 0,
-        forecastMonths: 12,
-        activeChartTab: 'score',
-        processSettings: complexity,
-        context: {
-          deploymentMode: auto.deploymentMode,
-          coverage: fin.coverage,
-          pilotMonths: fin.pilotMonths,
-          rampMonths: fin.rampMonths,
-          horizon: fin.horizon,
-          baseMonthlyNet: Math.round(base.monthlySavings),
-          conservativeMonthlyNet: Math.round(conservative.monthlySavings),
-          confidenceGuessed: confidence.guessedCount,
-        },
-        fromProject: true,
-        createdAt: Date.now(),
-      };
-      localStorage.setItem(STEP2_HANDOFF_KEY, JSON.stringify(payload));
-      location.href = 'step2.html#step2';
-    });
+
+    /* ===== Step 1 → Step 2 handoff ===== */
+    const S1S2_HANDOFF_KEY = 'camunda-s1s2-handoff';
+    function writeS1S2Handoff() {
+      const count = Math.max(1, proc.processCount);
+      const effortPerProcess = Math.max(1, Math.round(impl.devDays / 5 / count));
+      const implCostPerWeek = Math.round(impl.dailyRate * 5 / 500) * 500;
+      const processes = Array.from({ length: count }, (_, i) => ({
+        processName: count === 1 ? 'Business Case Process' : `Process ${i + 1}`,
+        volume: proc.instancesPerProcess,
+        manualMinutes: proc.handlingMinutes,
+        hourlyRate: proc.hourlyRate,
+        monthlyErrorCost: 0,
+        effortWeeks: effortPerProcess,
+        strategicPriority: 3,
+        readiness: 'medium',
+      }));
+      localStorage.setItem(S1S2_HANDOFF_KEY, JSON.stringify({ processes, implCostPerWeek, createdAt: Date.now() }));
+    }
+    /* ===== Step 1 → Step 2 modal ===== */
+    function openS1S2Modal() {
+      const count = Math.max(1, proc.processCount);
+      const effortPer = Math.max(1, Math.round(impl.devDays / 5 / count));
+      const implWeeklyCost = Math.round(impl.dailyRate * 5 / 500) * 500;
+      const s = sym();
+      const rate = displayRate();
+      let html = `<div class="handoff-process-item">
+        <div class="handoff-process-name">Implementation rate</div>
+        <div class="handoff-process-meta">
+          <span>${s}${Math.round(implWeeklyCost * rate).toLocaleString()}/week (from ${s}${Math.round(impl.dailyRate * rate)}/day daily rate)</span>
+        </div>
+      </div>`;
+      for (let i = 0; i < count; i++) {
+        const name = count === 1 ? 'Business Case Process' : `Process ${i + 1}`;
+        html += `<div class="handoff-process-item">
+          <div class="handoff-process-name">${name}</div>
+          <div class="handoff-process-meta">
+            <span>${proc.instancesPerProcess.toLocaleString()} instances/mo</span>
+            <span>${proc.handlingMinutes} min/instance</span>
+            <span>${s}${Math.round(proc.hourlyRate * rate)}/hr</span>
+            <span>${effortPer} wk est. effort</span>
+          </div>
+        </div>`;
+      }
+      document.getElementById('s1s2ModalContent').innerHTML = html;
+      document.getElementById('s1s2Backdrop').classList.add('open');
+      document.getElementById('s1s2Confirm').focus();
+    }
+    function closeS1S2Modal() { document.getElementById('s1s2Backdrop').classList.remove('open'); }
+
+    document.getElementById('navToStep2Btn').addEventListener('click', e => { e.preventDefault(); openS1S2Modal(); });
+    document.getElementById('s1s2Close').addEventListener('click', closeS1S2Modal);
+    document.getElementById('s1s2Backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeS1S2Modal(); });
+    document.getElementById('s1s2Confirm').addEventListener('click', writeS1S2Handoff);
 
     /* ===== Navigation drawer ===== */
     (function() {
@@ -1706,20 +1741,34 @@
       document.getElementById('navBtn').addEventListener('click', openNav);
       document.getElementById('navClose').addEventListener('click', closeNav);
       navBackdrop.addEventListener('click', closeNav);
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNav(); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (document.getElementById('resetBackdrop').classList.contains('open')) { closeResetModal(); return; }
+          if (document.getElementById('s1s2Backdrop').classList.contains('open')) { closeS1S2Modal(); return; }
+          closeNav();
+        }
+      });
     })();
 
     /* ===== Init ===== */
     (function() {
-      const saved = loadState();
+      const hashRaw = location.hash.slice(1);
+      const hashState = hashRaw.length ? decodeState(hashRaw) : null;
+      if (hashState) {
+        history.replaceState(null, '', location.pathname);
+        if (hashState.currency) {
+          currency = hashState.currency;
+          if (hashState.eurRate > 0) eurRate = hashState.eurRate;
+          localStorage.setItem('camunda-global', JSON.stringify({ currency, eurRate, theme: document.documentElement.dataset.theme }));
+        }
+      }
+      const saved = hashState || loadState();
       if (saved) {
         normalizeLoadedState(saved);
-        if (saved.theme) document.documentElement.dataset.theme = saved.theme;
-        if (saved.currency) { currency = saved.currency; }
-        if (saved.eurRate > 0) { eurRate = saved.eurRate; rateInput.value = eurRate; }
         if (saved.activeChartTab) activeChartTab = saved.activeChartTab;
         activeRangeProfile = inferRangeProfile(saved);
         activeAssumptionProfile = normalizeAssumptionProfile(saved.activeAssumptionProfile || activeAssumptionProfile);
+        if (saved.automationContext) automationContext = saved.automationContext;
         if (saved.impl)          Object.assign(impl, saved.impl);
         if (saved.proc)          Object.assign(proc, saved.proc);
         if (saved.auto)          Object.assign(auto, saved.auto);
@@ -1728,13 +1777,6 @@
         procCollapsed = !!saved.procCollapsed;
         autoCollapsed = !!saved.autoCollapsed;
         finCollapsed  = !!saved.finCollapsed;
-
-        // Sync currency buttons
-        btnUSD.setAttribute('aria-pressed', currency === 'USD');
-        btnEUR.setAttribute('aria-pressed', currency === 'EUR');
-        document.querySelector('.header-currency').classList.toggle('usd-active', currency === 'USD');
-
-        // Sync chart tab buttons
         tabButtons.forEach(btn => btn.setAttribute('aria-pressed', btn.dataset.tab === activeChartTab));
       }
 
@@ -1742,6 +1784,19 @@
       applyAssumptionProfile(activeAssumptionProfile, { preserveValues: !!saved });
       syncInputsFromState();
       applyPanelStates();
+
+      // Apply global currency preference (most recently set across any step)
+      try {
+        const g = JSON.parse(localStorage.getItem('camunda-global'));
+        if (g && (g.currency === 'USD' || g.currency === 'EUR')) {
+          if (g.eurRate > 0) { eurRate = g.eurRate; rateInput.value = g.eurRate; }
+          currency = g.currency;
+          btnUSD.setAttribute('aria-pressed', currency === 'USD');
+          btnEUR.setAttribute('aria-pressed', currency === 'EUR');
+          document.querySelector('.header-currency').classList.toggle('usd-active', currency === 'USD');
+        }
+      } catch (_) {}
+
       updateDisplays();
       recalculate();
     })();
