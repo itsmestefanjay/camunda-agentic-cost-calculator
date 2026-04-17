@@ -287,8 +287,8 @@
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>LLM cost / automated instance</label><output id="llmCostDisplay"></output></div>
-            <input type="range" min="1" max="500" step="1" value="10" id="llmCostInput">
-            <p class="input-note">LLM spend per automated run.</p>
+            <input type="number" min="0" max="50" step="0.01" value="0.12" id="llmCostInput" placeholder="0.12">
+            <p class="input-note">Enter the Cost / inst. from Step 3 (Model Cost &amp; Fit) for your chosen model.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Human review rate</label><output id="reviewRateDisplay"></output></div>
@@ -1385,7 +1385,7 @@
       document.getElementById('camundaClusterYearlyRateInput').value = auto.camundaClusterYearlyRate;
       document.getElementById('selfManagedInfraInput').value = auto.selfManagedInfraYearly;
       document.getElementById('orchestratorVarCostInput').value = auto.orchestratorVarCents;
-      document.getElementById('llmCostInput').value          = auto.llmCents;
+      document.getElementById('llmCostInput').value          = (auto.llmCents / 100).toFixed(2);
       document.getElementById('reviewRateInput').value       = auto.reviewRate;
       document.getElementById('reviewMinutesInput').value    = auto.reviewMinutes;
       document.getElementById('fallbackRateInput').value     = auto.fallbackRate;
@@ -1528,7 +1528,7 @@
       ['existingAllocatedYearlyInput', () => { auto.existingAllocatedYearly = +document.getElementById('existingAllocatedYearlyInput').value; }],
       ['selfManagedInfraInput', () => { auto.selfManagedInfraYearly = +document.getElementById('selfManagedInfraInput').value; }],
       ['orchestratorVarCostInput', () => { auto.orchestratorVarCents = +document.getElementById('orchestratorVarCostInput').value; }],
-      ['llmCostInput',         () => { auto.llmCents        = +document.getElementById('llmCostInput').value; }],
+      ['llmCostInput',         () => { auto.llmCents        = Math.round(parseFloat(document.getElementById('llmCostInput').value || '0') * 100); }],
       ['reviewRateInput',      () => { auto.reviewRate      = +document.getElementById('reviewRateInput').value; }],
       ['reviewMinutesInput',   () => { auto.reviewMinutes   = +document.getElementById('reviewMinutesInput').value; }],
       ['fallbackRateInput',    () => { auto.fallbackRate    = +document.getElementById('fallbackRateInput').value; }],
@@ -1736,8 +1736,17 @@
     (function() {
       const navDrawer   = document.getElementById('navDrawer');
       const navBackdrop = document.getElementById('navBackdrop');
-      function openNav()  { navDrawer.classList.add('open');    navBackdrop.classList.add('open'); }
-      function closeNav() { navDrawer.classList.remove('open'); navBackdrop.classList.remove('open'); }
+      function openNav() {
+        navDrawer.classList.add('open');
+        navBackdrop.classList.add('open');
+        const first = navDrawer.querySelector('.nav-close, .nav-item');
+        if (first) first.focus();
+      }
+      function closeNav() {
+        navDrawer.classList.remove('open');
+        navBackdrop.classList.remove('open');
+        document.getElementById('navBtn').focus();
+      }
       document.getElementById('navBtn').addEventListener('click', openNav);
       document.getElementById('navClose').addEventListener('click', closeNav);
       navBackdrop.addEventListener('click', closeNav);
@@ -1799,6 +1808,7 @@
 
       updateDisplays();
       recalculate();
+      document.querySelectorAll('input[type="range"]').forEach(el => el.setAttribute('tabindex', '0'));
     })();
   </script>
 </body>

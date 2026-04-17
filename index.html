@@ -202,8 +202,17 @@
     (function () {
       const navDrawer   = document.getElementById('navDrawer');
       const navBackdrop = document.getElementById('navBackdrop');
-      function openNav()  { navDrawer.classList.add('open');    navBackdrop.classList.add('open'); }
-      function closeNav() { navDrawer.classList.remove('open'); navBackdrop.classList.remove('open'); }
+      function openNav() {
+        navDrawer.classList.add('open');
+        navBackdrop.classList.add('open');
+        const first = navDrawer.querySelector('.nav-close, .nav-item');
+        if (first) first.focus();
+      }
+      function closeNav() {
+        navDrawer.classList.remove('open');
+        navBackdrop.classList.remove('open');
+        document.getElementById('navBtn').focus();
+      }
       document.getElementById('navBtn').addEventListener('click', openNav);
       document.getElementById('navClose').addEventListener('click', closeNav);
       navBackdrop.addEventListener('click', closeNav);
