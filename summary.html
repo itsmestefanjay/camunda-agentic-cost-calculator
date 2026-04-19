@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="All results in one place. Export your business case, process ranking, and model comparison as JSON, PDF, or a shareable link.">
+  <title>Summary · Agentic Decision Framework</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <script>!function(){try{var g=JSON.parse(localStorage.getItem("camunda-global"));if(g&&g.theme)document.documentElement.dataset.theme=g.theme}catch(e){}}();</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <style>
+    /* ===== Layout ===== */
+    html { scroll-behavior: smooth; }
+    main { max-width: 980px; margin: 0 auto; padding: 1.5rem 2rem 4rem; }
+    @media (max-width: 640px) { main { padding: 1rem 1rem 3rem; } }
+
+
+    /* ===== Executive panel ===== */
+    .exec-panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem;
+      display: grid; grid-template-columns: auto 1fr; gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 640px) { .exec-panel { grid-template-columns: 1fr; } }
+    .exec-signal-col { display: flex; flex-direction: column; gap: 0.5rem; min-width: 160px; }
+    .exec-label { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.35rem; line-height: 1.35; }
+    .exec-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    @media (max-width: 560px) { .exec-metrics { grid-template-columns: 1fr 1fr; } }
+    .exec-metric-val { font-size: 1.25rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1.25; }
+    .exec-metric-lbl { font-size: 0.7rem; color: var(--muted); margin-top: 0.35rem; line-height: 1.45; }
+    .exec-divider { width: 1px; background: var(--border); align-self: stretch; }
+    @media (max-width: 640px) { .exec-divider { display: none; } }
+    .exec-narrative { font-size: 0.875rem; color: var(--muted); line-height: 1.7; }
+    .exec-narrative strong { color: var(--text); font-weight: 700; }
+
+    /* ===== Sections ===== */
+    .sum-section { margin-bottom: 2.5rem; }
+    .sum-section-head {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+    }
+    .sum-section-num {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 800;
+    }
+    .sum-section-title { font-size: 0.9375rem; font-weight: 700; color: var(--text); line-height: 1.35; }
+    .sum-section-sub { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; line-height: 1.5; }
+
+    /* ===== Metric row ===== */
+    .sum-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+    @media (max-width: 560px) { .sum-metrics { grid-template-columns: 1fr 1fr; } }
+    .sum-metric {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.9rem 1.1rem;
+    }
+    .sum-metric-label { font-size: 0.68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; line-height: 1.35; }
+    .sum-metric-value { font-size: 1.25rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1.25; }
+    .sum-metric-sub { font-size: 0.7rem; color: var(--muted); margin-top: 0.35rem; line-height: 1.45; }
+
+    /* ===== Tables ===== */
+    .sum-table-wrap { overflow-x: auto; margin-bottom: 1.25rem; }
+    .sum-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+    .sum-table th {
+      text-align: left; padding: 0.5rem 0.75rem;
+      color: var(--muted); font-size: 0.68rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .sum-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; font-variant-numeric: tabular-nums; line-height: 1.5; }
+    [data-theme="light"] .sum-table td { border-bottom-color: rgba(0,0,0,0.05); }
+    .sum-table tr:last-child td { border-bottom: none; }
+    .sum-table tbody tr:nth-child(even):not(.row-base):not(.row-conservative):not(.row-upside) td { background: rgba(0,0,0,0.025); }
+    [data-theme="dark"] .sum-table tbody tr:nth-child(even):not(.row-base):not(.row-conservative):not(.row-upside) td { background: rgba(255,255,255,0.025); }
+    .row-conservative td { background: rgba(245, 158, 11, 0.08); }
+    .row-upside td       { background: rgba(34, 197, 94, 0.08); }
+    .td-head { font-weight: 700; color: var(--text); }
+    .td-muted { color: var(--muted); }
+    .td-pos { color: #22c55e; font-weight: 700; }
+    .td-neg { color: #ef4444; font-weight: 700; }
+    .td-right { text-align: right; }
+    .sum-table th.td-right { text-align: right; }
+    .row-base td { background: rgba(var(--accent-rgb),0.14); font-weight: 600; }
+    [data-theme="dark"] .row-base td { background: rgba(var(--accent-rgb),0.16); }
+
+    /* ===== Charts ===== */
+    .sum-chart { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+    .sum-chart-title { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1rem; }
+    .sum-chart-canvas { position: relative; height: 200px; }
+
+    /* ===== Inputs block ===== */
+    .inputs-block {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;
+      @media (max-width: 640px) { grid-template-columns: 1fr; }
+    }
+    .inputs-group {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem 1.1rem;
+    }
+    .inputs-group-title {
+      font-size: 0.68rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 0.65rem; padding-bottom: 0.55rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .inputs-row {
+      display: flex; justify-content: space-between; gap: 1rem;
+      font-size: 0.8125rem; padding: 0.25rem 0;
+      line-height: 1.4;
+    }
+    .inputs-row-label { color: var(--muted); }
+    .inputs-row-value { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+
+    /* ===== No-data placeholder ===== */
+    .sum-no-data {
+      background: var(--surface); border: 1px dashed var(--border);
+      border-radius: 10px; padding: 1.5rem; text-align: center;
+      color: var(--muted); font-size: 0.875rem;
+    }
+    .sum-no-data a { color: var(--accent); text-decoration: none; }
+    .sum-no-data a:hover { text-decoration: underline; }
+
+    /* ===== Color dot ===== */
+    .color-dot-sm { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.4rem; flex-shrink: 0; }
+
+    /* ===== Action bar ===== */
+    .sum-actions {
+      display: flex; gap: 0.625rem; align-items: center; justify-content: center; flex-wrap: wrap;
+      margin: 1.25rem 0 2rem; padding: 1rem 1.15rem;
+      background: rgba(var(--accent-rgb), 0.05);
+      border: 1px solid rgba(var(--accent-rgb), 0.2); border-radius: 12px;
+      position: relative;
+    }
+    .sum-actions::before {
+      content: 'Share & export';
+      position: absolute; top: -0.6rem; left: 1rem;
+      font-size: 0.65rem; font-weight: 700; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      background: var(--bg); padding: 0 0.5rem;
+    }
+    .sum-action-btn {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.6rem 1.1rem; border-radius: 8px; font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; border: 1px solid rgba(var(--accent-rgb), 0.35); background: var(--surface);
+      color: var(--accent); transition: background 0.15s, border-color 0.15s, color 0.15s; font-family: inherit;
+      svg { width: 16px; height: 16px; flex-shrink: 0; }
+      &:hover { background: rgba(var(--accent-rgb), 0.08); border-color: var(--accent); }
+      &.copied { color: #22c55e; border-color: #22c55e; background: rgba(34,197,94,0.08); }
+      &.warn { color: #f59e0b; border-color: #f59e0b; background: rgba(245,158,11,0.08); }
+    }
+    .sum-action-btn.primary {
+      background: var(--accent); color: #fff; border-color: var(--accent);
+      &:hover { opacity: 0.9; background: var(--accent); }
+    }
+
+    /* ===== Disclaimer ===== */
+    .sum-notice {
+      font-size: 0.75rem; color: var(--muted); background: var(--toggle-bg);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.6rem 1rem; margin-bottom: 0.5rem;
+    }
+    .sum-divergence {
+      display: none;
+      font-size: 0.8125rem; color: var(--text);
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 8px;
+      padding: 0.7rem 1rem; margin-bottom: 0.75rem; line-height: 1.5;
+      strong { color: #B45309; }
+      [data-theme="dark"] & strong { color: #F59E0B; }
+    }
+    .sum-divergence.show { display: block; }
+    .sum-disclaimer { font-size: 0.75rem; color: var(--muted); line-height: 1.65; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .sum-disclaimer a { color: var(--muted); text-underline-offset: 2px; }
+
+    /* ===== Contact section ===== */
+    .consid-section {
+      margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 2.5rem;
+    }
+    .consid-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .consid-card-top {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+      @media (max-width: 680px) { grid-template-columns: 1fr; }
+    }
+    .consid-pitch {
+      padding: 2rem 2rem 2rem 2.25rem;
+      background: linear-gradient(145deg, #701131 0%, #B5223F 100%);
+    }
+    .consid-logo { margin-bottom: 1.5rem; }
+    .consid-logo img { height: 36px; width: auto; display: block; }
+    .consid-pitch h3 {
+      font-size: 1.0625rem; font-weight: 700; color: #fff;
+      letter-spacing: -0.02em; margin-bottom: 0.75rem; line-height: 1.35;
+    }
+    .consid-pitch p {
+      font-size: 0.875rem; color: rgba(255,255,255,0.75); line-height: 1.7; margin-bottom: 0.6rem;
+      &:last-child { margin-bottom: 0; }
+    }
+    .consid-bullets {
+      list-style: none; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .consid-bullets li {
+      font-size: 0.8125rem; color: rgba(255,255,255,0.8);
+      display: flex; align-items: flex-start; gap: 0.5rem;
+    }
+    .consid-bullets li::before { content: '→'; color: #F49E88; flex-shrink: 0; }
+    .consid-form-wrap { padding: 2rem 2.25rem; }
+    .consid-form-title {
+      font-size: 0.875rem; font-weight: 700; color: var(--text);
+      margin-bottom: 1.25rem;
+    }
+    .contact-field {
+      margin-bottom: 0.875rem;
+    }
+    .contact-field label {
+      display: block; font-size: 0.7rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem;
+    }
+    .contact-field input,
+    .contact-field textarea {
+      width: 100%; background: var(--toggle-bg); border: 1px solid var(--input-border);
+      border-radius: 7px; padding: 0.55rem 0.75rem; color: var(--text);
+      font-size: 0.875rem; font-family: inherit; outline: none; resize: vertical;
+      transition: border-color 0.15s;
+      &:focus { border-color: var(--accent); }
+    }
+    .contact-field textarea { min-height: 90px; }
+    .contact-submit {
+      width: 100%; padding: 0.7rem 1.25rem; margin-top: 0.5rem;
+      background: #B5223F; border: none; border-radius: 8px;
+      color: #fff; font-size: 0.875rem; font-weight: 700;
+      cursor: pointer; transition: background 0.15s;
+      &:hover { background: #701131; }
+    }
+    .contact-note {
+      font-size: 0.7rem; color: var(--muted); margin-top: 0.75rem; line-height: 1.5; text-align: center;
+    }
+
+    /* ===== Print ===== */
+    @media print {
+      @page { margin: 1.5cm; }
+      html, body { background: #fff !important; }
+      [data-theme="dark"], [data-theme="light"] {
+        --text: #111; --muted: #555; --border: #ddd; --surface: #f7f7f7; --bg: #fff; --accent: #B5223F; --accent-rgb: 181, 34, 63;
+      }
+      header, .nav-drawer, .nav-backdrop, .no-print, .page-toolbar { display: none !important; }
+      main { max-width: 100%; padding: 0; }
+      .sum-section { page-break-inside: avoid; }
+      .sum-chart { page-break-inside: avoid; border: 1px solid #ddd; }
+      .row-base td { background: #F3D8DE !important; }
+      .sum-table td { border-bottom-color: #eee; }
+      .sum-metric { border-color: #ddd; background: #f7f7f7; }
+      .exec-panel { border-color: #ddd; background: #f7f7f7; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nav-backdrop" id="navBackdrop"></div>
+  <nav class="nav-drawer" id="navDrawer" aria-label="Site navigation">
+    <div class="nav-drawer-header">
+      <span class="nav-logo">Agentic Decision Framework</span>
+      <button class="nav-close" id="navClose" aria-label="Close navigation">&times;</button>
+    </div>
+    <a href="index.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">Tools</div>
+    <a href="step1.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      1. Business Case
+    </a>
+    <a href="step2.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      2. Process Prioritization
+    </a>
+    <a href="step3.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      3. Model Cost &amp; Fit
+    </a>
+    <div class="nav-divider"></div>
+    <a href="summary.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      4. Summary
+    </a>
+    <div class="nav-divider"></div>
+    <a href="about.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      About
+    </a>
+    <div class="nav-version">v1.0</div>
+  </nav>
+
+  <header>
+    <div class="header-brand">
+      <button class="icon-btn" id="navBtn" title="Navigation menu" aria-label="Open navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="header-copy">
+        <h1><a href="index.html">Agentic Decision Framework</a></h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="header-currency usd-active" id="currencyWrap">
+        <button id="btnUSD" aria-pressed="true">USD</button>
+        <button id="btnEUR" aria-pressed="false">EUR</button>
+        <span class="rate-field">1 USD = <input type="text" id="rateInput" value="0.85" size="5"> EUR</span>
+      </div>
+      <button class="icon-btn reset" id="resetBtn" title="Reset all steps">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </button>
+      <button class="icon-btn theme" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="page-toolbar">
+    <a href="step3.html" class="step-nav-btn secondary">← Step 3: Model Cost &amp; Fit</a>
+    <nav class="step-bar" aria-label="Step progress">
+      <a href="step1.html" class="step-bar-item">
+        <span class="step-bar-num">1</span>
+        <span class="step-bar-label">Business Case</span>
+      </a>
+      <span class="step-bar-sep data-link" aria-hidden="true">›</span>
+      <a href="step2.html" class="step-bar-item">
+        <span class="step-bar-num">2</span>
+        <span class="step-bar-label">Prioritization</span>
+      </a>
+      <span class="step-bar-sep data-link" aria-hidden="true">›</span>
+      <a href="step3.html" class="step-bar-item">
+        <span class="step-bar-num">3</span>
+        <span class="step-bar-label">Model Cost &amp; Fit</span>
+      </a>
+      <span class="step-bar-sep data-link" aria-hidden="true">›</span>
+      <a href="summary.html" class="step-bar-item active" aria-current="step">
+        <span class="step-bar-num">4</span>
+        <span class="step-bar-label">Summary</span>
+      </a>
+    </nav>
+    <button class="step-nav-btn primary no-print" id="contactSalesBtn">Contact Sales ↓</button>
+  </div>
+
+  <main>
+    <div class="page-title">
+      <h2><span class="page-title-num">4</span>Summary</h2>
+      <p>All results in one place — export as JSON for AI tools, PDF for documents, or share via link.</p>
+    </div>
+    <div class="sum-actions no-print">
+      <button class="sum-action-btn primary" id="shareLinkBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Copy link
+      </button>
+      <button class="sum-action-btn" id="exportPdfBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Export PDF
+      </button>
+      <button class="sum-action-btn" id="downloadChartsBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+        Download charts
+      </button>
+      <button class="sum-action-btn" id="downloadJsonBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Download JSON
+      </button>
+    </div>
+    <div id="execSection"></div>
+
+    <div class="sum-notice no-print">Rough estimates only. Not financial advice. Run your own analysis with your finance team before deciding.</div>
+
+    <div class="sum-divergence" id="divergenceNotice"></div>
+
+    <div class="sum-section" id="inputsSection" style="display:none">
+      <div class="sum-section-head">
+        <div class="sum-section-num" style="background:var(--muted)" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div>
+          <div class="sum-section-title">Inputs &amp; assumptions</div>
+          <div class="sum-section-sub">All values you entered across the three steps</div>
+        </div>
+      </div>
+      <div id="inputsContent"></div>
+    </div>
+
+    <div class="sum-section">
+      <div class="sum-section-head">
+        <div class="sum-section-num">1</div>
+        <div>
+          <div class="sum-section-title">Business Case</div>
+          <div class="sum-section-sub" id="step1Sub">Payback, long-term value, net benefit</div>
+        </div>
+      </div>
+      <div id="step1Content"></div>
+    </div>
+
+    <div class="sum-section">
+      <div class="sum-section-head">
+        <div class="sum-section-num">2</div>
+        <div>
+          <div class="sum-section-title">Process Prioritization</div>
+          <div class="sum-section-sub" id="step2Sub">Ranked by composite value + feasibility score</div>
+        </div>
+      </div>
+      <div id="step2Content"></div>
+    </div>
+
+    <div class="sum-section">
+      <div class="sum-section-head">
+        <div class="sum-section-num">3</div>
+        <div>
+          <div class="sum-section-title">Model Cost &amp; Fit</div>
+          <div class="sum-section-sub" id="step3Sub">LLM cost comparison at target volume</div>
+        </div>
+      </div>
+      <div id="step3Content"></div>
+    </div>
+
+    <div class="consid-section no-print" id="contactSection">
+      <div class="consid-card">
+        <div class="consid-card-top">
+          <div class="consid-pitch">
+            <div class="consid-logo">
+              <img src="assets/logo-white.png" alt="Consid logo">
+            </div>
+            <h3>We help you turn this assessment into a real implementation.</h3>
+            <p>These tools give you the numbers. Consid gives you the team to act on them, from shaping the business case to delivering the first working agent in production.</p>
+            <p>We are an IT consultancy with hands-on experience in process automation, agentic orchestration, and Camunda. We work directly with CTOs and engineering teams to move from evaluation to execution.</p>
+            <ul class="consid-bullets">
+              <li>Workshop to validate and sharpen your business case</li>
+              <li>Architecture and model selection for your specific process</li>
+              <li>Implementation: pilot to production</li>
+              <li>Team enablement and ongoing support</li>
+            </ul>
+          </div>
+          <div class="consid-form-wrap">
+            <div class="consid-form-title">Get in touch</div>
+            <form id="contactForm">
+              <div class="contact-field">
+                <label for="contactName">Your name</label>
+                <input type="text" id="contactName" placeholder="Jane Smith" autocomplete="name">
+              </div>
+              <div class="contact-field">
+                <label for="contactCompany">Company</label>
+                <input type="text" id="contactCompany" placeholder="Acme Corp" autocomplete="organization">
+              </div>
+              <div class="contact-field">
+                <label for="contactEmail">Your email</label>
+                <input type="email" id="contactEmail" placeholder="jane@acme.com" autocomplete="email">
+              </div>
+              <div class="contact-field">
+                <label for="contactMessage">What would you like to discuss?</label>
+                <textarea id="contactMessage" placeholder="We're evaluating agentic orchestration for our invoice processing workflow and would like to explore next steps."></textarea>
+              </div>
+              <button type="submit" class="contact-submit">Send message →</button>
+              <p class="contact-note">Opens your email client. Your message goes directly to Consid.</p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sum-disclaimer">
+      All values are rough estimates for internal planning and discussion only. Not financial advice of any kind.
+      Inputs are what you typed in and have not been verified. Real results will differ.
+      See <a href="about.html">about.html</a> for full legal disclaimer.
+    </div>
+  </main>
+
+  <footer class="site-footer no-print">
+    <p class="site-footer-text">Made by <a href="https://www.consid.com" target="_blank" rel="noopener" class="site-footer-logo" aria-label="Consid"></a></p><p class="site-footer-meta">&copy; 2026 Consid AB</p>
+  </footer>
+
+  <!-- Reset confirmation modal -->
+  <div class="handoff-backdrop" id="resetBackdrop" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle">
+    <div class="handoff-modal">
+      <div class="handoff-modal-header">
+        <p class="handoff-modal-title" id="resetModalTitle">Reset to defaults</p>
+        <button class="handoff-close" id="resetClose" aria-label="Close">&times;</button>
+      </div>
+      <p class="handoff-modal-sub">All data from all three steps will be cleared. This cannot be undone.</p>
+      <div class="handoff-modal-actions">
+        <button class="action-btn destructive" id="resetConfirm">Reset all steps</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===== Shared helpers ===== */
+    const WORKING_DAYS_PER_MONTH = 22;
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+    function logToValue(pos, min, max) {
+      return 10 ** (Math.log10(min) + (Math.log10(max) - Math.log10(min)) * (pos / 1000));
+    }
+
+    /* ===== Currency ===== */
+    let currency = 'USD';
+    let eurRate   = 0.85;
+    try {
+      const g = JSON.parse(localStorage.getItem('camunda-global'));
+      if (g) { if (g.currency) currency = g.currency; if (g.eurRate > 0) eurRate = g.eurRate; }
+    } catch (_) {}
+    function displayRate() { return currency === 'EUR' ? eurRate : 1; }
+    function sym() { return currency === 'EUR' ? '€' : '$'; }
+    function fmtMoney(usd) {
+      const v = usd * displayRate();
+      const s = sym();
+      const abs = Math.abs(v);
+      let str;
+      if (abs === 0)       str = `${s}0`;
+      else if (abs < 100)  str = `${s}${abs.toFixed(2)}`;
+      else if (abs < 1e4)  str = `${s}${Math.round(abs).toLocaleString()}`;
+      else if (abs < 1e6)  str = `${s}${(abs / 1000).toFixed(1)}k`;
+      else                 str = `${s}${(abs / 1e6).toFixed(2)}M`;
+      return v < 0 ? `-${str}` : str;
+    }
+    function fmtMoneySign(usd) {
+      const str = fmtMoney(Math.abs(usd));
+      return usd >= 0 ? `+${str}` : `-${str}`;
+    }
+    function fmtMonths(n) {
+      if (!Number.isFinite(n) || n <= 0 || n === Infinity) return '—';
+      return `${Math.ceil(n)} mo`;
+    }
+    function fmtNum(n) {
+      if (!Number.isFinite(n)) return '—';
+      return n.toLocaleString();
+    }
+
+    /* ===== Step 1 calculation ===== */
+    const S1_KEY = 'camunda-project-calc';
+    // Defaults mirror step 1's minimal blank-state defaults so missing saved keys don't fabricate inflated numbers
+    const S1_DEFAULT_IMPL = { fte: 1, devWeeks: 1, dailyRate: 100, infraCost: 0, trainingCost: 0 };
+    const S1_DEFAULT_PROC = { processCount: 1, instancesPerProcess: 0, peoplePerInstance: 0.5, handlingHours: 0.5, hourlyRate: 10 };
+    const S1_DEFAULT_AUTO = {
+      deploymentMode: 'existing-camunda', existingCostMode: 'incremental',
+      existingAllocatedYearly: 0, camundaClusters: 1, camundaClusterYearlyRate: 5000,
+      selfManagedInfraYearly: 0, orchestratorVarCents: 0, llmCents: 0,
+      reviewRate: 0, reviewMinutes: 1, fallbackRate: 0, maintenanceDays: 0,
+    };
+    const S1_DEFAULT_FIN = { coverage: 10, capturedValue: 20, pilotMonths: 0, rampMonths: 1, discountRate: 0, horizon: 1 };
+
+    function s1PlatformFixedCost(a) {
+      if (a.deploymentMode === 'existing-camunda') return a.existingCostMode === 'allocated' ? (a.existingAllocatedYearly || 0) : 0;
+      if (a.deploymentMode === 'add-camunda-saas') return (a.camundaClusters || 0) * (a.camundaClusterYearlyRate || 0);
+      return a.selfManagedInfraYearly || 0;
+    }
+    function s1RolloutFactor(mo, fin) {
+      const pilot = Math.max(0, Math.round(fin.pilotMonths || 0));
+      const ramp  = Math.max(1, Math.round(fin.rampMonths || 1));
+      const pf    = pilot > 0 ? 0.25 : (ramp === 1 ? 1 : 0.25);
+      if (mo <= pilot) return pf;
+      if (ramp <= 1)   return 1;
+      return clamp(pf + clamp((mo - pilot - 1) / (ramp - 1), 0, 1) * (1 - pf), pf, 1);
+    }
+    function s1MonthlyEcon({ coveragePct, impl, proc, auto, fin, monthlyManual, manualPerInst, totalInst }) {
+      const eff   = clamp(coveragePct, 0, 100);
+      const autod = totalInst * (eff / 100);
+      const revd  = autod * (auto.reviewRate / 100);
+      const revCostPerInst = (auto.reviewMinutes / 60) * proc.hourlyRate;
+      const fallb = Math.max(0, autod - revd) * (auto.fallbackRate / 100);
+      const resid = Math.max(0, totalInst - autod) * manualPerInst + revd * revCostPerInst + fallb * manualPerInst;
+      const laborSavings = monthlyManual - resid;
+      const laborRealized = laborSavings >= 0 ? laborSavings * (fin.capturedValue / 100) : laborSavings;
+      const llm  = autod * (auto.llmCents / 100);
+      const orch = autod * (auto.orchestratorVarCents / 100);
+      const fixd = s1PlatformFixedCost(auto) / 12;
+      const maint = auto.maintenanceDays * (impl.dailyRate / WORKING_DAYS_PER_MONTH) * (impl.fte || 1);
+      const runCost = llm + orch + fixd + maint;
+      return { monthlySavings: laborRealized - runCost, monthlyRunCost: runCost, monthlyLaborSavings: laborRealized };
+    }
+    function s1Compute(impl, proc, auto, fin) {
+      const totalInst     = proc.processCount * proc.instancesPerProcess;
+      const handlingHours = Number.isFinite(proc.handlingHours) ? proc.handlingHours : (Number.isFinite(proc.handlingMinutes) ? proc.handlingMinutes / 60 : 0);
+      const manualPerInst = handlingHours * proc.hourlyRate * proc.peoplePerInstance;
+      const monthlyManual = totalInst * manualPerInst;
+      const implCost      = (impl.fte || 1) * impl.devWeeks * 5 * impl.dailyRate + impl.infraCost + impl.trainingCost;
+      const horizonMonths = fin.horizon * 12;
+      const monthlySeries = [];
+      const cumul = [-implCost];
+      for (let mo = 1; mo <= horizonMonths; mo++) {
+        const factor = s1RolloutFactor(mo, fin);
+        const econ = s1MonthlyEcon({ coveragePct: fin.coverage * factor, impl, proc, auto, fin, monthlyManual, manualPerInst, totalInst });
+        monthlySeries.push(econ.monthlySavings);
+        cumul.push(cumul[cumul.length - 1] + econ.monthlySavings);
+      }
+      let payback = Infinity;
+      for (let mo = 1; mo < cumul.length; mo++) { if (cumul[mo] >= 0) { payback = mo; break; } }
+      const mdr = (1 + fin.discountRate / 100) ** (1 / 12) - 1;
+      let npv = -implCost;
+      for (let mo = 1; mo <= horizonMonths; mo++) npv += monthlySeries[mo - 1] / (1 + mdr) ** mo;
+      const threeYrMonths = Math.min(36, horizonMonths);
+      const netBenefit3yr = monthlySeries.slice(0, threeYrMonths).reduce((a, v) => a + v, 0) - implCost;
+      const steady = s1MonthlyEcon({ coveragePct: fin.coverage, impl, proc, auto, fin, monthlyManual, manualPerInst, totalInst });
+      return { implCost, totalInst, monthlyManual, monthlySeries, cumul, payback, npv, netBenefit3yr, ...steady, horizonMonths };
+    }
+    function s1BuildScenario(auto, fin, kind) {
+      const f = { ...fin }, a = { ...auto };
+      if (kind === 'conservative') {
+        f.coverage     = clamp(Math.round(fin.coverage * 0.8), 5, 100);
+        f.capturedValue= clamp(Math.round(fin.capturedValue * 0.7), 0, 100);
+        f.pilotMonths  = clamp(fin.pilotMonths + 1, 0, 12);
+        f.rampMonths   = clamp(fin.rampMonths + 2, 1, 24);
+        a.reviewRate   = clamp(auto.reviewRate + 12, 0, 100);
+        a.reviewMinutes= clamp(auto.reviewMinutes + 4, 1, 120);
+        a.fallbackRate = clamp(auto.fallbackRate + 10, 0, 60);
+        a.maintenanceDays = auto.maintenanceDays + 2;
+        a.llmCents     = Math.max(1, Math.round(auto.llmCents * 1.2));
+        a.orchestratorVarCents = Math.max(0, Math.round(auto.orchestratorVarCents * 1.2));
+      } else if (kind === 'upside') {
+        f.coverage     = clamp(Math.round(fin.coverage * 1.15), 5, 100);
+        f.capturedValue= clamp(Math.round(fin.capturedValue * 1.25), 0, 100);
+        f.pilotMonths  = clamp(fin.pilotMonths - 1, 0, 12);
+        f.rampMonths   = clamp(fin.rampMonths - 2, 1, 24);
+        a.reviewRate   = clamp(auto.reviewRate - 10, 0, 100);
+        a.reviewMinutes= clamp(auto.reviewMinutes - 3, 1, 120);
+        a.fallbackRate = clamp(auto.fallbackRate - 6, 0, 60);
+        a.maintenanceDays = clamp(auto.maintenanceDays - 1, 0, 100);
+        a.llmCents     = Math.max(1, Math.round(auto.llmCents * 0.9));
+        a.orchestratorVarCents = Math.max(0, Math.round(auto.orchestratorVarCents * 0.9));
+      }
+      return { finState: f, autoState: a };
+    }
+    function s1Signal(base, cons) {
+      if (cons.monthlySavings > 0 && cons.payback <= 36 && cons.npv > 0) return 'promising';
+      if (base.monthlySavings > 0 && base.npv > 0) return 'needs-pilot';
+      return 'weak';
+    }
+
+    /* ===== Step 2 scoring ===== */
+    const S2_KEY = 'camunda-process-calc';
+    const READINESS_FEASIBILITY = { high: 80, medium: 50, low: 20 };
+    const DECISION_SCORES = { deterministic: 20, mixed: 55, reasoning: 85 };
+    const INPUT_SCORES    = { structured: 20, semi: 55, unstructured: 85 };
+    const PATH_SCORES     = { fixed: 20, branching: 55, dynamic: 85 };
+    const VOLATILITY_PENALTY = { stable: 0, quarterly: 8, frequent: 20 };
+    const AUTOMATION_OVERLAP  = { none: 0, partial: 0.4, bpm: 0.7 };
+    function s2Score(p, implCostPerWeek = 1000) {
+      const hours = Number.isFinite(p.manualHours) ? p.manualHours : (Number.isFinite(p.manualMinutes) ? p.manualMinutes / 60 : 0);
+      const monthlyManualCost  = p.volume * hours * p.hourlyRate;
+      const incrementalFactor  = 1 - (AUTOMATION_OVERLAP[p.automationState] ?? 0);
+      const monthlySavings     = (monthlyManualCost + (p.monthlyErrorCost || 0)) * incrementalFactor;
+      const implCost           = (p.effortWeeks || 0) * implCostPerWeek;
+      const payback            = monthlySavings > 0 ? implCost / monthlySavings : Infinity;
+      const netBenefit3yr      = 36 * monthlySavings - implCost;
+      const savingsScore       = Math.min(100, Math.log10(Math.max(1, monthlySavings)) / Math.log10(150000) * 100);
+      const valueScore         = savingsScore * 0.7 + (p.strategicPriority - 1) * 25 * 0.3;
+      const feasibilityScore   = READINESS_FEASIBILITY[p.readiness] ?? 50;
+      const agenticFitScore    = ((DECISION_SCORES[p.decisionStructure] ?? 55) + (INPUT_SCORES[p.inputType] ?? 55) + (PATH_SCORES[p.pathVariability] ?? 55)) / 3;
+      const volatilityPenalty  = VOLATILITY_PENALTY[p.changeFrequency] ?? 0;
+      const compositeScore     = Math.max(0, valueScore * 0.45 + feasibilityScore * 0.30 + agenticFitScore * 0.25 - volatilityPenalty);
+      return { monthlyManualCost, monthlySavings, implCost, payback, netBenefit3yr, valueScore, feasibilityScore, agenticFitScore, compositeScore };
+    }
+    function s2Badge(vs, fs, as, cs) {
+      if (as < 40 && vs >= 50 && fs >= 50) return { label: 'Traditional First', cls: 'badge-traditional' };
+      if (cs >= 55 && vs >= 50 && fs >= 50) return { label: 'Automate First',   cls: 'badge-automate' };
+      if (vs >= 50 && fs < 45)              return { label: 'Strategic Bet',    cls: 'badge-strategic' };
+      if (fs >= 55 && vs < 45)              return { label: 'Quick Win',        cls: 'badge-quickwin' };
+      if (cs >= 30)                          return { label: 'Pilot',            cls: 'badge-pilot' };
+      return                                        { label: 'Defer',            cls: 'badge-defer' };
+    }
+    function isRecommended(badge) {
+      return ['Automate First', 'Strategic Bet', 'Quick Win'].includes(badge.label);
+    }
+
+    /* ===== Step 3 cost ===== */
+    const S3_KEY = 'camunda-cost-calc';
+    const PRICE_IN_MIN = 1e-7, PRICE_IN_MAX = 1e-4;
+    const PRICE_OUT_MIN = 1e-7, PRICE_OUT_MAX = 4e-4;
+
+    function s3MonthlyCost(model, ps, instances) {
+      const N    = ps.tools;
+      const inP  = logToValue(model.inputPrice,  PRICE_IN_MIN,  PRICE_IN_MAX);
+      const outP = logToValue(model.outputPrice, PRICE_OUT_MIN, PRICE_OUT_MAX);
+      const totalIn  = N * ps.inputTokens + (N * (N - 1) / 2) * ps.outputTokens;
+      const totalOut = N * ps.outputTokens;
+      const cpi  = totalIn * inP + totalOut * outP;
+      const fc   = model.fixedCost || 0;
+      return instances > 0 ? instances * cpi + fc : fc;
+    }
+    function s3FitScore(model) {
+      const c = Number.isFinite(model.fitCompliance) ? model.fitCompliance : (Number.isFinite(model.decisionScore) ? model.decisionScore : 50);
+      const q = Number.isFinite(model.fitQuality)    ? model.fitQuality    : (Number.isFinite(model.decisionScore) ? model.decisionScore : 50);
+      const o = Number.isFinite(model.fitOps)        ? model.fitOps        : (Number.isFinite(model.decisionScore) ? model.decisionScore : 50);
+      return Math.round((c + q + o) / 3);
+    }
+
+    /* ===== Theme helper ===== */
+    function themeColor(dark, light) {
+      return document.documentElement.dataset.theme === 'light' ? light : dark;
+    }
+    function gridColor() { return themeColor('rgba(255,255,255,0.07)', 'rgba(0,0,0,0.07)'); }
+    function tickColor() { return themeColor('rgba(255,255,255,0.4)', 'rgba(0,0,0,0.4)'); }
+
+    /* ===== Rendering ===== */
+    let charts = [];
+
+    function renderExec(s1Data, s2Data, s3Data) {
+      const el = document.getElementById('execSection');
+      const signal = s1Data ? s1Signal(s1Data.base, s1Data.conservative) : null;
+      const topProcess = s2Data?.ranked?.[0];
+      const topModel   = s3Data?.rows?.filter(r => !s3Data.budget || r.monthlyCost <= s3Data.budget).sort((a, b) => b.fitScore - a.fitScore)[0]
+                      ?? s3Data?.rows?.[0];
+
+      const signalLabels = { promising: 'Promising', 'needs-pilot': 'Needs Pilot', weak: 'Weak' };
+      const signalBadge  = signal ? `<span class="proc-badge badge-${signal}">${signalLabels[signal] ?? signal}</span>` : '<span class="td-muted">—</span>';
+
+      let narrative = '';
+      if (s1Data) {
+        const r = s1Data.base;
+        if (signal === 'promising') narrative += `Base case is favorable: payback <strong>${fmtMonths(r.payback)}</strong>, ${fmtMonths(s1Data.base.payback)} under base assumptions. Conservative case remains positive at <strong>${fmtMoney(s1Data.conservative.monthlySavings)}/mo net</strong>. `;
+        else if (signal === 'needs-pilot') narrative += `Base case shows positive economics at <strong>${fmtMoney(r.monthlySavings)}/mo net</strong>, but conservative scenario is uncertain. Validate assumptions with a pilot before committing. `;
+        else narrative += `Current assumptions do not support the investment. Base steady-state net is <strong>${fmtMoney(r.monthlySavings)}/mo</strong>. Re-scope before rollout. `;
+      }
+      if (topProcess) narrative += `Top-ranked process is <strong>${topProcess.name}</strong> (score ${topProcess.compositeScore.toFixed(0)}, ${fmtMoney(topProcess.monthlySavings)}/mo potential). `;
+      if (topModel)   narrative += `Best-fit model within constraints is <strong>${topModel.name}</strong> at <strong>${fmtMoney(topModel.monthlyCost)}/mo</strong> with a fit score of ${topModel.fitScore}.`;
+
+      el.innerHTML = `
+        <div class="exec-panel">
+          <div class="exec-signal-col">
+            <div class="exec-label">Investment signal</div>
+            ${signalBadge}
+            ${s1Data ? `
+            <div style="margin-top:0.75rem">
+              <div class="exec-label">Payback</div>
+              <div class="exec-metric-val">${fmtMonths(s1Data.base.payback)}</div>
+              <div class="exec-metric-lbl">Base case</div>
+            </div>
+            <div style="margin-top:0.75rem">
+              <div class="exec-label">5-yr Net Value</div>
+              <div class="exec-metric-val">${fmtMoney(s1Data.base.npv)}</div>
+              <div class="exec-metric-lbl">Discounted</div>
+            </div>
+            ` : ''}
+          </div>
+          <div>
+            <div class="exec-label">Assessment summary</div>
+            <div class="exec-narrative">${narrative || 'Complete Steps 1–3 to generate a full assessment.'}</div>
+            ${topProcess || topModel ? `
+            <div class="exec-metrics" style="margin-top:1rem">
+              ${topProcess ? `<div>
+                <div class="exec-metric-val" style="font-size:0.9375rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${topProcess.name}</div>
+                <div class="exec-metric-lbl">Top-ranked process</div>
+              </div>` : ''}
+              ${topModel ? `<div>
+                <div class="exec-metric-val" style="font-size:0.9375rem">${topModel.name}</div>
+                <div class="exec-metric-lbl">Best-fit model</div>
+              </div>` : ''}
+              ${s3Data?.instances ? `<div>
+                <div class="exec-metric-val" style="font-size:0.9375rem">${fmtNum(s3Data.instances)}/mo</div>
+                <div class="exec-metric-lbl">Target volume</div>
+              </div>` : ''}
+            </div>` : ''}
+          </div>
+        </div>`;
+    }
+
+    function renderStep1(data) {
+      const el = document.getElementById('step1Content');
+      if (!data) { document.getElementById('step1Sub').textContent = 'Payback, long-term value, net benefit'; el.innerHTML = noData('step1.html', 'Complete the Business Case tool to see results here.'); return; }
+      const { base, conservative, upside, impl, proc } = data;
+      const r = base;
+
+      document.getElementById('step1Sub').textContent =
+        `${fmtNum(proc.processCount)} process${proc.processCount !== 1 ? 'es' : ''}, ${fmtNum(proc.processCount * proc.instancesPerProcess)} instances/mo · Implementation: ${fmtMoney(r.implCost)}`;
+
+      el.innerHTML = `
+        <div class="sum-metrics">
+          <div class="sum-metric">
+            <div class="sum-metric-label">Payback period</div>
+            <div class="sum-metric-value">${fmtMonths(r.payback)}</div>
+            <div class="sum-metric-sub">Conservative: ${fmtMonths(conservative.payback)} · Upside: ${fmtMonths(upside.payback)}</div>
+          </div>
+          <div class="sum-metric">
+            <div class="sum-metric-label">${data.fin.horizon}-year Net Value</div>
+            <div class="sum-metric-value" style="color:${r.npv >= 0 ? '#22c55e' : '#ef4444'}">${fmtMoney(r.npv)}</div>
+            <div class="sum-metric-sub">Conservative: ${fmtMoney(conservative.npv)}</div>
+          </div>
+          <div class="sum-metric">
+            <div class="sum-metric-label">3-year net benefit</div>
+            <div class="sum-metric-value" style="color:${r.netBenefit3yr >= 0 ? '#22c55e' : '#ef4444'}">${fmtMoney(r.netBenefit3yr)}</div>
+            <div class="sum-metric-sub">After implementation cost</div>
+          </div>
+        </div>
+
+        <div class="sum-table-wrap">
+          <table class="sum-table">
+            <thead><tr>
+              <th>Scenario</th>
+              <th class="td-right">Monthly savings</th>
+              <th class="td-right">Monthly run cost</th>
+              <th class="td-right">Net / mo</th>
+              <th class="td-right">Payback</th>
+              <th class="td-right">NPV</th>
+            </tr></thead>
+            <tbody>
+              ${scenarioRow('Conservative', conservative, 'row-conservative')}
+              ${scenarioRow('Base', r, 'row-base')}
+              ${scenarioRow('Upside', upside, 'row-upside')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="sum-chart">
+          <div class="sum-chart-title">Cumulative net benefit over time</div>
+          <div class="sum-chart-canvas"><canvas id="s1Chart"></canvas></div>
+        </div>`;
+
+      buildS1Chart(data);
+    }
+
+    function scenarioRow(label, r, rowClass = '') {
+      const net = r.monthlySavings;
+      const netCls = net >= 0 ? 'td-pos' : 'td-neg';
+      return `<tr${rowClass ? ` class="${rowClass}"` : ''}>
+        <td class="td-head">${label}</td>
+        <td class="td-right">${fmtMoney(r.monthlyLaborSavings)}</td>
+        <td class="td-right td-muted">${fmtMoney(r.monthlyRunCost)}</td>
+        <td class="td-right ${netCls}">${fmtMoneySign(net)}</td>
+        <td class="td-right">${fmtMonths(r.payback)}</td>
+        <td class="td-right" style="color:${r.npv >= 0 ? '#22c55e' : '#ef4444'}">${fmtMoney(r.npv)}</td>
+      </tr>`;
+    }
+
+    function renderStep2(data) {
+      const el = document.getElementById('step2Content');
+      if (!data || !data.ranked.length) { document.getElementById('step2Sub').textContent = 'Ranked by composite value + feasibility score'; el.innerHTML = noData('step2.html', 'Add processes in the Process Prioritization tool to see results here.'); return; }
+      const { ranked } = data;
+      const recommended = ranked.filter(p => isRecommended(p.badge));
+      document.getElementById('step2Sub').textContent =
+        `${ranked.length} process${ranked.length !== 1 ? 'es' : ''} evaluated · ${recommended.length} recommended · ${fmtMoney(recommended.reduce((s, p) => s + p.monthlySavings, 0))}/mo combined potential`;
+
+      const rows = ranked.map((p, i) => `
+        <tr>
+          <td class="td-muted">${i + 1}</td>
+          <td class="td-head"><span class="color-dot-sm" style="background:${p.color || '#B5223F'}"></span>${p.name}</td>
+          <td>${p.compositeScore.toFixed(0)}</td>
+          <td><span class="proc-badge ${p.badge.cls}">${p.badge.label}</span></td>
+          <td class="td-right ${p.monthlySavings >= 0 ? 'td-pos' : 'td-neg'}">${fmtMoney(p.monthlySavings)}</td>
+          <td class="td-right">${fmtMonths(p.payback)}</td>
+          <td class="td-right td-muted">${p.compositeScore >= 50 ? '✓' : '—'}</td>
+        </tr>`).join('');
+
+      el.innerHTML = `
+        <div class="sum-metrics">
+          <div class="sum-metric">
+            <div class="sum-metric-label">Processes evaluated</div>
+            <div class="sum-metric-value">${ranked.length}</div>
+          </div>
+          <div class="sum-metric">
+            <div class="sum-metric-label">Recommended</div>
+            <div class="sum-metric-value">${recommended.length}</div>
+            <div class="sum-metric-sub">Score ≥ 50, viable badge</div>
+          </div>
+          <div class="sum-metric">
+            <div class="sum-metric-label">Combined potential</div>
+            <div class="sum-metric-value">${fmtMoney(recommended.reduce((s, p) => s + p.monthlySavings, 0))}/mo</div>
+            <div class="sum-metric-sub">Recommended only</div>
+          </div>
+        </div>
+
+        <div class="sum-table-wrap">
+          <table class="sum-table">
+            <thead><tr>
+              <th>#</th><th>Process</th><th>Score</th><th>Signal</th>
+              <th class="td-right">Monthly savings</th>
+              <th class="td-right">Payback</th>
+              <th class="td-right">Viable</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+
+        <div class="sum-chart">
+          <div class="sum-chart-title">Composite score by process</div>
+          <div class="sum-chart-canvas" style="height:${Math.max(160, ranked.length * 32)}px"><canvas id="s2Chart"></canvas></div>
+        </div>`;
+
+      buildS2Chart(ranked);
+    }
+
+    function renderStep3(data) {
+      const el = document.getElementById('step3Content');
+      if (!data || !data.rows.length) { document.getElementById('step3Sub').textContent = 'LLM cost comparison at target volume'; el.innerHTML = noData('step3.html', 'Add models in the Model Cost & Fit tool to see results here.'); return; }
+      const { rows, instances, budget, manualCost } = data;
+      document.getElementById('step3Sub').textContent =
+        `${rows.length} model${rows.length !== 1 ? 's' : ''} compared · ${fmtNum(instances)} instances/mo${budget ? ` · Budget: ${fmtMoney(budget)}/mo` : ''}`;
+
+      const tableRows = [...rows].sort((a, b) => a.monthlyCost - b.monthlyCost).map(r => {
+        const withinBudget = budget > 0 ? (r.monthlyCost <= budget ? '✓' : '✗') : '—';
+        const budgetCls = budget > 0 ? (r.monthlyCost <= budget ? 'td-pos' : 'td-neg') : '';
+        const savStr = manualCost > 0 ? fmtMoneySign(manualCost - r.monthlyCost) : '—';
+        const savCls = manualCost > 0 ? (manualCost > r.monthlyCost ? 'td-pos' : 'td-neg') : '';
+        return `<tr>
+          <td class="td-head"><span class="color-dot-sm" style="background:${r.color || '#B5223F'}"></span>${r.name}</td>
+          <td class="td-right">${fmtMoney(r.monthlyCost)}</td>
+          <td class="td-right ${savCls}">${savStr}</td>
+          <td class="td-right">${r.fitScore}</td>
+          <td class="td-right td-muted">${r.fitCompliance}</td>
+          <td class="td-right td-muted">${r.fitQuality}</td>
+          <td class="td-right td-muted">${r.fitOps}</td>
+          <td class="td-right ${budgetCls}">${withinBudget}</td>
+        </tr>`;
+      }).join('');
+
+      el.innerHTML = `
+        <div class="sum-metrics">
+          <div class="sum-metric">
+            <div class="sum-metric-label">Models compared</div>
+            <div class="sum-metric-value">${rows.length}</div>
+          </div>
+          <div class="sum-metric">
+            <div class="sum-metric-label">Volume</div>
+            <div class="sum-metric-value">${fmtNum(instances)}/mo</div>
+          </div>
+          ${budget ? `<div class="sum-metric">
+            <div class="sum-metric-label">Monthly budget</div>
+            <div class="sum-metric-value">${fmtMoney(budget)}</div>
+            <div class="sum-metric-sub">${rows.filter(r => r.monthlyCost <= budget).length} model${rows.filter(r => r.monthlyCost <= budget).length !== 1 ? 's' : ''} within budget</div>
+          </div>` : `<div class="sum-metric">
+            <div class="sum-metric-label">Lowest cost</div>
+            <div class="sum-metric-value">${fmtMoney(Math.min(...rows.map(r => r.monthlyCost)))}/mo</div>
+          </div>`}
+        </div>
+
+        <div class="sum-table-wrap">
+          <table class="sum-table">
+            <thead><tr>
+              <th>Model</th>
+              <th class="td-right">Cost / mo</th>
+              <th class="td-right">vs manual</th>
+              <th class="td-right">Fit</th>
+              <th class="td-right">Compliance</th>
+              <th class="td-right">Quality</th>
+              <th class="td-right">Ops</th>
+              ${budget ? '<th class="td-right">Budget</th>' : ''}
+            </tr></thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+        </div>
+
+        <div class="sum-chart">
+          <div class="sum-chart-title">Monthly cost at target volume</div>
+          <div class="sum-chart-canvas"><canvas id="s3Chart"></canvas></div>
+        </div>`;
+
+      buildS3Chart(data);
+    }
+
+    function noData(href, msg) {
+      return `<div class="sum-no-data">${msg} <a href="${href}">Open tool →</a></div>`;
+    }
+
+    /* ===== Charts ===== */
+    function destroyCharts() { charts.forEach(c => c.destroy()); charts = []; }
+
+    function buildS1Chart(data) {
+      const ctx = document.getElementById('s1Chart');
+      if (!ctx) return;
+      const rate = displayRate();
+      const labels = Array.from({ length: data.base.cumul.length }, (_, i) => i === 0 ? 'Start' : `Mo ${i}`);
+      const c = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Conservative', data: data.conservative.cumul.map(v => v * rate), borderColor: '#f59e0b', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.3 },
+            { label: 'Base',         data: data.base.cumul.map(v => v * rate),         borderColor: '#B5223F', backgroundColor: 'rgba(181,34,63,0.08)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 },
+            { label: 'Upside',       data: data.upside.cumul.map(v => v * rate),       borderColor: '#22c55e', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.3 },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: false,
+          plugins: {
+            legend: { labels: { color: tickColor(), font: { size: 11 }, boxWidth: 12 } },
+            tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => `${ctx.dataset.label}: ${sym()}${Math.round(ctx.parsed.y).toLocaleString()}` } },
+          },
+          scales: {
+            x: { ticks: { color: tickColor(), maxTicksLimit: 8, font: { size: 10 } }, grid: { color: gridColor() } },
+            y: { ticks: { color: tickColor(), font: { size: 10 }, callback: v => v >= 1000 ? `${sym()}${(v/1000).toFixed(1)}k` : `${sym()}${Math.round(v)}` }, grid: { color: gridColor() } },
+          },
+        },
+      });
+      charts.push(c);
+    }
+
+    function buildS2Chart(ranked) {
+      const ctx = document.getElementById('s2Chart');
+      if (!ctx) return;
+      const c = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ranked.map(p => p.name),
+          datasets: [{
+            label: 'Composite score',
+            data: ranked.map(p => p.compositeScore),
+            backgroundColor: ranked.map(p => p.color ? p.color + 'cc' : 'rgba(181,34,63,0.75)'),
+            borderColor: ranked.map(p => p.color || '#B5223F'),
+            borderWidth: 1, borderRadius: 4,
+          }],
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `Score: ${ctx.parsed.x.toFixed(1)}` } } },
+          scales: {
+            x: { min: 0, max: 100, ticks: { color: tickColor(), font: { size: 10 } }, grid: { color: gridColor() } },
+            y: { ticks: { color: tickColor(), font: { size: 11 } }, grid: { color: 'transparent' } },
+          },
+        },
+      });
+      charts.push(c);
+    }
+
+    function buildS3Chart(data) {
+      const ctx = document.getElementById('s3Chart');
+      if (!ctx) return;
+      const sorted = [...data.rows].sort((a, b) => a.monthlyCost - b.monthlyCost);
+      const rate   = displayRate();
+      const datasets = [{ label: 'Monthly cost', data: sorted.map(r => r.monthlyCost * rate), backgroundColor: sorted.map(r => r.color ? r.color + 'cc' : 'rgba(181,34,63,0.75)'), borderColor: sorted.map(r => r.color || '#B5223F'), borderWidth: 1, borderRadius: 4 }];
+      const annotations = [];
+      if (data.budget > 0) annotations.push({ type: 'line', yMin: data.budget * rate, yMax: data.budget * rate, borderColor: '#f59e0b', borderWidth: 1.5, borderDash: [4, 3], label: { content: `Budget ${sym()}${Math.round(data.budget * rate).toLocaleString()}`, display: true, color: '#f59e0b', font: { size: 10 } } });
+      if (data.manualCost > 0) annotations.push({ type: 'line', yMin: data.manualCost * rate, yMax: data.manualCost * rate, borderColor: '#9ca3af', borderWidth: 1.5, borderDash: [4, 3], label: { content: `Manual ${sym()}${Math.round(data.manualCost * rate).toLocaleString()}`, display: true, color: '#9ca3af', font: { size: 10 } } });
+      const c = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: sorted.map(r => r.name), datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${sym()}${Math.round(ctx.parsed.y).toLocaleString()}/mo` } } },
+          scales: {
+            x: { ticks: { color: tickColor(), font: { size: 10 } }, grid: { color: 'transparent' } },
+            y: { ticks: { color: tickColor(), font: { size: 10 }, callback: v => v >= 1000 ? `${sym()}${(v/1000).toFixed(1)}k` : `${sym()}${Math.round(v)}` }, grid: { color: gridColor() } },
+          },
+        },
+      });
+      charts.push(c);
+    }
+
+    /* ===== Data loading ===== */
+    function loadStep1() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(S1_KEY));
+        if (!raw) return null;
+        const rawImpl = raw.impl || {};
+        // Legacy migration: devDays → devWeeks
+        if (Number.isFinite(rawImpl.devDays) && !Number.isFinite(rawImpl.devWeeks)) {
+          rawImpl.devWeeks = Math.max(1, Math.round(rawImpl.devDays / 5));
+        }
+        const impl = { ...S1_DEFAULT_IMPL, ...rawImpl };
+        const proc = { ...S1_DEFAULT_PROC, ...(raw.proc || {}) };
+        const auto = { ...S1_DEFAULT_AUTO, ...(raw.auto || {}) };
+        const fin  = { ...S1_DEFAULT_FIN,  ...(raw.fin  || {}) };
+        if (!fin.horizon || fin.horizon < 1) fin.horizon = S1_DEFAULT_FIN.horizon;
+        const base         = s1Compute(impl, proc, auto, fin);
+        const consInputs   = s1BuildScenario(auto, fin, 'conservative');
+        const upInputs     = s1BuildScenario(auto, fin, 'upside');
+        const conservative = s1Compute(impl, proc, consInputs.autoState, consInputs.finState);
+        const upside       = s1Compute(impl, proc, upInputs.autoState, upInputs.finState);
+        return { base, conservative, upside, impl, proc, auto, fin, automationContext: raw.automationContext };
+      } catch { return null; }
+    }
+    function loadStep2() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(S2_KEY));
+        if (!raw?.processes?.length) return null;
+        const implCostPerWeek = raw.implCostPerWeek || 1000;
+        const scored = raw.processes.map(p => {
+          const s = s2Score(p, implCostPerWeek);
+          const badge = s2Badge(s.valueScore, s.feasibilityScore, s.agenticFitScore, s.compositeScore);
+          return { ...p, ...s, badge };
+        });
+        const ranked = [...scored].sort((a, b) => b.compositeScore - a.compositeScore);
+        return { ranked, implCostPerWeek };
+      } catch { return null; }
+    }
+    function loadStep3() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(S3_KEY));
+        if (!raw?.models?.length) return null;
+        const ps        = raw.processSettings || { inputTokens: 100, outputTokens: 50, tools: 1 };
+        const instances = raw.monthlyInstances || 0;
+        const budget    = raw.budget || 0;
+        const manualCost= raw.manualCost || 0;
+        const rows = raw.models.map(m => ({
+          name: m.name, color: m.color,
+          monthlyCost: s3MonthlyCost(m, ps, instances),
+          fitScore: s3FitScore(m),
+          fitCompliance: Number.isFinite(m.fitCompliance) ? m.fitCompliance : 50,
+          fitQuality:    Number.isFinite(m.fitQuality)    ? m.fitQuality    : 50,
+          fitOps:        Number.isFinite(m.fitOps)        ? m.fitOps        : 50,
+        }));
+        return { rows, instances, budget, manualCost, ps };
+      } catch { return null; }
+    }
+
+    /* ===== Export ===== */
+    function exportPDF() {
+      const canvases = document.querySelectorAll('canvas');
+      const swaps = [];
+      canvases.forEach(canvas => {
+        const img = document.createElement('img');
+        img.src = canvas.toDataURL('image/png');
+        img.style.width  = canvas.offsetWidth  + 'px';
+        img.style.height = canvas.offsetHeight + 'px';
+        img.style.display = 'block';
+        canvas.parentNode.insertBefore(img, canvas);
+        canvas.style.display = 'none';
+        swaps.push({ canvas, img });
+      });
+      window.print();
+      setTimeout(() => {
+        swaps.forEach(({ canvas, img }) => {
+          canvas.style.display = '';
+          img.remove();
+        });
+      }, 1500);
+    }
+
+    /* ===== Currency UI ===== */
+    function applyCurrency() {
+      const wrap = document.getElementById('currencyWrap');
+      wrap.classList.toggle('usd-active', currency === 'USD');
+      document.getElementById('btnUSD').setAttribute('aria-pressed', String(currency === 'USD'));
+      document.getElementById('btnEUR').setAttribute('aria-pressed', String(currency === 'EUR'));
+      try {
+        const g = JSON.parse(localStorage.getItem('camunda-global')) || {};
+        g.currency = currency; g.eurRate = eurRate;
+        localStorage.setItem('camunda-global', JSON.stringify(g));
+      } catch (_) {}
+    }
+    document.getElementById('btnUSD').addEventListener('click', () => { currency = 'USD'; applyCurrency(); render(); });
+    document.getElementById('btnEUR').addEventListener('click', () => { currency = 'EUR'; applyCurrency(); render(); });
+    (function () {
+      const rateInput = document.getElementById('rateInput');
+      rateInput.addEventListener('input', () => {
+        const v = parseFloat(rateInput.value);
+        if (v > 0 && Number.isFinite(v)) { eurRate = v; applyCurrency(); render(); }
+      });
+      rateInput.addEventListener('blur', () => {
+        const v = parseFloat(rateInput.value);
+        if (!(v > 0 && Number.isFinite(v))) rateInput.value = eurRate;
+      });
+    })();
+    applyCurrency();
+
+    /* ===== Init ===== */
+    function render() {
+      destroyCharts();
+      const s1 = loadStep1();
+      const s2 = loadStep2();
+      const s3 = loadStep3();
+      renderDivergence(s1, s2);
+      renderExec(s1, s2, s3);
+      renderInputs(s1, s2, s3);
+      renderStep1(s1);
+      renderStep2(s2);
+      renderStep3(s3);
+    }
+
+    function renderInputs(s1, s2, s3) {
+      const section = document.getElementById('inputsSection');
+      const el = document.getElementById('inputsContent');
+      if (!s1 && !s2 && !s3) { section.style.display = 'none'; return; }
+      section.style.display = '';
+      const sym_ = sym();
+      const rate = displayRate();
+      const money = v => `${sym_}${Math.round(v * rate).toLocaleString()}`;
+      const pct = v => `${v}%`;
+      const groups = [];
+
+      if (s1) {
+        const impl = s1.impl, proc = s1.proc, auto = s1.auto, fin = s1.fin;
+        const deployLabels = {
+          'existing-camunda': 'Camunda already in place',
+          'add-camunda-saas': 'Add Camunda SaaS',
+          'self-hosted-camunda': 'Self-hosted Camunda',
+          'other-stack': 'Other orchestration stack',
+        };
+        const contextLabels = {
+          greenfield: 'Starting fresh',
+          incremental: 'Adding to existing setup',
+          replace: 'Replacing old automation',
+          exploring: 'Exploring options',
+        };
+        groups.push({ title: 'Build (Step 1)', rows: [
+          ['Developers (FTE)', `${impl.fte} FTE`],
+          ['Developer weeks', `${impl.devWeeks} wk`],
+          ['Daily rate', `${money(impl.dailyRate)}/day`],
+          ['Infrastructure cost', money(impl.infraCost)],
+          ['Training cost', money(impl.trainingCost)],
+          ['Total implementation', money(s1.base.implCost)],
+        ]});
+        groups.push({ title: 'Manual baseline (Step 1)', rows: [
+          ['Processes', `${proc.processCount}`],
+          ['Instances / process / mo', proc.instancesPerProcess.toLocaleString()],
+          ['Avg. people / instance', proc.peoplePerInstance.toFixed(1)],
+          ['Handling time / instance', `${(proc.handlingHours ?? (proc.handlingMinutes / 60) ?? 0).toFixed(1)}h`],
+          ['Hourly rate', `${money(proc.hourlyRate)}/hr`],
+          ['Automation context', contextLabels[s1.automationContext || 'greenfield'] || '—'],
+        ]});
+        groups.push({ title: 'Automation assumptions (Step 1)', rows: [
+          ['Deployment mode', deployLabels[auto.deploymentMode] || auto.deploymentMode],
+          ['Share automated at full scale', pct(fin.coverage)],
+          ['Captured value', pct(fin.capturedValue)],
+          ['Human review rate', pct(auto.reviewRate)],
+          ['Review time / reviewed instance', `${auto.reviewMinutes} min`],
+          ['Sent back to humans', pct(auto.fallbackRate)],
+          ['LLM cost / automated instance', `${money(auto.llmCents / 100)}/inst`],
+          ['Maintenance days / month', `${auto.maintenanceDays}`],
+        ]});
+        groups.push({ title: 'Financial assumptions (Step 1)', rows: [
+          ['Pilot phase', `${fin.pilotMonths} mo`],
+          ['Rollout ramp', `${fin.rampMonths} mo`],
+          ['Discount rate', pct(fin.discountRate)],
+          ['Analysis horizon', `${fin.horizon} yr`],
+        ]});
+      }
+
+      if (s2?.ranked?.length) {
+        const recommended = s2.ranked.filter(p => isRecommended(p.badge));
+        const totalVolume = s2.ranked.reduce((acc, p) => acc + (p.volume || 0), 0);
+        const totalEffort = s2.ranked.reduce((acc, p) => acc + (p.effortWeeks || 0), 0);
+        groups.push({ title: 'Processes (Step 2)', rows: [
+          ['Implementation cost / week', money(s2.implCostPerWeek || 0)],
+          ['Processes entered', `${s2.ranked.length}`],
+          ['Worth pursuing', `${recommended.length} of ${s2.ranked.length}`],
+          ['Total monthly volume', totalVolume.toLocaleString()],
+          ['Total build effort', `${totalEffort} wk`],
+        ]});
+      }
+
+      if (s3) {
+        const ps = s3.ps || {};
+        groups.push({ title: 'Scenario (Step 3)', rows: [
+          ['Monthly instances', (s3.instances || 0).toLocaleString()],
+          ['Monthly budget', s3.budget > 0 ? money(s3.budget) : '—'],
+          ['Manual cost / month', s3.manualCost > 0 ? money(s3.manualCost) : '—'],
+          ['Input tokens / call', (ps.inputTokens || 0).toLocaleString()],
+          ['Output tokens / call', (ps.outputTokens || 0).toLocaleString()],
+          ['Tool calls / process', `${ps.tools || 0}`],
+          ['Models compared', `${s3.rows?.length || 0}`],
+        ]});
+      }
+
+      el.innerHTML = `<div class="inputs-block">${groups.map(g => `
+        <div class="inputs-group">
+          <div class="inputs-group-title">${g.title}</div>
+          ${g.rows.map(([label, value]) => `
+            <div class="inputs-row">
+              <span class="inputs-row-label">${label}</span>
+              <span class="inputs-row-value">${value}</span>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}</div>`;
+    }
+
+    function renderDivergence(s1, s2) {
+      const el = document.getElementById('divergenceNotice');
+      el.classList.remove('show');
+      el.innerHTML = '';
+      if (!s1 || !s2?.ranked?.length) return;
+      const s1Monthly = s1.base.monthlyManual;
+      const s2Monthly = s2.ranked.reduce((acc, p) => acc + (p.monthlyManualCost || 0), 0);
+      const ref = Math.max(s1Monthly, s2Monthly);
+      if (ref <= 0) return;
+      const diff = Math.abs(s1Monthly - s2Monthly) / ref;
+      if (diff < 0.05) return;
+      el.innerHTML = `<strong>Step 1 and Step 2 monthly manual cost don't match.</strong>
+        Step 1 (averages × process count): <strong>${fmtMoney(s1Monthly)}</strong>.
+        Step 2 (sum of per-process values): <strong>${fmtMoney(s2Monthly)}</strong>.
+        Step 2 is the more detailed view — trust it when the numbers diverge.`;
+      el.classList.add('show');
+    }
+
+    function hasAnyData() {
+      return !!(localStorage.getItem('camunda-project-calc') ||
+                localStorage.getItem('camunda-process-calc') ||
+                localStorage.getItem('camunda-cost-calc'));
+    }
+
+    /* ===== Hash state (share/restore all steps) ===== */
+    function encodeAllState() {
+      return btoa(JSON.stringify({
+        s1: localStorage.getItem('camunda-project-calc'),
+        s2: localStorage.getItem('camunda-process-calc'),
+        s3: localStorage.getItem('camunda-cost-calc'),
+        g:  localStorage.getItem('camunda-global'),
+      }));
+    }
+    function decodeAndRestoreState(hash) {
+      try {
+        const d = JSON.parse(atob(hash));
+        if (d.s1) localStorage.setItem('camunda-project-calc', d.s1);
+        if (d.s2) localStorage.setItem('camunda-process-calc', d.s2);
+        if (d.s3) localStorage.setItem('camunda-cost-calc', d.s3);
+        if (d.g)  localStorage.setItem('camunda-global', d.g);
+      } catch (_) {}
+    }
+    const hashRaw = location.hash.slice(1);
+    if (hashRaw) { decodeAndRestoreState(hashRaw); history.replaceState(null, '', location.pathname); }
+
+    render();
+
+    /* ===== Action buttons ===== */
+    function flashBtn(btn, msg, cls) {
+      const orig = btn.textContent;
+      btn.textContent = msg;
+      btn.classList.add(cls);
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove(cls); }, 2000);
+    }
+
+    document.getElementById('exportPdfBtn').addEventListener('click', exportPDF);
+
+    document.getElementById('shareLinkBtn').addEventListener('click', () => {
+      const btn = document.getElementById('shareLinkBtn');
+      if (!hasAnyData()) { flashBtn(btn, 'No data to share', 'warn'); return; }
+      const url = location.origin + location.pathname + '#' + encodeAllState();
+      navigator.clipboard.writeText(url).then(() => flashBtn(btn, 'Copied!', 'copied'));
+    });
+
+    document.getElementById('downloadChartsBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('downloadChartsBtn');
+      if (!hasAnyData()) { flashBtn(btn, 'No data', 'warn'); return; }
+      const chartDefs = [
+        { id: 's1Chart', name: 'business-case-cumulative.png' },
+        { id: 's2Chart', name: 'process-scores.png' },
+        { id: 's3Chart', name: 'model-costs.png' },
+      ];
+      const zip = new JSZip();
+      let added = 0;
+      for (const { id, name } of chartDefs) {
+        const canvas = document.getElementById(id);
+        if (!canvas) continue;
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        if (blob) { zip.file(name, blob); added++; }
+      }
+      if (added === 0) { flashBtn(btn, 'No charts rendered', 'warn'); return; }
+      const content = await zip.generateAsync({ type: 'blob' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(content);
+      a.download = 'agentic-assessment-charts.zip';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+      const btn = document.getElementById('downloadJsonBtn');
+      if (!hasAnyData()) { flashBtn(btn, 'No data', 'warn'); return; }
+      const s1 = loadStep1();
+      const s2 = loadStep2();
+      const s3 = loadStep3();
+      const rate = displayRate();
+      const cur  = currency;
+      const mon  = v => Math.round(v * rate);
+
+      const contextLabels = {
+        greenfield:  'Starting fresh — process is 100% manual today',
+        incremental: 'Adding to existing setup — BPM or RPA in place, AI needed for judgment calls',
+        replace:     'Replacing brittle automation — RPA or rules-based failed',
+        exploring:   'Exploring options — scope not yet defined',
+      };
+      const deployLabels = {
+        'existing-camunda':    'Camunda already in place (incremental cost only)',
+        'add-camunda-saas':    'New Camunda SaaS cluster(s)',
+        'self-hosted-camunda': 'Self-hosted Camunda',
+        'other-stack':         'Other orchestration stack',
+      };
+      const signalDescriptions = {
+        promising:    'Conservative scenario is positive — investment looks sound across all risk levels.',
+        'needs-pilot': 'Base case shows positive economics but conservative scenario is uncertain. Validate with a pilot before committing.',
+        weak:          'Current assumptions do not support the investment. Re-scope or revisit inputs.',
+      };
+
+      const out = {
+        _meta: {
+          tool: 'Agentic Decision Framework',
+          version: '1.0',
+          exportedAt: new Date().toISOString().slice(0, 10),
+          currency: cur,
+          about: 'This file was exported from the Agentic Decision Framework, a browser-based decision tool built for CTOs and strategic decision-makers evaluating whether to adopt agentic process automation using Camunda. The tool was built independently by Consid, an IT and management consultancy and Camunda Silver Partner. It was not commissioned, funded, or endorsed by Camunda Services GmbH.',
+          why: 'The assessment was conducted to answer three core questions before committing to an implementation: (1) Is the business case sound — does the investment pay back and create net value? (2) Which processes are the best candidates — ranked by ROI potential, feasibility, and need for AI reasoning? (3) Which LLM model fits the cost and quality constraints at the expected volume? This export captures all inputs and computed outputs so the assessment can be reviewed, shared, or analysed further.',
+          purpose: 'Structured business assessment for agentic process automation using Camunda. Contains ROI analysis, process prioritization scores, and LLM cost comparisons. Suitable for further analysis, scenario modelling, or decision support.',
+          howToInterpret: {
+            monthlySavings: `Net monthly benefit at steady state: realized labor savings minus all automation run costs, in ${cur}.`,
+            npv: `Net present value over the analysis horizon, discounted at the configured rate. Positive means the investment creates value in today's money.`,
+            paybackMonths: `Months until cumulative savings recover the full implementation cost. Null means payback does not occur within the analysis horizon.`,
+            compositeScore: '0–100 score combining value (ROI potential), feasibility (data and integration readiness), and agentic fit (need for AI reasoning vs. deterministic rules).',
+            fitScore: '0–100 model fit score combining cost compliance (within budget), quality tier (reasoning capability), and operational reliability.',
+            scenarios: 'Conservative uses tightened assumptions (higher costs, lower coverage, more human review). Base uses your entered values. Upside applies optimistic multipliers. Width of the range reflects your confidence settings.',
+            badges_process: 'Automate First: high value and feasibility. Strategic Bet: high value, lower feasibility — do the groundwork first. Quick Win: lower value but easy to ship. Traditional First: deterministic logic fits BPM better than AI. Pilot: marginal — validate before committing. Defer: neither value nor feasibility justifies action now.',
+            badges_investment: 'Promising: all three scenarios are positive. Needs Pilot: base is positive but conservative is not — reduce uncertainty first. Weak: base case does not support the investment.',
+          },
+        },
+      };
+      if (cur === 'EUR') out._meta.eurUsdRate = eurRate;
+
+      if (s1) {
+        const r = s1.base;
+        const signal = s1Signal(r, s1.conservative);
+        out.businessCase = {
+          _description: 'Step 1 output: implementation cost estimate, manual process baseline, and ROI across three risk scenarios.',
+          investmentSignal: {
+            value: signal,
+            description: signalDescriptions[signal] ?? signal,
+          },
+          automationContext: {
+            value: s1.automationContext,
+            description: contextLabels[s1.automationContext] ?? s1.automationContext,
+          },
+          deploymentMode: {
+            value: s1.auto.deploymentMode,
+            description: deployLabels[s1.auto.deploymentMode] ?? s1.auto.deploymentMode,
+          },
+          confidenceLevel: {
+            quality: s1.auto.qualityConfidence,
+            ops: s1.auto.opsConfidence,
+            _note: 'Confidence affects the width of the conservative/upside scenario spread. Guessed = wide band, measured = tight band.',
+          },
+          inputs: {
+            _note: `All monetary values in ${cur}.`,
+            developers_fte: { value: s1.impl.fte, unit: 'FTE', description: 'Full-time-equivalent developers on the build.' },
+            developerWeeks: { value: s1.impl.devWeeks, unit: 'weeks', description: 'Total developer weeks for delivery.' },
+            dailyRate: { value: mon(s1.impl.dailyRate), unit: cur, description: 'Fully-loaded cost per developer day.' },
+            implementationCost: { value: mon(r.implCost), unit: cur, description: 'Total build cost: FTE × weeks × daily rate + infrastructure + training.' },
+            candidateProcesses: { value: s1.proc.processCount, unit: 'processes', description: 'Number of processes in scope for automation.' },
+            instancesPerProcessPerMonth: { value: s1.proc.instancesPerProcess, unit: 'instances/process/month' },
+            totalMonthlyInstances: { value: r.totalInst, unit: 'instances/month', description: 'Total volume across all processes.' },
+            avgHandlingHoursPerInstance: { value: s1.proc.handlingHours, unit: 'hours', description: 'Average human handling time per process instance.' },
+            peoplePerInstance: { value: s1.proc.peoplePerInstance, unit: 'FTE', description: 'Average number of staff involved per instance.' },
+            staffHourlyRate: { value: mon(s1.proc.hourlyRate), unit: `${cur}/hour`, description: 'Fully-loaded hourly cost per person.' },
+            monthlyManualCost: { value: mon(r.monthlyManualCost), unit: `${cur}/month`, description: 'Total monthly labor cost of the manual process today.' },
+            automatedVolumeSharePct: { value: s1.fin.coverage, unit: '%', description: 'Share of total volume automated at full scale.' },
+            capturedValuePct: { value: s1.fin.capturedValue, unit: '%', description: 'Share of theoretical labor savings actually realized (accounts for redeployment friction).' },
+            analysisHorizonYears: { value: s1.fin.horizon, unit: 'years' },
+            discountRatePct: { value: s1.fin.discountRate, unit: '%', description: 'Annual discount rate for NPV calculation.' },
+          },
+          results: {
+            _note: `All monetary values in ${cur}.`,
+            monthlyManualBaseline: { value: mon(r.monthlyManualCost), unit: `${cur}/month`, description: 'Current monthly cost of the manual process.' },
+            monthlySteadyStateSavings: { value: mon(r.monthlySavings), unit: `${cur}/month`, description: 'Net monthly benefit once fully rolled out.' },
+            monthlyRunCost: { value: mon(r.monthlyRunCost), unit: `${cur}/month`, description: 'Monthly automation operating cost at steady state.' },
+            paybackMonths: { value: Number.isFinite(r.payback) ? r.payback : null, unit: 'months', description: 'Months to recover implementation cost from savings.' },
+            npv: { value: mon(r.npv), unit: cur, description: `Net present value over ${s1.fin.horizon} years.` },
+            netBenefit3yr: { value: mon(r.netBenefit3yr), unit: cur, description: 'Cumulative net benefit over 3 years minus implementation cost.' },
+            scenarios: [
+              {
+                name: 'Conservative',
+                _description: 'Pessimistic assumptions: higher costs, lower coverage, more human review. Width driven by confidence settings.',
+                paybackMonths: Number.isFinite(s1.conservative.payback) ? s1.conservative.payback : null,
+                npv: mon(s1.conservative.npv),
+                monthlySavings: mon(s1.conservative.monthlySavings),
+              },
+              {
+                name: 'Base',
+                _description: 'Your entered values, no adjustment.',
+                paybackMonths: Number.isFinite(r.payback) ? r.payback : null,
+                npv: mon(r.npv),
+                monthlySavings: mon(r.monthlySavings),
+              },
+              {
+                name: 'Upside',
+                _description: 'Optimistic assumptions: lower costs, higher coverage, less rework.',
+                paybackMonths: Number.isFinite(s1.upside.payback) ? s1.upside.payback : null,
+                npv: mon(s1.upside.npv),
+                monthlySavings: mon(s1.upside.monthlySavings),
+              },
+            ],
+          },
+        };
+      }
+
+      if (s2) {
+        const recommended = s2.ranked.filter(p => isRecommended(p.badge));
+        out.processPrioritization = {
+          _description: 'Step 2 output: candidate processes scored and ranked by composite value + feasibility + agentic fit. Use this to decide which process to automate first.',
+          implCostPerWeek: { value: mon(s2.implCostPerWeek), unit: `${cur}/week`, description: 'Weekly implementation cost used to calculate per-process payback.' },
+          summary: {
+            totalProcesses: s2.ranked.length,
+            recommendedForAutomation: recommended.length,
+            _note: 'Recommended = badge is Automate First, Strategic Bet, or Quick Win.',
+          },
+          processes: s2.ranked.map(p => ({
+            name: p.name,
+            recommendation: {
+              badge: p.badge.label,
+              compositeScore: Math.round(p.compositeScore),
+              _description: 'compositeScore is 0–100: higher = stronger case for agentic automation.',
+            },
+            scores: {
+              value: Math.round(p.valueScore),
+              feasibility: Math.round(p.feasibilityScore),
+              agenticFit: Math.round(p.agenticFitScore),
+              _note: 'value = ROI potential, feasibility = data/integration readiness, agenticFit = degree to which AI reasoning is needed vs. deterministic rules.',
+            },
+            economics: {
+              monthlyVolume: { value: p.volume, unit: 'instances/month' },
+              manualHoursPerInstance: { value: p.manualHours, unit: 'hours' },
+              staffHourlyRate: { value: mon(p.hourlyRate), unit: `${cur}/hour` },
+              monthlyManualCost: { value: mon(p.monthlyManualCost), unit: `${cur}/month`, description: 'Current monthly labor cost for this process.' },
+              monthlyPotentialSavings: { value: mon(p.monthlySavings), unit: `${cur}/month`, description: 'Estimated monthly saving after automation.' },
+              estimatedBuildWeeks: { value: p.effortWeeks, unit: 'weeks' },
+              paybackMonths: { value: Number.isFinite(p.payback) && p.payback !== Infinity ? Math.ceil(p.payback) : null, unit: 'months' },
+            },
+          })),
+        };
+      }
+
+      if (s3) {
+        const sorted = [...s3.rows].sort((a, b) => a.monthlyCost - b.monthlyCost);
+        const withinBudget = s3.budget > 0 ? sorted.filter(r => r.monthlyCost <= s3.budget) : sorted;
+        const bestFit = withinBudget.length ? [...withinBudget].sort((a, b) => b.fitScore - a.fitScore)[0] : null;
+        out.modelCostFit = {
+          _description: 'Step 3 output: LLM cost comparison across models for a given monthly volume and token profile. Use this to select the most cost-effective model that meets quality and operational requirements.',
+          scenario: {
+            monthlyInstances: { value: s3.instances, unit: 'instances/month' },
+            monthlyBudget: { value: s3.budget > 0 ? mon(s3.budget) : null, unit: cur, description: 'Budget constraint for monthly AI running cost. Null means no budget was set.' },
+            manualCostBaseline: { value: s3.manualCost > 0 ? mon(s3.manualCost) : null, unit: `${cur}/month`, description: 'Monthly cost of the manual process being replaced, for break-even comparison.' },
+          },
+          tokenProfile: {
+            _description: 'Token usage per agent run. Determines per-instance cost for each model.',
+            inputTokensPerRun: { value: s3.ps.inputTokens, unit: 'tokens', description: 'Input tokens per tool call (context, instructions, data).' },
+            outputTokensPerRun: { value: s3.ps.outputTokens, unit: 'tokens', description: 'Output tokens per tool call (model response).' },
+            toolCallsPerInstance: { value: s3.ps.tools, unit: 'calls', description: 'Number of tool/function calls per process instance.' },
+            totalInputTokensPerInstance: { value: s3.ps.inputTokens * s3.ps.tools + s3.ps.inputTokens * (s3.ps.tools - 1) / 2 * s3.ps.outputTokens, unit: 'tokens', description: 'Total input tokens including accumulated context across tool calls.' },
+          },
+          bestFitModel: bestFit ? { name: bestFit.name, fitScore: bestFit.fitScore, monthlyCost: mon(bestFit.monthlyCost), unit: `${cur}/month`, _note: 'Highest fit score among models within budget (or overall if no budget set).' } : null,
+          models: sorted.map(r => ({
+            name: r.name,
+            monthlyCost: { value: mon(r.monthlyCost), unit: `${cur}/month` },
+            costPerInstance: { value: +(r.monthlyCost / (s3.instances || 1) * rate).toFixed(4), unit: cur },
+            withinBudget: s3.budget > 0 ? r.monthlyCost <= s3.budget : null,
+            budgetUsagePct: s3.budget > 0 ? Math.round(r.monthlyCost / s3.budget * 100) : null,
+            fitScore: { value: r.fitScore, description: '0–100 composite: cost compliance + quality tier + operational reliability.' },
+            fitBreakdown: {
+              compliance: r.fitCompliance,
+              quality: r.fitQuality,
+              ops: r.fitOps,
+            },
+          })),
+        };
+      }
+
+      const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'agentic-assessment.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    document.getElementById('contactSalesBtn').addEventListener('click', () => {
+      document.getElementById('contactSection').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    /* ===== Reset all steps ===== */
+    function openResetModal()  { document.getElementById('resetBackdrop').classList.add('open'); document.getElementById('resetConfirm').focus(); }
+    function closeResetModal() { document.getElementById('resetBackdrop').classList.remove('open'); }
+    document.getElementById('resetBtn').addEventListener('click', openResetModal);
+    document.getElementById('resetClose').addEventListener('click', closeResetModal);
+    document.getElementById('resetBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeResetModal(); });
+    document.getElementById('resetConfirm').addEventListener('click', () => {
+      localStorage.removeItem('camunda-project-calc');
+      localStorage.removeItem('camunda-process-calc');
+      localStorage.removeItem('camunda-cost-calc');
+      closeResetModal();
+      render();
+    });
+
+    /* ===== Contact form ===== */
+    document.getElementById('contactForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name    = document.getElementById('contactName').value.trim();
+      const company = document.getElementById('contactCompany').value.trim();
+      const email   = document.getElementById('contactEmail').value.trim();
+      const message = document.getElementById('contactMessage').value.trim();
+      const subject = encodeURIComponent(`[Agentic Decision Framework] Inquiry${company ? ': ' + company : ''}`);
+      const body = encodeURIComponent(
+        [
+          name    ? `Name: ${name}`    : '',
+          company ? `Company: ${company}` : '',
+          email   ? `Reply to: ${email}`  : '',
+          '',
+          message || 'I would like to discuss next steps for implementing agentic orchestration.',
+        ].filter(Boolean).join('\n')
+      );
+      window.location.href = `mailto:sales@consid.com?subject=${subject}&body=${body}`;
+    });
+
+    /* ===== Theme ===== */
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+      document.documentElement.dataset.theme = next;
+      try { const g = JSON.parse(localStorage.getItem('camunda-global')) || {}; g.theme = next; localStorage.setItem('camunda-global', JSON.stringify(g)); } catch (_) {}
+      render();
+    });
+
+    /* ===== Nav drawer ===== */
+    (function () {
+      const navDrawer   = document.getElementById('navDrawer');
+      const navBackdrop = document.getElementById('navBackdrop');
+      function openNav()  { navDrawer.classList.add('open'); navBackdrop.classList.add('open'); const f = navDrawer.querySelector('.nav-close, .nav-item'); if (f) f.focus(); }
+      function closeNav() { navDrawer.classList.remove('open'); navBackdrop.classList.remove('open'); document.getElementById('navBtn').focus(); }
+      document.getElementById('navBtn').addEventListener('click', openNav);
+      document.getElementById('navClose').addEventListener('click', closeNav);
+      navBackdrop.addEventListener('click', closeNav);
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          if (document.getElementById('resetBackdrop').classList.contains('open')) { closeResetModal(); return; }
+          closeNav();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

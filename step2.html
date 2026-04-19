@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Process Prioritization — Agentic Orchestration</title>
+  <meta name="description" content="Score and rank candidate processes for agentic automation by value and feasibility. Identify where to start.">
+  <title>Process Prioritization · Agentic Decision Framework</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="style.css">
   <script>!function(){try{var g=JSON.parse(localStorage.getItem("camunda-global"));if(g&&g.theme)document.documentElement.dataset.theme=g.theme}catch(e){}}();</script>
   <style>
@@ -13,6 +15,7 @@
       gap: 1.5rem; align-items: start;
       @media (max-width: 860px) { grid-template-columns: 1fr; }
     }
+    main > .page-title { grid-column: 1 / -1; }
     .processes-column {
       display: flex; flex-direction: column; gap: 0.75rem;
       max-height: calc(100dvh - 6rem); overflow-y: auto; padding-right: 0.25rem;
@@ -20,6 +23,24 @@
     }
     .results-column { display: flex; flex-direction: column; gap: 1rem; }
     #processList { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    /* --- Handover tile --- */
+    .handover-tile { padding: 1rem 1.25rem; }
+    .handover-title {
+      font-size: 0.7rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.65rem;
+    }
+    .handover-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    .handover-label {
+      font-size: 0.72rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.25rem;
+    }
+    .handover-value {
+      font-size: 1.15rem; font-weight: 700; color: var(--text);
+      letter-spacing: -0.01em; margin-bottom: 0.25rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .handover-note { font-size: 0.72rem; color: var(--muted); line-height: 1.45; }
 
     /* ===== Section label ===== */
     .section-label {
@@ -40,14 +61,14 @@
 
     /* ===== Process panels ===== */
     .process-panel { position: relative; }
-    .process-header { display: flex; align-items: center; gap: 0.6rem; }
+    .process-header { display: flex; align-items: flex-start; gap: 0.6rem; }
     .proc-collapse-btn {
       background: none; border: none; color: var(--muted); cursor: pointer;
-      padding: 0.15rem; display: flex; align-items: center; transition: transform 0.2s;
+      padding: 0.15rem; margin-top: 0.3rem; display: flex; align-items: center; transition: transform 0.2s;
     }
     .proc-collapse-btn svg { width: 16px; height: 16px; }
     .process-panel.collapsed .proc-collapse-btn { transform: rotate(-90deg); }
-    .color-picker-wrap { position: relative; flex-shrink: 0; }
+    .color-picker-wrap { position: relative; flex-shrink: 0; margin-top: 0.3rem; }
     .color-dot {
       width: 20px; height: 20px; border-radius: 50%;
       border: 2px solid var(--border); cursor: pointer; transition: border-color 0.15s;
@@ -75,14 +96,14 @@
     }
     .hex-row input:focus { border-color: var(--accent); }
     .process-name {
-      flex: 1; background: transparent; border: 1px solid var(--input-border);
+      width: 100%; background: transparent; border: 1px solid var(--input-border);
       border-radius: 6px; padding: 0.35rem 0.6rem; color: var(--text);
       font-size: 0.875rem; font-weight: 600; outline: none;
     }
     .process-name:focus { border-color: var(--accent); }
     .proc-remove-btn {
       background: none; border: none; color: var(--muted); cursor: pointer;
-      font-size: 1.1rem; padding: 0.2rem 0.4rem; border-radius: 4px; line-height: 1;
+      font-size: 1.1rem; padding: 0.2rem 0.4rem; border-radius: 4px; line-height: 1; margin-top: 0.2rem;
     }
     .proc-remove-btn:hover { color: var(--text); background: var(--hover-bg); }
     .process-body {
@@ -92,25 +113,17 @@
     .process-body-inner { overflow: hidden; }
     .process-panel.collapsed .process-body { grid-template-rows: 0fr; margin-top: 0; }
 
-    /* ===== Slider subsections ===== */
-    .slider-subsection {
-      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.07em; color: var(--muted); opacity: 0.65;
-      margin: 0.9rem 0 0.35rem; padding-top: 0.65rem; border-top: 1px solid var(--border);
-    }
-    .slider-subsection:first-child { margin-top: 0; border-top: none; padding-top: 0; }
-
     /* ===== Add process button ===== */
     .add-process-btn {
       display: flex; align-items: center; justify-content: center; gap: 0.5rem;
       width: 100%; padding: 0.75rem;
-      background: rgba(252, 93, 13, 0.08);
-      border: 1px dashed rgba(252, 93, 13, 0.3); border-radius: 12px;
+      background: rgba(var(--accent-rgb), 0.08);
+      border: 1px dashed rgba(var(--accent-rgb), 0.3); border-radius: 12px;
       color: var(--accent); font-size: 0.875rem; font-weight: 600;
       cursor: pointer; transition: background 0.15s, border-color 0.15s;
     }
     .add-process-btn:hover {
-      background: rgba(252, 93, 13, 0.14); border-color: rgba(252, 93, 13, 0.55);
+      background: rgba(var(--accent-rgb), 0.14); border-color: rgba(var(--accent-rgb), 0.55);
     }
 
     /* ===== Summary cards row ===== */
@@ -134,23 +147,12 @@
       vertical-align: middle; font-variant-numeric: tabular-nums;
     }
     .priority-table tr:last-child td { border-bottom: none; }
+    .priority-table tbody tr:nth-child(even) td { background: rgba(0,0,0,0.025); }
+    [data-theme="dark"] .priority-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.025); }
     .pt-rank { font-weight: 700; color: var(--muted); width: 2rem; }
     .pt-name { font-weight: 600; color: var(--text); }
     .pt-muted { color: var(--muted); }
     .pt-score { font-weight: 700; color: var(--text); }
-
-    /* ===== Inline badge in table ===== */
-    .proc-badge {
-      display: inline-flex; align-items: center;
-      padding: 0.2rem 0.55rem; border-radius: 999px; border: 1px solid;
-      font-size: 0.68rem; font-weight: 700; white-space: nowrap;
-    }
-    .badge-automate     { background: rgba(34,197,94,0.12);  color: #22c55e; border-color: rgba(34,197,94,0.3); }
-    .badge-quickwin     { background: rgba(20,184,166,0.12); color: #14b8a6; border-color: rgba(20,184,166,0.3); }
-    .badge-strategic    { background: rgba(99,102,241,0.12); color: #818cf8; border-color: rgba(99,102,241,0.3); }
-    .badge-pilot        { background: rgba(245,158,11,0.12); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
-    .badge-defer        { background: rgba(107,114,128,0.12); color: #9ca3af; border-color: rgba(107,114,128,0.3); }
-    .badge-traditional  { background: rgba(249,115,22,0.12); color: #f97316; border-color: rgba(249,115,22,0.3); }
 
     /* ===== Chart panels ===== */
     .chart-panel-header {
@@ -172,6 +174,29 @@
     /* ===== Empty state ===== */
     .empty-state { padding: 2.5rem 1.5rem; text-align: center; }
     .empty-state p { color: var(--muted); font-size: 0.9rem; }
+
+    /* ===== Badge tooltip ===== */
+    .proc-badge[data-tip] { position: relative; cursor: default; }
+    .proc-badge[data-tip]::after {
+      content: attr(data-tip);
+      position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-size: 0.72rem; font-weight: 400; line-height: 1.45;
+      padding: 0.4rem 0.65rem; border-radius: 7px; white-space: normal; width: 220px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      pointer-events: none; opacity: 0; transition: opacity 0.15s;
+      z-index: 30;
+    }
+    .proc-badge[data-tip]:hover::after { opacity: 1; }
+
+    /* ===== Collapsed process summary ===== */
+    .proc-name-wrap { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; min-width: 0; }
+    .proc-collapsed-summary {
+      display: none; font-size: 0.7rem; color: var(--muted);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      padding-left: 0.1rem;
+    }
+    .process-panel.collapsed .proc-collapsed-summary { display: block; }
   </style>
 </head>
 <body>
@@ -179,7 +204,7 @@
   <div class="nav-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="navDrawer" aria-label="Site navigation">
     <div class="nav-drawer-header">
-      <span class="nav-logo">Agentic Orchestration Calculators</span>
+      <span class="nav-logo">Agentic Decision Framework</span>
       <button class="nav-close" id="navClose" aria-label="Close navigation">&times;</button>
     </div>
     <a href="index.html" class="nav-item">
@@ -187,24 +212,29 @@
       Home
     </a>
     <div class="nav-divider"></div>
-    <div class="nav-section-title">Calculators</div>
+    <div class="nav-section-title">Tools</div>
     <a href="step1.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Business Case
+      1. Business Case
     </a>
     <a href="step2.html" class="nav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      Process Prioritization
+      2. Process Prioritization
     </a>
     <a href="step3.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Model Cost &amp; Fit
+      3. Model Cost &amp; Fit
+    </a>
+    <a href="summary.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      4. Summary
     </a>
     <div class="nav-divider"></div>
     <a href="about.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       About
     </a>
+    <div class="nav-version">v1.0</div>
   </nav>
 
   <header>
@@ -213,75 +243,69 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <div class="header-copy">
-        <h1>Process Prioritization</h1>
-        <p>Step 2 — Which processes to automate, and in what order?</p>
+        <h1><a href="index.html">Agentic Decision Framework</a></h1>
       </div>
     </div>
     <div class="header-actions">
       <div class="header-currency usd-active" id="currencyWrap">
         <button id="btnUSD" aria-pressed="true">USD</button>
         <button id="btnEUR" aria-pressed="false">EUR</button>
-        <span class="rate-field" id="currencyRateWrap">1 USD = <input type="text" id="rateInput" value="0.92" size="5"> EUR</span>
+        <span class="rate-field" id="currencyRateWrap">1 USD = <input type="text" id="rateInput" value="0.85" size="5"> EUR</span>
       </div>
-      <button class="icon-btn share" id="shareBtn" title="Copy share link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-      </button>
       <button class="icon-btn reset" id="resetBtn" title="Reset all inputs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
       </button>
-      <button class="icon-btn theme" id="themeBtn" title="Toggle light/dark mode">
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <button class="icon-btn theme" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">
         <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
     </div>
   </header>
 
-  <nav class="step-bar" aria-label="Step progress">
-    <a href="step1.html" class="step-bar-item">
-      <span class="step-bar-num">1</span>
-      <span class="step-bar-label">Business Case</span>
-    </a>
-    <span class="step-bar-sep" aria-hidden="true">›</span>
-    <a href="step2.html" class="step-bar-item active" aria-current="step">
-      <span class="step-bar-num">2</span>
-      <span class="step-bar-label">Prioritization</span>
-    </a>
-    <span class="step-bar-sep data-link" aria-hidden="true">›</span>
-    <a href="step3.html" class="step-bar-item" id="navToStep3" title="Top-ranked process inputs carry over">
-      <span class="step-bar-num">3</span>
-      <span class="step-bar-label">Model Cost &amp; Fit</span>
-    </a>
-  </nav>
-
-  <div class="step-nav">
-    <a href="step1.html" class="step-nav-btn secondary">← Business Case</a>
-    <div class="step-nav-forward">
-      <a href="step3.html" class="step-nav-btn primary" id="navToStep3Btn">Continue to Step 3 →</a>
-    </div>
+  <div class="page-toolbar">
+    <a href="step1.html" class="step-nav-btn secondary">← Step 1: Business Case</a>
+    <nav class="step-bar" aria-label="Step progress">
+      <a href="step1.html" class="step-bar-item">
+        <span class="step-bar-num">1</span>
+        <span class="step-bar-label">Business Case</span>
+      </a>
+      <span class="step-bar-sep" aria-hidden="true">›</span>
+      <a href="step2.html" class="step-bar-item active" aria-current="step">
+        <span class="step-bar-num">2</span>
+        <span class="step-bar-label">Prioritization</span>
+      </a>
+      <span class="step-bar-sep data-link" aria-hidden="true">›</span>
+      <a href="step3.html" class="step-bar-item" id="navToStep3" title="Top-ranked process inputs carry over">
+        <span class="step-bar-num">3</span>
+        <span class="step-bar-label">Model Cost &amp; Fit</span>
+      </a>
+      <span class="step-bar-sep" aria-hidden="true">›</span>
+      <a href="summary.html" class="step-bar-item">
+        <span class="step-bar-num">4</span>
+        <span class="step-bar-label">Summary</span>
+      </a>
+    </nav>
+    <a href="step3.html" class="step-nav-btn primary" id="navToStep3Btn">Continue to Step 3 →</a>
   </div>
 
   <main>
+    <div class="page-title">
+      <h2><span class="page-title-num">2</span>Process Prioritization</h2>
+      <p>Which processes to automate, and in what order? Score and rank candidates by value and feasibility.</p>
+    </div>
     <!-- ===== Left: process list ===== -->
     <div class="processes-column">
 
-      <!-- Global setting -->
-      <div class="panel settings-panel" id="globalPanel">
-        <div class="settings-header">
-          <button class="settings-collapse-btn" id="globalCollapseBtn" title="Collapse">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="settings-title">Global Assumptions</div>
-        </div>
-        <div class="settings-body"><div class="settings-body-inner">
-          <div class="slider-group">
-            <div class="slider-header">
-              <label for="implCostSlider">Implementation cost / week</label>
-              <output id="implCostDisplay">$5,000</output>
-            </div>
-            <input type="range" tabindex="0" id="implCostSlider" min="1000" max="20000" step="500" value="5000">
-            <p class="input-note">Loaded weekly team cost to convert effort into implementation cost.</p>
+      <!-- Handover from Step 1 -->
+      <div class="panel handover-tile">
+        <div class="handover-title">Scenario from Step 1</div>
+        <div class="handover-grid">
+          <div class="handover-item">
+            <div class="handover-label">Implementation cost / week</div>
+            <div class="handover-value" id="implCostDisplay">—</div>
+            <div class="handover-note">FTE × daily rate × 5 days. Used to convert each process's effort into a total build cost.</div>
           </div>
-        </div></div>
+        </div>
       </div>
 
       <div class="section-label">
@@ -306,19 +330,19 @@
       <!-- Summary cards -->
       <div class="summary-row" id="summaryRow">
         <div class="summary-card">
-          <div class="card-label">Monthly savings (recommended)</div>
-          <div class="card-value" id="cardTotalSavings">—</div>
-          <div class="card-sub">processes rated Automate First, Quick Win, or Strategic Bet</div>
-        </div>
-        <div class="summary-card">
-          <div class="card-label">Total effort (recommended)</div>
-          <div class="card-value" id="cardTotalEffort">—</div>
-          <div class="card-sub">weeks of implementation work</div>
-        </div>
-        <div class="summary-card">
-          <div class="card-label">Processes recommended</div>
+          <div class="card-label">Worth pursuing</div>
           <div class="card-value" id="cardRecommended">—</div>
-          <div class="card-sub" id="cardRecommendedSub">of — entered</div>
+          <div class="card-sub" id="cardRecommendedSub">of — total processes</div>
+        </div>
+        <div class="summary-card">
+          <div class="card-label">Monthly savings</div>
+          <div class="card-value" id="cardTotalSavings">—</div>
+          <div class="card-sub">From processes worth pursuing</div>
+        </div>
+        <div class="summary-card">
+          <div class="card-label">Total effort</div>
+          <div class="card-value" id="cardTotalEffort">—</div>
+          <div class="card-sub">Weeks of build work for those processes</div>
         </div>
       </div>
 
@@ -336,7 +360,7 @@
       <div class="panel" style="padding: 0;">
         <div class="chart-panel-header">
           <span>Value vs Feasibility Matrix</span>
-          <span class="chart-label">Each point is one process. Quadrant = recommended action.</span>
+          <span class="chart-label">Each point is one process. Its quadrant tells you what to do with it.</span>
         </div>
         <div class="chart-container" style="padding: 0 1rem 1rem; display: flex; justify-content: center;">
           <canvas id="matrixChart"></canvas>
@@ -356,6 +380,10 @@
 
     </div>
   </main>
+
+  <footer class="site-footer no-print">
+    <p class="site-footer-text">Made by <a href="https://www.consid.com" target="_blank" rel="noopener" class="site-footer-logo" aria-label="Consid"></a></p><p class="site-footer-meta">&copy; 2026 Consid AB</p>
+  </footer>
 
   <!-- Step 2 → Step 3 handoff modal -->
   <div class="handoff-backdrop" id="s2s3Backdrop" role="dialog" aria-modal="true" aria-labelledby="s2s3ModalTitle">
@@ -387,19 +415,14 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script>
     /* ===== Constants ===== */
     const STORAGE_KEY   = 'camunda-process-calc';
     const CHEVRON       = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
-    const COLORS        = ['#FC5D0D','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#EF4444','#84CC16','#F97316'];
+    const COLORS        = ['#B5223F','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#EF4444','#84CC16','#F97316'];
     const SWATCH_COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
 
-    const DEFAULT_PROCESSES = [
-      { color: '#FC5D0D', name: 'Support Ticket Triage', volume: 2000, manualMinutes: 15, hourlyRate: 55, monthlyErrorCost: 1200, effortWeeks: 6,  strategicPriority: 4, readiness: 'high',   automationState: 'none',    decisionStructure: 'mixed',     inputType: 'semi',         pathVariability: 'branching', changeFrequency: 'stable'    },
-      { color: '#3B82F6', name: 'Invoice Processing',    volume: 800,  manualMinutes: 25, hourlyRate: 60, monthlyErrorCost: 800,  effortWeeks: 10, strategicPriority: 3, readiness: 'medium', automationState: 'partial',  decisionStructure: 'mixed',     inputType: 'semi',         pathVariability: 'branching', changeFrequency: 'quarterly' },
-      { color: '#10B981', name: 'Customer Onboarding',   volume: 300,  manualMinutes: 45, hourlyRate: 70, monthlyErrorCost: 400,  effortWeeks: 16, strategicPriority: 5, readiness: 'low',    automationState: 'bpm',      decisionStructure: 'reasoning', inputType: 'unstructured', pathVariability: 'dynamic',   changeFrequency: 'stable'    },
-    ];
     const READINESS_FEASIBILITY  = { high: 80, medium: 50, low: 20 };
     const DECISION_SCORES        = { deterministic: 20, mixed: 55, reasoning: 85 };
     const INPUT_SCORES           = { structured: 20, semi: 55, unstructured: 85 };
@@ -410,9 +433,9 @@
 
     /* ===== State ===== */
     let processes        = [];
-    let implCostPerWeek  = 5000;
+    let implCostPerWeek  = 500;
     let currency         = 'USD';
-    let eurRate          = 0.92;
+    let eurRate          = 0.85;
     let nextId           = 0;
     let matrixChart      = null;
     let savingsChart     = null;
@@ -424,13 +447,21 @@
       const monthlyErrorCost = typeof p.monthlyErrorCost === 'number'
         ? p.monthlyErrorCost
         : Math.round((p.volume || 0) * ((p.errorRate || 0) / 100) * (p.errorCost || 0));
+      // Legacy minutes → hours
+      const manualHours = Number.isFinite(p.manualHours)
+        ? p.manualHours
+        : Number.isFinite(p.manualMinutes)
+        ? Math.max(0.5, Math.round(p.manualMinutes / 60 * 2) / 2)
+        : 0.5;
       let readiness = p.readiness;
       if (!readiness && (p.dataAvailability || p.processStability || p.complianceRisk)) {
         const avg = ((p.dataAvailability || 3) + (p.processStability || 3) + (6 - (p.complianceRisk || 2))) / 3;
         readiness = avg >= 3.5 ? 'high' : avg >= 2.5 ? 'medium' : 'low';
       }
+      const { manualMinutes: _legacyMin, ...rest } = p;
       return {
-        color: COLORS[i % COLORS.length], ...p,
+        color: COLORS[i % COLORS.length], ...rest,
+        manualHours,
         monthlyErrorCost,
         readiness:         readiness || 'medium',
         automationState:   p.automationState   || 'none',
@@ -454,7 +485,7 @@
       try {
         const d = JSON.parse(atob(hash));
         if (!d?.pr?.length) return null;
-        return { processes: d.pr, implCostPerWeek: d.ic || 5000, currency: d.cur || 'USD', eurRate: d.rate || 0.92 };
+        return { processes: d.pr, implCostPerWeek: d.ic || 500, currency: d.cur || 'USD', eurRate: d.rate || 0.92 };
       } catch { return null; }
     }
 
@@ -472,7 +503,7 @@
 
     /* ===== Scoring ===== */
     function scoreProcess(p) {
-      const monthlyManualCost  = p.volume * (p.manualMinutes / 60) * p.hourlyRate;
+      const monthlyManualCost  = p.volume * p.manualHours * p.hourlyRate;
       // Incremental factor: only the savings not already captured by existing automation
       const incrementalFactor  = 1 - (AUTOMATION_OVERLAP[p.automationState] ?? 0);
       const monthlySavings     = (monthlyManualCost + (p.monthlyErrorCost || 0)) * incrementalFactor;
@@ -501,6 +532,15 @@
 
       return { monthlyManualCost, monthlySavings, implementationCost, paybackMonths, netBenefit3yr, valueScore, feasibilityScore, agenticFitScore, compositeScore };
     }
+
+    const BADGE_TIPS = {
+      'Traditional First': 'Deterministic process. Standard BPM or RPA is a better fit than agents.',
+      'Automate First':    'High value, high feasibility, strong agentic fit. Prioritize this.',
+      'Strategic Bet':     'High value but harder to automate. Worth the effort, plan carefully.',
+      'Quick Win':         'Easy to implement, lower strategic value. Good for early momentum.',
+      'Pilot':             'Uncertain fit. Run a small pilot before committing resources.',
+      'Defer':             'Low value and low feasibility. Deprioritize for now.',
+    };
 
     function getBadge(valueScore, feasibilityScore, agenticFitScore, compositeScore) {
       // Low agentic fit on an otherwise strong process → redirect to traditional automation
@@ -563,7 +603,10 @@
               <div class="hex-row"><span>#</span><input type="text" class="hex-input" value="${p.color.slice(1)}" maxlength="6" placeholder="FF5500"></div>
             </div>
           </div>
-          <input class="process-name" type="text" value="${p.name}" placeholder="Process name">
+          <div class="proc-name-wrap">
+            <input class="process-name" type="text" value="${p.name}" placeholder="Process name">
+            <span class="proc-collapsed-summary"></span>
+          </div>
           <button class="proc-remove-btn" title="Remove process">×</button>
         </div>
         <div class="process-body"><div class="process-body-inner">
@@ -571,11 +614,11 @@
           <div class="slider-group">
             <div class="slider-header"><label>Current automation state</label></div>
             <select class="s-automationState profile-select">
-              <option value="none"    ${p.automationState === 'none'    ? 'selected' : ''}>Not automated — full manual baseline</option>
-              <option value="partial" ${p.automationState === 'partial' ? 'selected' : ''}>Partially automated — rules or RPA cover ~40%</option>
-              <option value="bpm"     ${p.automationState === 'bpm'     ? 'selected' : ''}>On BPM platform — AI needed for ~30% judgment steps</option>
+              <option value="none"    ${p.automationState === 'none'    ? 'selected' : ''}>Not automated: full manual baseline</option>
+              <option value="partial" ${p.automationState === 'partial' ? 'selected' : ''}>Partially automated: rules or RPA cover ~40%</option>
+              <option value="bpm"     ${p.automationState === 'bpm'     ? 'selected' : ''}>On BPM platform: AI needed for ~30% judgment steps</option>
             </select>
-            <p class="input-note">Savings shown are incremental — only the value that agentic orchestration adds on top of current automation.</p>
+            <p class="input-note">Savings shown are incremental. Only the value that agentic orchestration adds on top of current automation.</p>
           </div>
 
           <div class="slider-group">
@@ -590,10 +633,10 @@
           <div class="slider-group">
             <div class="slider-header">
               <label>Manual time / instance</label>
-              <output class="mt-out">${p.manualMinutes} min</output>
+              <output class="mt-out">${p.manualHours.toFixed(1)}h</output>
             </div>
-            <input class="s-manualMinutes" type="range" tabindex="0" min="1" max="480" step="1" value="${p.manualMinutes}">
-            <p class="input-note">Minutes of human effort per run.</p>
+            <input class="s-manualHours" type="range" tabindex="0" min="0.5" max="8" step="0.5" value="${p.manualHours}">
+            <p class="input-note">Hours of human effort per run.</p>
           </div>
 
           <div class="slider-group">
@@ -635,9 +678,9 @@
           <div class="slider-group">
             <div class="slider-header"><label>Automation readiness</label></div>
             <select class="s-readiness profile-select">
-              <option value="high"  ${p.readiness === 'high'   ? 'selected' : ''}>High — data ready, stable process, low compliance risk</option>
-              <option value="medium"${p.readiness === 'medium' ? 'selected' : ''}>Medium — some gaps, moderate constraints</option>
-              <option value="low"   ${p.readiness === 'low'    ? 'selected' : ''}>Low — data work needed, volatile or high-risk</option>
+              <option value="high"  ${p.readiness === 'high'   ? 'selected' : ''}>High: data ready, stable process, low compliance risk</option>
+              <option value="medium"${p.readiness === 'medium' ? 'selected' : ''}>Medium: some gaps, moderate constraints</option>
+              <option value="low"   ${p.readiness === 'low'    ? 'selected' : ''}>Low: data work needed, volatile or high-risk</option>
             </select>
             <p class="input-note">Overall feasibility: data, stability, and compliance combined.</p>
           </div>
@@ -647,9 +690,9 @@
           <div class="slider-group">
             <div class="slider-header"><label>Decision structure</label></div>
             <select class="s-decisionStructure profile-select">
-              <option value="deterministic" ${p.decisionStructure === 'deterministic' ? 'selected' : ''}>Fully deterministic — rules cover all cases</option>
-              <option value="mixed"         ${p.decisionStructure === 'mixed'         ? 'selected' : ''}>Mixed — rules plus judgment calls</option>
-              <option value="reasoning"     ${p.decisionStructure === 'reasoning'     ? 'selected' : ''}>Primarily reasoning — judgment across ambiguous inputs</option>
+              <option value="deterministic" ${p.decisionStructure === 'deterministic' ? 'selected' : ''}>Fully deterministic: rules cover all cases</option>
+              <option value="mixed"         ${p.decisionStructure === 'mixed'         ? 'selected' : ''}>Mixed: rules plus judgment calls</option>
+              <option value="reasoning"     ${p.decisionStructure === 'reasoning'     ? 'selected' : ''}>Primarily reasoning: judgment across ambiguous inputs</option>
             </select>
             <p class="input-note">How much of this process needs AI reasoning vs. executable rules. Deterministic processes are better served by BPM or RPA.</p>
           </div>
@@ -657,9 +700,9 @@
           <div class="slider-group">
             <div class="slider-header"><label>Input type</label></div>
             <select class="s-inputType profile-select">
-              <option value="structured"   ${p.inputType === 'structured'   ? 'selected' : ''}>Structured — forms, databases, clean fields</option>
-              <option value="semi"         ${p.inputType === 'semi'         ? 'selected' : ''}>Semi-structured — forms plus text, PDFs, or emails</option>
-              <option value="unstructured" ${p.inputType === 'unstructured' ? 'selected' : ''}>Unstructured — freeform text, documents, conversations</option>
+              <option value="structured"   ${p.inputType === 'structured'   ? 'selected' : ''}>Structured: forms, databases, clean fields</option>
+              <option value="semi"         ${p.inputType === 'semi'         ? 'selected' : ''}>Semi-structured: forms plus text, PDFs, or emails</option>
+              <option value="unstructured" ${p.inputType === 'unstructured' ? 'selected' : ''}>Unstructured: freeform text, documents, conversations</option>
             </select>
             <p class="input-note">Whether inputs require AI to extract meaning, or can be accessed as direct structured fields.</p>
           </div>
@@ -667,9 +710,9 @@
           <div class="slider-group">
             <div class="slider-header"><label>Path variability</label></div>
             <select class="s-pathVariability profile-select">
-              <option value="fixed"     ${p.pathVariability === 'fixed'     ? 'selected' : ''}>Fixed sequence — same steps every time</option>
-              <option value="branching" ${p.pathVariability === 'branching' ? 'selected' : ''}>Branching — defined conditions with multiple paths</option>
-              <option value="dynamic"   ${p.pathVariability === 'dynamic'   ? 'selected' : ''}>Dynamic — agent decides next steps at runtime</option>
+              <option value="fixed"     ${p.pathVariability === 'fixed'     ? 'selected' : ''}>Fixed sequence: same steps every time</option>
+              <option value="branching" ${p.pathVariability === 'branching' ? 'selected' : ''}>Branching: defined conditions with multiple paths</option>
+              <option value="dynamic"   ${p.pathVariability === 'dynamic'   ? 'selected' : ''}>Dynamic: agent decides next steps at runtime</option>
             </select>
             <p class="input-note">Fixed and branching paths suit BPM/RPA. Dynamic paths are where agentic orchestration provides unique value.</p>
           </div>
@@ -679,9 +722,9 @@
           <div class="slider-group">
             <div class="slider-header"><label>Change frequency</label></div>
             <select class="s-changeFrequency profile-select">
-              <option value="stable"    ${p.changeFrequency === 'stable'    ? 'selected' : ''}>Stable — process logic rarely changes</option>
-              <option value="quarterly" ${p.changeFrequency === 'quarterly' ? 'selected' : ''}>Quarterly — occasional logic updates</option>
-              <option value="frequent"  ${p.changeFrequency === 'frequent'  ? 'selected' : ''}>Frequent — logic changes multiple times a year</option>
+              <option value="stable"    ${p.changeFrequency === 'stable'    ? 'selected' : ''}>Stable: process logic rarely changes</option>
+              <option value="quarterly" ${p.changeFrequency === 'quarterly' ? 'selected' : ''}>Quarterly: occasional logic updates</option>
+              <option value="frequent"  ${p.changeFrequency === 'frequent'  ? 'selected' : ''}>Frequent: logic changes multiple times a year</option>
             </select>
             <p class="input-note">Frequent changes raise agentic maintenance cost: prompt updates, re-testing, re-validation.</p>
           </div>
@@ -734,7 +777,7 @@
 
       // Sliders
       bindSlider(el, '.s-volume',            'vol-out',  id, 'volume',            v => `${Number(v).toLocaleString()}`);
-      bindSlider(el, '.s-manualMinutes',     'mt-out',   id, 'manualMinutes',     v => `${v} min`);
+      bindSlider(el, '.s-manualHours',       'mt-out',   id, 'manualHours',       v => `${(+v).toFixed(1)}h`);
       bindSlider(el, '.s-hourlyRate',        'hr-out',   id, 'hourlyRate',        v => fmtHourlyRate(v));
       bindSlider(el, '.s-monthlyErrorCost',  'ec-out',   id, 'monthlyErrorCost',  v => `${fmtMoney(v)}/mo`);
       bindSlider(el, '.s-effortWeeks',       'ew-out',   id, 'effortWeeks',       v => `${v} wk`);
@@ -816,6 +859,21 @@
       updatePriorityTable(ranked);
       updateMatrixChart(scored);
       updateSavingsChart(ranked);
+      updateCollapsedSummaries(scored);
+    }
+
+    function updateCollapsedSummaries(scored) {
+      const list = document.getElementById('processList');
+      list.querySelectorAll('.process-panel').forEach(panel => {
+        const id = panel.dataset.id;
+        const idx = processes.findIndex((_, i) => String(panelIds[i]) === id);
+        if (idx === -1) return;
+        const s = scored.find(x => x.origIdx === idx);
+        if (!s) return;
+        const span = panel.querySelector('.proc-collapsed-summary');
+        if (!span) return;
+        span.textContent = `${s.volume.toLocaleString()} inst/mo · Score ${Math.round(s.compositeScore)} · ${fmtMoney(s.monthlySavings)}/mo`;
+      });
     }
 
     function renderEmptyState() {
@@ -823,7 +881,7 @@
       document.getElementById('cardTotalSavings').textContent  = '—';
       document.getElementById('cardTotalEffort').textContent   = '—';
       document.getElementById('cardRecommended').textContent   = '—';
-      document.getElementById('cardRecommendedSub').textContent = 'of 0 entered';
+      document.getElementById('cardRecommendedSub').textContent = 'of 0 total processes';
     }
 
     /* ===== Summary cards ===== */
@@ -838,7 +896,7 @@
 
       document.getElementById('cardTotalEffort').textContent = totalEffort > 0 ? `${totalEffort} wk` : '—';
       document.getElementById('cardRecommended').textContent = recommended.length;
-      document.getElementById('cardRecommendedSub').textContent = `of ${ranked.length} entered`;
+      document.getElementById('cardRecommendedSub').textContent = `of ${ranked.length} total processes`;
     }
 
     /* ===== Priority table ===== */
@@ -849,13 +907,13 @@
       let rows = ranked.map((p, i) => `
         <tr>
           <td class="pt-rank">#${i + 1}</td>
-          <td class="pt-name"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color || '#FC5D0D'};margin-right:0.45rem;flex-shrink:0;vertical-align:middle"></span>${escHtml(p.name)}</td>
-          <td><span class="proc-badge ${p.badge.cls}">${p.badge.label}</span></td>
+          <td class="pt-name"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color || '#B5223F'};margin-right:0.45rem;flex-shrink:0;vertical-align:middle"></span>${escHtml(p.name)}</td>
+          <td><span class="proc-badge ${p.badge.cls}" data-tip="${BADGE_TIPS[p.badge.label] || ''}">${p.badge.label}</span></td>
           <td class="pt-muted">${fmtMoney(p.monthlySavings)}/mo${p.automationState !== 'none' ? ' <span style="font-size:0.65rem;opacity:0.65">(incr.)</span>' : ''}</td>
           <td class="pt-muted">${fmtPayback(p.paybackMonths)}</td>
           <td class="pt-score">
             ${Math.round(p.compositeScore)}
-            <div style="font-size:0.65rem;font-weight:400;color:var(--muted);line-height:1.2;white-space:nowrap">V ${Math.round(p.valueScore)} · F ${Math.round(p.feasibilityScore)} · A ${Math.round(p.agenticFitScore)}</div>
+            <div style="font-size:0.65rem;font-weight:400;color:var(--muted);line-height:1.2;white-space:nowrap">Value ${Math.round(p.valueScore)} · Feasibility ${Math.round(p.feasibilityScore)} · Agentic ${Math.round(p.agenticFitScore)}</div>
           </td>
         </tr>
       `).join('');
@@ -909,8 +967,8 @@
       const datasets = scored.map(p => ({
         label: p.name,
         data: [{ x: p.feasibilityScore, y: p.valueScore, agenticFit: p.agenticFitScore }],
-        backgroundColor: (p.color || '#FC5D0D') + 'cc',
-        borderColor: p.color || '#FC5D0D',
+        backgroundColor: (p.color || '#B5223F') + 'cc',
+        borderColor: p.color || '#B5223F',
         borderWidth: 1.5,
         pointRadius: 8,
         pointHoverRadius: 10,
@@ -1027,7 +1085,7 @@
     /* ===== Currency refresh ===== */
     function refreshCurrencyDisplays() {
       // Update global impl cost display
-      document.getElementById('implCostDisplay').textContent = fmtImplCost(Number(document.getElementById('implCostSlider').value));
+      document.getElementById('implCostDisplay').textContent = fmtImplCost(implCostPerWeek);
       // Update per-process currency-sensitive outputs
       document.querySelectorAll('.process-panel').forEach(panel => {
         const hrSlider = panel.querySelector('.s-hourlyRate');
@@ -1043,33 +1101,17 @@
       return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    /* ===== Global settings panel collapse ===== */
-    (function () {
-      const panel = document.getElementById('globalPanel');
-      document.getElementById('globalCollapseBtn').addEventListener('click', () => {
-        panel.classList.toggle('collapsed');
-      });
-    })();
-
-    /* ===== Impl cost slider ===== */
-    (function () {
-      const slider  = document.getElementById('implCostSlider');
-      const display = document.getElementById('implCostDisplay');
-      slider.value  = implCostPerWeek;
-      display.textContent = fmtImplCost(implCostPerWeek);
-      slider.addEventListener('input', () => {
-        implCostPerWeek = Number(slider.value);
-        display.textContent = fmtImplCost(implCostPerWeek);
-        saveState(); recalculate();
-      });
-    })();
+    /* ===== Impl cost display (handover tile) ===== */
+    function syncImplCostSlider() {
+      document.getElementById('implCostDisplay').textContent = fmtImplCost(implCostPerWeek);
+    }
 
     /* ===== Add process ===== */
     document.getElementById('addProcessBtn').addEventListener('click', () => {
       processes.push({
         color: COLORS[processes.length % COLORS.length],
         name: 'New Process',
-        volume: 500, manualMinutes: 20, hourlyRate: 60,
+        volume: 500, manualHours: 0.5, hourlyRate: 60,
         monthlyErrorCost: 0,
         effortWeeks: 8,
         strategicPriority: 3, readiness: 'medium',
@@ -1087,10 +1129,9 @@
 
     /* ===== Reset ===== */
     function doReset() {
-      processes = DEFAULT_PROCESSES.map(migrateProcess);
-      implCostPerWeek = 5000;
-      document.getElementById('implCostSlider').value = 5000;
-      document.getElementById('implCostDisplay').textContent = fmtImplCost(5000);
+      processes = [];
+      implCostPerWeek = 500;
+      syncImplCostSlider();
       saveState(); render();
     }
     function openResetModal() { document.getElementById('resetBackdrop').classList.add('open'); document.getElementById('resetConfirm').focus(); }
@@ -1120,20 +1161,13 @@
     rateInput.addEventListener('input', () => {
       const v = parseFloat(rateInput.value);
       if (v > 0 && isFinite(v)) { eurRate = v; saveState(); refreshCurrencyDisplays(); }
-      else rateInput.value = eurRate;
+    });
+    rateInput.addEventListener('blur', () => {
+      const v = parseFloat(rateInput.value);
+      if (!(v > 0 && isFinite(v))) rateInput.value = eurRate;
     });
 
     applyCurrency();
-
-    /* ===== Share button ===== */
-    document.getElementById('shareBtn').addEventListener('click', () => {
-      const url = location.origin + location.pathname + '#' + encodeState();
-      navigator.clipboard.writeText(url).then(() => {
-        const btn = document.getElementById('shareBtn');
-        btn.classList.add('copied');
-        setTimeout(() => btn.classList.remove('copied'), 1500);
-      });
-    });
 
     /* ===== Theme ===== */
     document.getElementById('themeBtn').addEventListener('click', () => {
@@ -1200,6 +1234,16 @@
       loadState();
     }
 
+    // Apply global currency preference before any saveState() call
+    try {
+      const g = JSON.parse(localStorage.getItem('camunda-global'));
+      if (g && (g.currency === 'USD' || g.currency === 'EUR')) {
+        currency = g.currency;
+        if (g.eurRate > 0) eurRate = g.eurRate;
+        applyCurrency();
+      }
+    } catch (_) {}
+
     /* ===== Step 1 → Step 2 handoff ===== */
     (function() {
       if (hasHashState) return;
@@ -1213,7 +1257,7 @@
         processes = list.map((p, i) => migrateProcess({
           name: p.processName || `Process ${i + 1}`,
           volume:            Math.max(1,   p.volume            || 500),
-          manualMinutes:     Math.max(1,   p.manualMinutes     || 20),
+          manualHours:       Math.max(0.5, p.manualHours ?? (Number.isFinite(p.manualMinutes) ? p.manualMinutes / 60 : 0.5)),
           hourlyRate:        Math.max(1,   p.hourlyRate        || 60),
           monthlyErrorCost:  Math.max(0,   p.monthlyErrorCost  || 0),
           effortWeeks:       Math.max(1,   p.effortWeeks       || 8),
@@ -1221,34 +1265,22 @@
           readiness: ['high', 'medium', 'low'].includes(p.readiness) ? p.readiness : 'medium',
         }, i));
         if (Number.isFinite(h.implCostPerWeek) && h.implCostPerWeek > 0) {
-          implCostPerWeek = Math.min(20000, Math.max(1000, h.implCostPerWeek));
+          implCostPerWeek = Math.min(300000, Math.max(500, h.implCostPerWeek));
         }
         saveState();
       } catch (_) { /* ignore */ }
     })();
 
-    // Apply global currency preference (most recently set across any step)
-    try {
-      const g = JSON.parse(localStorage.getItem('camunda-global'));
-      if (g && (g.currency === 'USD' || g.currency === 'EUR')) {
-        currency = g.currency;
-        if (g.eurRate > 0) eurRate = g.eurRate;
-        applyCurrency();
-      }
-    } catch (_) {}
-
-    // Seed defaults on first visit (no saved state, no handoff, no hash)
-    if (!processes.length) processes = DEFAULT_PROCESSES.map(migrateProcess);
-
+    syncImplCostSlider();
     render();
 
     /* ===== Step 2 → Step 3 handoff ===== */
     function complexityFor(p) {
-      return p.manualMinutes >= 60
-        ? { inputTokens: 1500, outputTokens: 700, tools: 8, label: 'Complex — 1500 in / 700 out / 8 tools' }
-        : p.manualMinutes >= 20
-        ? { inputTokens: 1000, outputTokens: 500, tools: 5, label: 'Medium — 1000 in / 500 out / 5 tools' }
-        : { inputTokens: 700,  outputTokens: 300, tools: 3, label: 'Simple — 700 in / 300 out / 3 tools' };
+      return p.manualHours >= 2
+        ? { inputTokens: 1500, outputTokens: 700, tools: 8, label: 'Complex: 1500 in / 700 out / 8 tools' }
+        : p.manualHours >= 1
+        ? { inputTokens: 1000, outputTokens: 500, tools: 5, label: 'Medium: 1000 in / 500 out / 5 tools' }
+        : { inputTokens: 700,  outputTokens: 300, tools: 3, label: 'Simple: 700 in / 300 out / 3 tools' };
     }
 
     function writeS2S3Handoff() {
