@@ -45,9 +45,10 @@ assets/
 
 ### Navigation Drawer
 - Hamburger button in header opens a left-side nav drawer (256px wide)
-- Drawer contains: Home link, section header "Calculators", links to steps 1–4, divider, About link
+- Drawer contains: Home link, section header "Tools", links to steps 1–4, divider, About link, version number at bottom
 - Each step link shows a numbered badge (1–4) before the label
 - Active page is highlighted
+- Version number shown subtly at the bottom of the drawer (`.nav-version`)
 - Backdrop overlay (semi-transparent) covers the rest of the page
 - Clicking backdrop or pressing Escape closes the drawer
 - Drawer and backdrop animate open/close (0.24s)
@@ -81,12 +82,13 @@ assets/
 - Responsive: labels hide ≤520px
 
 ### Footer
-- Right-aligned: "Made by [Consid logo]" linked to consid.com
+- Centered: "Made by [Consid logo]" linked to consid.com
+- Right-aligned: "© 2026 Consid AB" (absolutely positioned)
 - Logo swaps between black (`assets/logo-black.png`) and white (`assets/logo-white.png`) based on theme
-- Hidden on print
+- Hidden on print (`no-print` class on all pages)
 
 ### Page Title
-- Each calculator page has `<h2>` with a numbered red circle badge (1–4) + title + subtitle paragraph
+- Each tool page has `<h2>` with a numbered red circle badge (1–4) + title + subtitle paragraph
 - Compact spacing: minimal gap between title and first content panel
 
 ### Panels
@@ -99,7 +101,7 @@ assets/
 
 **As a CTO, I want a clear entry point that explains what the tool does and lets me start from any step.**
 
-- Hero section: eyebrow label, headline (`clamp(2.25rem, 5vw, 3.5rem)`), subheadline
+- Hero section: eyebrow "Agentic Decision Framework", headline "Size the opportunity / before you commit" (`clamp(2.25rem, 5vw, 3.5rem)`), subheadline, "About the project →" link on new line
 - Four cards in a responsive grid (3-col → 2-col → 1-col): one per step (Business Case, Prioritization, Model Cost & Fit, Summary)
 - Each card: large background number (decorative), title, one-line description, call-to-action link
 - Hover on card: lifts 2px, accent-tinted border glow
@@ -497,7 +499,7 @@ LLM-optimised structure:
 ```json
 {
   "_meta": {
-    "tool": "Agentic Orchestration Calculators",
+    "tool": "Agentic Decision Framework",
     "about": "...who built it and why...",
     "why": "...three core questions answered...",
     "purpose": "...suitable for further analysis...",
@@ -580,9 +582,9 @@ LLM-optimised structure:
 
 ### About Page (`about.html`)
 - Project description and four-step workflow summary
-- Author card: Stefan Schultz, Camunda Champion
-- Consid section with contact link to summary page
-- Legal disclaimer box: estimates only, not financial advice, not affiliated with Camunda
+- Consid section: company intro, Camunda Silver Partner badge (`assets/partner-black.png` / `assets/partner-white.png`, centered), partnership text, link to consid.com
+- Camunda section: Camunda logo (`assets/camunda-logo-black.png` / `assets/camunda-logo-white.png`), company description
+- Legal disclaimer box: estimates only, not financial advice, not affiliated with Camunda, built independently by Consid, AI-assisted build disclosure
 
 ---
 
@@ -601,7 +603,7 @@ LLM-optimised structure:
 | `camunda-step2-handoff` | step2→step3 | volume, cost, budget, token defaults |
 
 ### URL Hash Sharing
-- Each calculator encodes its full state as `btoa(JSON.stringify(state))` into the URL hash
+- Each tool encodes its full state as `btoa(JSON.stringify(state))` into the URL hash
 - On load: parse hash first; fall back to localStorage; fall back to defaults
 - Summary page shares all three steps' states combined
 
@@ -659,7 +661,8 @@ All defined in `style.css`:
 - `.proc-badge` — small coloured process recommendation badge
 - `.action-btn` / `.icon-btn` — button variants
 - `.nav-drawer` / `.nav-backdrop` — navigation overlay
-- `.site-footer` — footer with logo swap
+- `.nav-version` — version label pinned to bottom of nav drawer
+- `.site-footer` — footer with centered logo and right-aligned copyright
 - `.step-nav-btn` — previous/next navigation buttons
 - `.step-bar` — step progress bar
 
