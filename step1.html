@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Business Case — Camunda</title>
+  <meta name="description" content="Calculate the business case for agentic process automation. Size ROI, payback period, and net value before committing budget.">
+  <title>Business Case · Agentic Decision Framework</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="style.css">
   <script>!function(){try{var g=JSON.parse(localStorage.getItem("camunda-global"));if(g&&g.theme)document.documentElement.dataset.theme=g.theme}catch(e){}}();</script>
   <style>
@@ -13,6 +15,7 @@
       gap: 1.5rem; align-items: start;
       @media (max-width: 860px) { grid-template-columns: 1fr; }
     }
+    main > .page-title { grid-column: 1 / -1; }
     .inputs-column  { display: flex; flex-direction: column; gap: 0.75rem; }
     .results-column { display: flex; flex-direction: column; gap: 1rem; }
 
@@ -42,7 +45,7 @@
   <div class="nav-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="navDrawer" aria-label="Site navigation">
     <div class="nav-drawer-header">
-      <span class="nav-logo">Agentic Orchestration Calculators</span>
+      <span class="nav-logo">Agentic Decision Framework</span>
       <button class="nav-close" id="navClose" aria-label="Close navigation">&times;</button>
     </div>
     <a href="index.html" class="nav-item">
@@ -50,24 +53,29 @@
       Home
     </a>
     <div class="nav-divider"></div>
-    <div class="nav-section-title">Calculators</div>
+    <div class="nav-section-title">Tools</div>
     <a href="step1.html" class="nav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Business Case
+      1. Business Case
     </a>
     <a href="step2.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      Process Prioritization
+      2. Process Prioritization
     </a>
     <a href="step3.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Model Cost &amp; Fit
+      3. Model Cost &amp; Fit
+    </a>
+    <a href="summary.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      4. Summary
     </a>
     <div class="nav-divider"></div>
     <a href="about.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       About
     </a>
+    <div class="nav-version">v1.0</div>
   </nav>
 
   <header>
@@ -76,59 +84,61 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <div class="header-copy">
-        <h1>Orchestration Economic Estimate</h1>
-        <p>Step 1: Directional estimate for economic viability, not a final board-grade business case</p>
+        <h1><a href="index.html">Agentic Decision Framework</a></h1>
       </div>
     </div>
     <div class="header-actions">
       <div class="header-currency usd-active">
         <button id="btnUSD" aria-pressed="true">USD</button>
         <button id="btnEUR" aria-pressed="false">EUR</button>
-        <span class="rate-field">1 USD = <input type="text" id="rateInput" value="0.92" size="5"> EUR</span>
+        <span class="rate-field">1 USD = <input type="text" id="rateInput" value="0.85" size="5"> EUR</span>
       </div>
-      <button class="icon-btn share" id="shareBtn" title="Copy share link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-      </button>
       <button class="icon-btn reset" id="resetBtn" title="Reset all inputs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
       </button>
-      <button class="icon-btn theme" id="themeBtn" title="Toggle light/dark mode">
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <button class="icon-btn theme" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">
         <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
     </div>
   </header>
 
-  <nav class="step-bar" aria-label="Step progress">
-    <a href="step1.html" class="step-bar-item active" aria-current="step">
-      <span class="step-bar-num">1</span>
-      <span class="step-bar-label">Business Case</span>
-    </a>
-    <span class="step-bar-sep data-link" aria-hidden="true">›</span>
-    <a href="step2.html" class="step-bar-item" id="navToStep2" title="Process inputs carry over">
-      <span class="step-bar-num">2</span>
-      <span class="step-bar-label">Prioritization</span>
-    </a>
-    <span class="step-bar-sep data-link" aria-hidden="true">›</span>
-    <a href="step3.html" class="step-bar-item" title="Volume and cost estimates carry over">
-      <span class="step-bar-num">3</span>
-      <span class="step-bar-label">Model Cost &amp; Fit</span>
-    </a>
-  </nav>
-
-  <div class="step-nav">
+  <div class="page-toolbar">
     <a href="index.html" class="step-nav-btn secondary">← Home</a>
-    <div class="step-nav-forward">
-      <a href="step2.html" class="step-nav-btn primary" id="navToStep2Btn">Continue to Step 2 →</a>
-    </div>
+    <nav class="step-bar" aria-label="Step progress">
+      <a href="step1.html" class="step-bar-item active" aria-current="step">
+        <span class="step-bar-num">1</span>
+        <span class="step-bar-label">Business Case</span>
+      </a>
+      <span class="step-bar-sep data-link" aria-hidden="true">›</span>
+      <a href="step2.html" class="step-bar-item" id="navToStep2" title="Process inputs carry over">
+        <span class="step-bar-num">2</span>
+        <span class="step-bar-label">Prioritization</span>
+      </a>
+      <span class="step-bar-sep data-link" aria-hidden="true">›</span>
+      <a href="step3.html" class="step-bar-item" title="Volume and cost estimates carry over">
+        <span class="step-bar-num">3</span>
+        <span class="step-bar-label">Model Cost &amp; Fit</span>
+      </a>
+      <span class="step-bar-sep" aria-hidden="true">›</span>
+      <a href="summary.html" class="step-bar-item">
+        <span class="step-bar-num">4</span>
+        <span class="step-bar-label">Summary</span>
+      </a>
+    </nav>
+    <a href="step2.html" class="step-nav-btn primary" id="navToStep2Btn">Continue to Step 2 →</a>
   </div>
 
   <main>
+    <div class="page-title">
+      <h2><span class="page-title-num">1</span>Business Case</h2>
+      <p>Is it worth doing at all? Estimate payback, long-term value, and get a go / no-go signal.</p>
+    </div>
     <!-- ===== Inputs column ===== -->
     <div class="inputs-column">
       <div class="panel settings-panel">
         <div class="settings-header">
-          <div class="settings-title">Size Profile</div>
+          <div class="settings-title">Scope & Scale</div>
         </div>
         <div class="settings-body"><div class="settings-body-inner">
           <div class="slider-group">
@@ -140,23 +150,19 @@
             </select>
           </div>
           <div class="slider-group">
-            <div class="slider-header"><label>Assumption profile</label></div>
-            <select id="assumptionProfileInput" class="profile-select">
-              <option value="conservative">Conservative</option>
-              <option value="base" selected>Base</option>
-              <option value="upside">Upside</option>
-            </select>
-            <div class="input-note" id="assumptionProfileNote">Conservative assumes slower rollout, lower realized value, and higher quality overhead.</div>
-          </div>
-          <div class="slider-group">
             <div class="slider-header"><label>Automation context</label></div>
             <select id="automationContextInput" class="profile-select">
-              <option value="greenfield">Greenfield — process is fully manual today</option>
-              <option value="incremental">Incremental uplift — BPM handles structure, AI needed for judgment</option>
-              <option value="replace">Replacing brittle automation — RPA or rules-based failed</option>
-              <option value="exploring">Exploring options — scope not yet defined</option>
+              <option value="greenfield">Starting fresh: process is 100% manual today</option>
+              <option value="incremental">Adding to existing setup: BPM or RPA in place, AI needed for judgment calls</option>
+              <option value="replace">Replacing brittle automation: RPA or rules-based failed</option>
+              <option value="exploring">Exploring options: scope not yet defined</option>
             </select>
             <div class="input-note" id="automationContextNote"></div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Analysis horizon</label><output id="horizonDisplay"></output></div>
+            <input type="range" min="1" max="10" step="1" value="5" id="horizonInput">
+            <p class="input-note">Years included in financial analysis.</p>
           </div>
         </div></div>
       </div>
@@ -171,14 +177,19 @@
         </div>
         <div class="settings-body"><div class="settings-body-inner">
           <div class="slider-group">
-            <div class="slider-header"><label>Developer days</label><output id="devDaysDisplay"></output></div>
-            <input type="range" min="1" max="300" step="1" value="60" id="devDaysInput">
+            <div class="slider-header"><label>Developers (FTE)</label><output id="fteDisplay"></output></div>
+            <input type="range" min="0.5" max="20" step="0.5" value="1" id="fteInput">
+            <p class="input-note">Full-time-equivalent developers working on the build.</p>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header"><label>Developer weeks</label><output id="devWeeksDisplay"></output></div>
+            <input type="range" min="1" max="100" step="1" value="12" id="devWeeksInput">
             <p class="input-note">Total developer days for delivery.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Daily developer rate</label><output id="dailyRateDisplay"></output></div>
-            <input type="range" min="100" max="3000" step="50" value="800" id="dailyRateInput">
-            <p class="input-note">Loaded cost per developer day.</p>
+            <input type="range" min="100" max="3000" step="25" value="100" id="dailyRateInput">
+            <p class="input-note">Full cost per developer day (salary, benefits, and overhead).</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Infrastructure &amp; tooling (one-time)</label><output id="infraCostDisplay"></output></div>
@@ -209,7 +220,7 @@
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Avg. instances / process / month</label><output id="instancesPerProcessDisplay"></output></div>
-            <input type="range" min="50" max="5000" step="50" value="500" id="instancesPerProcessInput">
+            <input type="range" min="0" max="5000" step="50" value="0" id="instancesPerProcessInput">
             <p class="input-note">Average runs per process each month.</p>
           </div>
           <div class="slider-group">
@@ -218,17 +229,17 @@
             <p class="input-note">Average people involved per run.</p>
           </div>
           <div class="slider-group">
-            <div class="slider-header"><label>Avg. handling time / instance</label><output id="handlingMinutesDisplay"></output></div>
-            <input type="range" min="1" max="480" step="1" value="30" id="handlingMinutesInput">
+            <div class="slider-header"><label>Avg. handling time / instance</label><output id="handlingHoursDisplay"></output></div>
+            <input type="range" min="0.5" max="8" step="0.5" value="0.5" id="handlingHoursInput">
             <p class="input-note">Minutes spent per run per person.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Staff hourly rate</label><output id="hourlyRateDisplay"></output></div>
             <input type="range" min="10" max="300" step="5" value="50" id="hourlyRateInput">
-            <p class="input-note">Loaded hourly labor cost.</p>
+            <p class="input-note">Full hourly labor cost (salary, benefits, and overhead).</p>
           </div>
           <div class="slider-group">
-            <div class="slider-header"><label>Migrated volume share (steady state)</label><output id="coverageDisplay"></output></div>
+            <div class="slider-header"><label>Share automated at full scale</label><output id="coverageDisplay"></output></div>
             <input type="range" min="10" max="100" step="5" value="80" id="coverageInput">
             <p class="input-note">Percent of volume automated at scale.</p>
           </div>
@@ -262,18 +273,18 @@
           </div>
           <div class="slider-group" id="existingAllocatedCostGroup">
             <div class="slider-header"><label>Allocated platform cost / year</label><output id="existingAllocatedYearlyDisplay"></output></div>
-            <input type="range" min="0" max="2000000" step="5000" value="0" id="existingAllocatedYearlyInput">
+            <input type="range" min="0" max="300000" step="2500" value="0" id="existingAllocatedYearlyInput">
             <p class="input-note">Annual allocated platform cost share.</p>
           </div>
           <div class="slider-group" id="saasClusterCountGroup">
             <div class="slider-header"><label>Camunda SaaS clusters</label><output id="camundaClustersDisplay"></output></div>
-            <input type="range" min="1" max="20" step="1" value="3" id="camundaClustersInput">
+            <input type="range" min="1" max="10" step="1" value="2" id="camundaClustersInput">
             <p class="input-note">Camunda SaaS clusters required.</p>
           </div>
           <div class="slider-group" id="saasClusterRateGroup">
             <div class="slider-header"><label>Cost per cluster / year</label><output id="camundaClusterYearlyRateDisplay"></output></div>
-            <input type="range" min="5000" max="15000" step="250" value="7000" id="camundaClusterYearlyRateInput">
-            <p class="input-note">Annual cost per Camunda SaaS cluster.</p>
+            <input type="range" min="5000" max="12000" step="250" value="7500" id="camundaClusterYearlyRateInput">
+            <p class="input-note">Estimation only. Camunda enterprise pricing is individual, not published, not affiliated.</p>
           </div>
           <div class="slider-group" id="selfManagedInfraGroup">
             <div class="slider-header"><label id="selfManagedInfraLabel">Self-managed infra / year</label><output id="selfManagedInfraDisplay"></output></div>
@@ -283,12 +294,12 @@
           <div class="slider-group">
             <div class="slider-header"><label>Orchestration variable cost / automated instance</label><output id="orchestratorVarCostDisplay"></output></div>
             <input type="range" min="0" max="200" step="1" value="8" id="orchestratorVarCostInput">
-            <p class="input-note">Variable platform cost per automated run.</p>
+            <p class="input-note">Estimation only. Camunda enterprise pricing is individual, not published, not affiliated.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>LLM cost / automated instance</label><output id="llmCostDisplay"></output></div>
             <input type="number" min="0" max="50" step="0.01" value="0.12" id="llmCostInput" placeholder="0.12">
-            <p class="input-note">Enter the Cost / inst. from Step 3 (Model Cost &amp; Fit) for your chosen model.</p>
+            <p class="input-note">Model-dependent, additional to orchestration cost. Use cost/inst. from Step 3.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Human review rate</label><output id="reviewRateDisplay"></output></div>
@@ -301,9 +312,9 @@
             <p class="input-note">Review minutes per flagged run.</p>
           </div>
           <div class="slider-group">
-            <div class="slider-header"><label>Fallback-to-manual rate</label><output id="fallbackRateDisplay"></output></div>
+            <div class="slider-header"><label>Sent back to humans</label><output id="fallbackRateDisplay"></output></div>
             <input type="range" min="0" max="60" step="1" value="8" id="fallbackRateInput">
-            <p class="input-note">Percent routed back to manual handling.</p>
+            <p class="input-note">% of automated runs that still need a human to finish.</p>
           </div>
           <div class="slider-group">
             <div class="slider-header"><label>Quality assumptions confidence</label></div>
@@ -362,14 +373,9 @@
             <p class="input-note">Months to full rollout volume.</p>
           </div>
           <div class="slider-group">
-            <div class="slider-header"><label>Discount rate (WACC)</label><output id="discountRateDisplay"></output></div>
+            <div class="slider-header"><label>Discount rate</label><output id="discountRateDisplay"></output></div>
             <input type="range" min="0" max="25" step="1" value="8" id="discountRateInput">
-            <p class="input-note">Annual discount rate for cash flows.</p>
-          </div>
-          <div class="slider-group">
-            <div class="slider-header"><label>Analysis horizon</label><output id="horizonDisplay"></output></div>
-            <input type="range" min="1" max="10" step="1" value="5" id="horizonInput">
-            <p class="input-note">Years included in financial analysis.</p>
+            <p class="input-note">Yearly rate used to value future savings in today's money (typically 5–15%).</p>
           </div>
         </div></div>
       </div>
@@ -382,7 +388,7 @@
       <!-- Decision badge -->
       <div class="panel decision-panel" id="decisionPanel">
         <span class="decision-badge empty" id="decisionBadge">—</span>
-        <div class="decision-detail" id="decisionDetail">Enter inputs to see a directional economic estimate for this orchestration initiative.</div>
+        <div class="decision-detail" id="decisionDetail">Enter your numbers to see a rough economic estimate for this automation.</div>
       </div>
 
       <!-- Summary cards -->
@@ -416,9 +422,9 @@
           <div class="card-label">Scenario Range / Month</div>
         </div>
         <div class="summary-card" id="cardNPV">
-          <div class="card-label" id="cardNPVLabel">5-Year NPV</div>
+          <div class="card-label" id="cardNPVLabel">5-Year Net Value</div>
           <div class="card-value" id="cardNPVValue">—</div>
-          <div class="card-sub" id="cardNPVSub">at 8% discount rate</div>
+          <div class="card-sub" id="cardNPVSub">future savings in today's money</div>
         </div>
       </div>
 
@@ -436,6 +442,10 @@
     </div>
   </main>
 
+  <footer class="site-footer no-print">
+    <p class="site-footer-text">Made by <a href="https://www.consid.com" target="_blank" rel="noopener" class="site-footer-logo" aria-label="Consid"></a></p><p class="site-footer-meta">&copy; 2026 Consid AB</p>
+  </footer>
+
   <!-- Step 1 → Step 2 handoff modal -->
   <div class="handoff-backdrop" id="s1s2Backdrop" role="dialog" aria-modal="true" aria-labelledby="s1s2ModalTitle">
     <div class="handoff-modal">
@@ -443,7 +453,7 @@
         <p class="handoff-modal-title" id="s1s2ModalTitle">Going to Step 2: Prioritization</p>
         <button class="handoff-close" id="s1s2Close" aria-label="Close">&times;</button>
       </div>
-      <p class="handoff-modal-sub">Pre-fill the prioritization calculator with the data below, or go without.</p>
+      <p class="handoff-modal-sub">Pre-fill the prioritization tool with the data below, or go without.</p>
       <div class="handoff-process-list" id="s1s2ModalContent"></div>
       <div class="handoff-modal-actions">
         <a href="step2.html" class="step-nav-btn primary" id="s1s2Confirm">Continue to Step 2 with data →</a>
@@ -466,120 +476,100 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script>
     /* ===== Constants ===== */
     const CURRENCIES  = { USD: '$', EUR: '\u20AC' };
     const STORAGE_KEY = 'camunda-project-calc';
-    const CHEVRON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
     const WORKING_DAYS_PER_MONTH = 22;
     const CONFIDENCE_SCORES = { guessed: 0, estimated: 1, measured: 2 };
-    const CONFIDENCE_LABELS = { guessed: 'Guessed', estimated: 'Estimated', measured: 'Measured' };
-    const DEFAULT_IMPL = { devDays: 60, dailyRate: 800, infraCost: 5000, trainingCost: 2000 };
+    const DEFAULT_IMPL = { fte: 1, devWeeks: 1, dailyRate: 100, infraCost: 0, trainingCost: 0 };
     const DEFAULT_PROC = {
-      processCount: 10,
-      instancesPerProcess: 300,
-      peoplePerInstance: 1.0,
-      handlingMinutes: 25,
-      hourlyRate: 50,
+      processCount: 1,
+      instancesPerProcess: 0,
+      peoplePerInstance: 0.5,
+      handlingHours: 0.5,
+      hourlyRate: 10,
     };
     const DEFAULT_AUTO = {
-      deploymentMode: 'add-camunda-saas',
+      deploymentMode: 'existing-camunda',
       existingCostMode: 'incremental',
       existingAllocatedYearly: 0,
-      camundaClusters: 4,
-      camundaClusterYearlyRate: 7000,
-      selfManagedInfraYearly: 120000,
-      orchestratorVarCents: 10,
-      llmCents: 12,
-      reviewRate: 30,
-      reviewMinutes: 10,
-      fallbackRate: 15,
-      maintenanceDays: 5,
+      camundaClusters: 1,
+      camundaClusterYearlyRate: 5000,
+      selfManagedInfraYearly: 0,
+      orchestratorVarCents: 0,
+      llmCents: 0,
+      reviewRate: 0,
+      reviewMinutes: 1,
+      fallbackRate: 0,
+      maintenanceDays: 0,
       qualityConfidence: 'estimated',
       opsConfidence: 'estimated',
     };
     const DEFAULT_FIN  = {
-      coverage: 55,
-      capturedValue: 45,
+      coverage: 10,
+      capturedValue: 20,
       captureConfidence: 'estimated',
-      pilotMonths: 2,
-      rampMonths: 6,
-      discountRate: 9,
-      horizon: 5,
-    };
-    const ASSUMPTION_PROFILES = {
-      conservative: {
-        coverage: 40, capturedValue: 30, discountRate: 10, horizon: 4,
-        reviewRate: 45, reviewMinutes: 12, fallbackRate: 24, maintenanceDays: 7,
-        llmCents: 14, orchestratorVarCents: 12, pilotMonths: 3, rampMonths: 9,
-      },
-      base: {
-        coverage: 55, capturedValue: 45, discountRate: 9, horizon: 5,
-        reviewRate: 30, reviewMinutes: 10, fallbackRate: 15, maintenanceDays: 5,
-        llmCents: 12, orchestratorVarCents: 10, pilotMonths: 2, rampMonths: 6,
-      },
-      upside: {
-        coverage: 72, capturedValue: 65, discountRate: 8, horizon: 6,
-        reviewRate: 18, reviewMinutes: 6, fallbackRate: 8, maintenanceDays: 3,
-        llmCents: 9, orchestratorVarCents: 8, pilotMonths: 1, rampMonths: 4,
-      },
+      pilotMonths: 0,
+      rampMonths: 1,
+      discountRate: 0,
+      horizon: 1,
     };
     const RANGE_PROFILES = {
       small: {
         processCount:      { min: 1, max: 20, step: 1, defaultValue: 6 },
         instancesPerProcess: { min: 20, max: 1000, step: 20, defaultValue: 180 },
-        devDays:          { min: 5, max: 180, step: 1, defaultValue: 45 },
+        devWeeks:         { min: 1, max: 36, step: 1, defaultValue: 9 },
         infraCost:        { min: 0, max: 75000, step: 500, defaultValue: 4000 },
         trainingCost:     { min: 0, max: 30000, step: 250, defaultValue: 2000 },
-        camundaClusters:  { min: 1, max: 4, step: 1, defaultValue: 2 },
-        camundaClusterYearlyRate: { min: 5000, max: 12000, step: 250, defaultValue: 7000 },
-        existingAllocatedYearly: { min: 0, max: 150000, step: 1000, defaultValue: 0 },
+        camundaClusters:  { min: 1, max: 3, step: 1, defaultValue: 1 },
+        camundaClusterYearlyRate: { min: 5000, max: 10000, step: 250, defaultValue: 7500 },
+        existingAllocatedYearly: { min: 0, max: 25000, step: 250, defaultValue: 0 },
         selfManagedInfraYearly: { min: 0, max: 180000, step: 1000, defaultValue: 30000 },
         orchestratorVarCents: { min: 0, max: 30, step: 1, defaultValue: 8 },
         maintenanceDays:  { min: 0, max: 10, step: 1, defaultValue: 2 },
       },
       growth: {
         processCount:      { min: 1, max: 80, step: 1, defaultValue: 20 },
-        instancesPerProcess: { min: 20, max: 5000, step: 50, defaultValue: 500 },
-        devDays:          { min: 1, max: 500, step: 1, defaultValue: 80 },
+        instancesPerProcess: { min: 0, max: 5000, step: 50, defaultValue: 500 },
+        devWeeks:         { min: 1, max: 100, step: 1, defaultValue: 16 },
         infraCost:        { min: 0, max: 250000, step: 1000, defaultValue: 10000 },
         trainingCost:     { min: 0, max: 120000, step: 500, defaultValue: 5000 },
-        camundaClusters:  { min: 1, max: 20, step: 1, defaultValue: 4 },
-        camundaClusterYearlyRate: { min: 5000, max: 15000, step: 250, defaultValue: 7000 },
-        existingAllocatedYearly: { min: 0, max: 600000, step: 2000, defaultValue: 0 },
+        camundaClusters:  { min: 1, max: 6, step: 1, defaultValue: 2 },
+        camundaClusterYearlyRate: { min: 5000, max: 11000, step: 250, defaultValue: 7500 },
+        existingAllocatedYearly: { min: 0, max: 75000, step: 500, defaultValue: 0 },
         selfManagedInfraYearly: { min: 0, max: 800000, step: 2000, defaultValue: 120000 },
         orchestratorVarCents: { min: 0, max: 60, step: 1, defaultValue: 8 },
         maintenanceDays:  { min: 0, max: 25, step: 1, defaultValue: 3 },
       },
       enterprise: {
         processCount:      { min: 1, max: 300, step: 5, defaultValue: 80 },
-        instancesPerProcess: { min: 50, max: 30000, step: 250, defaultValue: 3000 },
-        devDays:          { min: 10, max: 1500, step: 5, defaultValue: 320 },
+        instancesPerProcess: { min: 0, max: 30000, step: 250, defaultValue: 3000 },
+        devWeeks:         { min: 2, max: 300, step: 1, defaultValue: 64 },
         infraCost:        { min: 0, max: 2000000, step: 5000, defaultValue: 100000 },
         trainingCost:     { min: 0, max: 800000, step: 5000, defaultValue: 50000 },
-        camundaClusters:  { min: 1, max: 100, step: 1, defaultValue: 15 },
-        camundaClusterYearlyRate: { min: 5000, max: 20000, step: 500, defaultValue: 7000 },
-        existingAllocatedYearly: { min: 0, max: 3000000, step: 10000, defaultValue: 0 },
+        camundaClusters:  { min: 1, max: 20, step: 1, defaultValue: 5 },
+        camundaClusterYearlyRate: { min: 5000, max: 12000, step: 250, defaultValue: 8000 },
+        existingAllocatedYearly: { min: 0, max: 300000, step: 2500, defaultValue: 0 },
         selfManagedInfraYearly: { min: 0, max: 5000000, step: 10000, defaultValue: 500000 },
         orchestratorVarCents: { min: 0, max: 120, step: 1, defaultValue: 8 },
         maintenanceDays:  { min: 0, max: 60, step: 1, defaultValue: 12 },
       },
     };
     const DEPLOYMENT_PRESETS = {
-      'existing-camunda':    { camundaClusters: 3, camundaClusterYearlyRate: 7000, selfManagedInfraYearly: 0, orchestratorVarCents: 2 },
-      'add-camunda-saas':    { camundaClusters: 3, camundaClusterYearlyRate: 7000, selfManagedInfraYearly: 0, orchestratorVarCents: 8 },
-      'self-hosted-camunda': { camundaClusters: 3, camundaClusterYearlyRate: 7000, selfManagedInfraYearly: 120000, orchestratorVarCents: 4 },
-      'other-stack':         { camundaClusters: 3, camundaClusterYearlyRate: 7000, selfManagedInfraYearly: 60000, orchestratorVarCents: 6 },
+      'existing-camunda':    { camundaClusters: 2, camundaClusterYearlyRate: 7500, selfManagedInfraYearly: 0, orchestratorVarCents: 2 },
+      'add-camunda-saas':    { camundaClusters: 2, camundaClusterYearlyRate: 7500, selfManagedInfraYearly: 0, orchestratorVarCents: 8 },
+      'self-hosted-camunda': { camundaClusters: 2, camundaClusterYearlyRate: 7500, selfManagedInfraYearly: 120000, orchestratorVarCents: 4 },
+      'other-stack':         { camundaClusters: 2, camundaClusterYearlyRate: 7500, selfManagedInfraYearly: 60000, orchestratorVarCents: 6 },
     };
 
     /* ===== State ===== */
     let currency = 'USD';
-    let eurRate  = 0.92;
+    let eurRate  = 0.85;
     let activeChartTab = 'roi';
     let activeRangeProfile = 'growth';
-    let activeAssumptionProfile = 'base';
-    let automationContext = 'greenfield';
+    let automationContext = 'incremental';
     let chart = null;
 
     // All monetary values stored in USD
@@ -680,9 +670,6 @@
     function normalizeRangeProfile(value) {
       return Object.hasOwn(RANGE_PROFILES, value) ? value : 'growth';
     }
-    function normalizeAssumptionProfile(value) {
-      return Object.hasOwn(ASSUMPTION_PROFILES, value) ? value : 'base';
-    }
     function clamp(value, min, max) {
       return Math.max(min, Math.min(max, value));
     }
@@ -705,7 +692,7 @@
     /* ===== Persistence ===== */
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        activeChartTab, activeRangeProfile, activeAssumptionProfile, automationContext,
+        activeChartTab, activeRangeProfile, automationContext,
         impl: { ...impl }, proc: { ...proc }, auto: { ...auto }, fin: { ...fin },
         implCollapsed, procCollapsed, autoCollapsed, finCollapsed,
       }));
@@ -718,7 +705,7 @@
 
     function encodeState() {
       return btoa(JSON.stringify({
-        cur: currency, rate: eurRate, ct: activeChartTab, rp: activeRangeProfile, ap: activeAssumptionProfile,
+        cur: currency, rate: eurRate, ct: activeChartTab, rp: activeRangeProfile,
         ax: automationContext,
         impl: { ...impl }, proc: { ...proc }, auto: { ...auto }, fin: { ...fin },
         ic: implCollapsed ? 1 : 0, pc: procCollapsed ? 1 : 0, ac: autoCollapsed ? 1 : 0, fc: finCollapsed ? 1 : 0,
@@ -730,8 +717,8 @@
         if (!d) return null;
         return {
           currency: d.cur || 'USD', eurRate: d.rate || 0.92,
-          activeChartTab: d.ct, activeRangeProfile: d.rp, activeAssumptionProfile: d.ap,
-          automationContext: d.ax || 'greenfield',
+          activeChartTab: d.ct, activeRangeProfile: d.rp,
+          automationContext: d.ax || 'incremental',
           impl: d.impl, proc: d.proc, auto: d.auto, fin: d.fin,
           implCollapsed: !!d.ic, procCollapsed: !!d.pc, autoCollapsed: !!d.ac, finCollapsed: !!d.fc,
         };
@@ -740,6 +727,16 @@
 
     function normalizeLoadedState(saved) {
       if (!saved) return;
+      if (saved.impl) {
+        // Migrate legacy day-based effort to weeks (keep daily rate as-is)
+        if (Number.isFinite(saved.impl.devDays) && !Number.isFinite(saved.impl.devWeeks)) {
+          saved.impl.devWeeks = Math.max(1, Math.round(saved.impl.devDays / 5));
+          delete saved.impl.devDays;
+        }
+        if (!Number.isFinite(saved.impl.dailyRate) || saved.impl.dailyRate <= 0) saved.impl.dailyRate = DEFAULT_IMPL.dailyRate;
+        if (!Number.isFinite(saved.impl.devWeeks) || saved.impl.devWeeks <= 0) saved.impl.devWeeks = DEFAULT_IMPL.devWeeks;
+        if (!Number.isFinite(saved.impl.fte) || saved.impl.fte <= 0) saved.impl.fte = DEFAULT_IMPL.fte;
+      }
       if (saved.proc) {
         const hasPortfolio = Number.isFinite(saved.proc.processCount) && Number.isFinite(saved.proc.instancesPerProcess);
         if (!hasPortfolio) {
@@ -751,7 +748,14 @@
             saved.proc.instancesPerProcess = Math.max(1, Math.round(monthlyInstances / processCount));
           }
         }
-        if (!Number.isFinite(saved.proc.peoplePerInstance)) saved.proc.peoplePerInstance = DEFAULT_PROC.peoplePerInstance;
+        if (!Number.isFinite(saved.proc.peoplePerInstance) || saved.proc.peoplePerInstance <= 0) saved.proc.peoplePerInstance = DEFAULT_PROC.peoplePerInstance;
+        if (!Number.isFinite(saved.proc.hourlyRate) || saved.proc.hourlyRate <= 0) saved.proc.hourlyRate = DEFAULT_PROC.hourlyRate;
+        // Migrate legacy handlingMinutes → handlingHours
+        if (Number.isFinite(saved.proc.handlingMinutes) && !Number.isFinite(saved.proc.handlingHours)) {
+          saved.proc.handlingHours = Math.max(0.5, Math.round(saved.proc.handlingMinutes / 60 * 2) / 2);
+          delete saved.proc.handlingMinutes;
+        }
+        if (!Number.isFinite(saved.proc.handlingHours) || saved.proc.handlingHours <= 0) saved.proc.handlingHours = DEFAULT_PROC.handlingHours;
       }
       if (saved.auto) {
         const deploymentMode = saved.auto.deploymentMode || DEFAULT_AUTO.deploymentMode;
@@ -799,6 +803,9 @@
         if (!Number.isFinite(saved.fin.capturedValue)) saved.fin.capturedValue = DEFAULT_FIN.capturedValue;
         if (!Number.isFinite(saved.fin.pilotMonths)) saved.fin.pilotMonths = DEFAULT_FIN.pilotMonths;
         if (!Number.isFinite(saved.fin.rampMonths)) saved.fin.rampMonths = DEFAULT_FIN.rampMonths;
+        if (!Number.isFinite(saved.fin.horizon) || saved.fin.horizon < 1) saved.fin.horizon = DEFAULT_FIN.horizon;
+        if (!Number.isFinite(saved.fin.coverage)) saved.fin.coverage = DEFAULT_FIN.coverage;
+        if (!Number.isFinite(saved.fin.discountRate)) saved.fin.discountRate = DEFAULT_FIN.discountRate;
         if (!saved.fin.captureConfidence || !Object.hasOwn(CONFIDENCE_SCORES, saved.fin.captureConfidence)) {
           saved.fin.captureConfidence = DEFAULT_FIN.captureConfidence;
         }
@@ -837,7 +844,7 @@
       const monthlyOrchestratorVariableCost = automatedInstances * (autoState.orchestratorVarCents / 100);
       const annualPlatformFixedCost = annualPlatformFixedCostFrom(autoState);
       const monthlyPlatformFixedCost = annualPlatformFixedCost / 12;
-      const monthlyMaintenanceCost = autoState.maintenanceDays * (implState.dailyRate / WORKING_DAYS_PER_MONTH);
+      const monthlyMaintenanceCost = autoState.maintenanceDays * (implState.dailyRate / WORKING_DAYS_PER_MONTH) * (implState.fte || 1);
       const monthlyAutomationCost =
         monthlyLLMCost + monthlyOrchestratorVariableCost + monthlyPlatformFixedCost + monthlyMaintenanceCost;
       const monthlySavings = monthlyLaborBenefitRealized - monthlyAutomationCost;
@@ -860,9 +867,9 @@
       };
     }
     function compute({ implState = impl, procState = proc, autoState = auto, finState = fin } = {}) {
-      const implementationCost = implState.devDays * implState.dailyRate + implState.infraCost + implState.trainingCost;
+      const implementationCost = (implState.fte || 1) * implState.devWeeks * 5 * implState.dailyRate + implState.infraCost + implState.trainingCost;
       const totalInstances = procState.processCount * procState.instancesPerProcess;
-      const manualCostPerInstance = (procState.handlingMinutes / 60) * procState.hourlyRate * procState.peoplePerInstance;
+      const manualCostPerInstance = procState.handlingHours * procState.hourlyRate * procState.peoplePerInstance;
       const monthlyManualCost = totalInstances * manualCostPerInstance;
       const steady = monthlyEconomicsForCoverage({
         coveragePct: finState.coverage,
@@ -946,35 +953,50 @@
         monthlyAutomationCost: steady.monthlyAutomationCost,
       };
     }
+    // Quality confidence → review rate, fallback rate, captured value penalty
+    // Ops confidence → cost multipliers, maintenance days
+    // measured = smaller penalty (still worse than base), estimated = default, guessed = wider penalty
+    const QUALITY_SPREAD = {
+      measured:  { addReview: 6,  addFallback: 5,  coverageMult: 0.92, captureMult: 0.85 },
+      estimated: { addReview: 12, addFallback: 10, coverageMult: 0.80, captureMult: 0.70 },
+      guessed:   { addReview: 22, addFallback: 18, coverageMult: 0.65, captureMult: 0.50 },
+    };
+    const OPS_SPREAD = {
+      measured:  { costMult: 1.1,  infraMult: 1.08, addMaint: 1 },
+      estimated: { costMult: 1.2,  infraMult: 1.15, addMaint: 2 },
+      guessed:   { costMult: 1.45, infraMult: 1.35, addMaint: 4 },
+    };
     function buildScenarioInputs(kind) {
       const finState = { ...fin };
       const autoState = { ...auto };
+      const qs = QUALITY_SPREAD[auto.qualityConfidence] || QUALITY_SPREAD.estimated;
+      const os = OPS_SPREAD[auto.opsConfidence]         || OPS_SPREAD.estimated;
       if (kind === 'conservative') {
-        finState.coverage = clamp(Math.round(fin.coverage * 0.8), 5, 100);
-        finState.capturedValue = clamp(Math.round(fin.capturedValue * 0.7), 0, 100);
-        finState.pilotMonths = clamp(fin.pilotMonths + 1, 0, 12);
-        finState.rampMonths = clamp(fin.rampMonths + 2, 1, 24);
-        autoState.reviewRate = clamp(auto.reviewRate + 12, 0, 100);
-        autoState.reviewMinutes = clamp(auto.reviewMinutes + 4, 1, 120);
-        autoState.fallbackRate = clamp(auto.fallbackRate + 10, 0, 60);
-        autoState.maintenanceDays = auto.maintenanceDays + 2;
-        autoState.llmCents = Math.max(1, Math.round(auto.llmCents * 1.2));
-        autoState.orchestratorVarCents = Math.max(0, Math.round(auto.orchestratorVarCents * 1.2));
-        autoState.camundaClusterYearlyRate = Math.round(auto.camundaClusterYearlyRate * 1.1);
-        autoState.selfManagedInfraYearly = Math.round(auto.selfManagedInfraYearly * 1.15);
+        finState.coverage      = clamp(Math.round(fin.coverage      * qs.coverageMult), 5, 100);
+        finState.capturedValue = clamp(Math.round(fin.capturedValue * qs.captureMult),  0, 100);
+        finState.pilotMonths   = clamp(fin.pilotMonths + 1, 0, 12);
+        finState.rampMonths    = clamp(fin.rampMonths  + 2, 1, 24);
+        autoState.reviewRate     = clamp(auto.reviewRate   + qs.addReview,   0, 100);
+        autoState.reviewMinutes  = clamp(auto.reviewMinutes + 4,             1, 120);
+        autoState.fallbackRate   = clamp(auto.fallbackRate  + qs.addFallback, 0, 60);
+        autoState.maintenanceDays          = auto.maintenanceDays + os.addMaint;
+        autoState.llmCents                 = Math.max(1, Math.round(auto.llmCents                * os.costMult));
+        autoState.orchestratorVarCents     = Math.max(0, Math.round(auto.orchestratorVarCents    * os.costMult));
+        autoState.camundaClusterYearlyRate = Math.round(auto.camundaClusterYearlyRate             * (1 + (os.costMult  - 1) * 0.5));
+        autoState.selfManagedInfraYearly   = Math.round(auto.selfManagedInfraYearly               * os.infraMult);
       } else if (kind === 'upside') {
-        finState.coverage = clamp(Math.round(fin.coverage * 1.15), 5, 100);
+        finState.coverage      = clamp(Math.round(fin.coverage      * 1.15), 5, 100);
         finState.capturedValue = clamp(Math.round(fin.capturedValue * 1.25), 0, 100);
-        finState.pilotMonths = clamp(fin.pilotMonths - 1, 0, 12);
-        finState.rampMonths = clamp(fin.rampMonths - 2, 1, 24);
-        autoState.reviewRate = clamp(auto.reviewRate - 10, 0, 100);
-        autoState.reviewMinutes = clamp(auto.reviewMinutes - 3, 1, 120);
-        autoState.fallbackRate = clamp(auto.fallbackRate - 6, 0, 60);
-        autoState.maintenanceDays = clamp(auto.maintenanceDays - 1, 0, 100);
-        autoState.llmCents = Math.max(1, Math.round(auto.llmCents * 0.9));
-        autoState.orchestratorVarCents = Math.max(0, Math.round(auto.orchestratorVarCents * 0.9));
-        autoState.camundaClusterYearlyRate = Math.round(auto.camundaClusterYearlyRate * 0.95);
-        autoState.selfManagedInfraYearly = Math.round(auto.selfManagedInfraYearly * 0.9);
+        finState.pilotMonths   = clamp(fin.pilotMonths - 1, 0, 12);
+        finState.rampMonths    = clamp(fin.rampMonths  - 2, 1, 24);
+        autoState.reviewRate     = clamp(auto.reviewRate   - 10, 0, 100);
+        autoState.reviewMinutes  = clamp(auto.reviewMinutes - 3,  1, 120);
+        autoState.fallbackRate   = clamp(auto.fallbackRate  - 6,  0, 60);
+        autoState.maintenanceDays          = clamp(auto.maintenanceDays - 1,                  0, 100);
+        autoState.llmCents                 = Math.max(1, Math.round(auto.llmCents             * 0.9));
+        autoState.orchestratorVarCents     = Math.max(0, Math.round(auto.orchestratorVarCents * 0.9));
+        autoState.camundaClusterYearlyRate = Math.round(auto.camundaClusterYearlyRate          * 0.95);
+        autoState.selfManagedInfraYearly   = Math.round(auto.selfManagedInfraYearly            * 0.9);
       }
       return { finState, autoState };
     }
@@ -1002,7 +1024,7 @@
       document.getElementById('cardImpl').className = 'summary-card';
       document.getElementById('cardImplValue').textContent = formatMoney(r.implementationCost);
       document.getElementById('cardImplSub').textContent =
-        `${impl.devDays}d × ${formatMoney(impl.dailyRate)}/day`;
+        `${impl.fte} FTE × ${impl.devWeeks}w × ${formatMoney(impl.dailyRate * 5)}/wk`;
 
       // Manual baseline
       document.getElementById('cardManual').className = 'summary-card';
@@ -1056,9 +1078,9 @@
       // NPV
       const npvClass = r.npv > 0 ? 'positive' : r.npv < 0 ? 'negative' : '';
       document.getElementById('cardNPV').className = `summary-card ${npvClass}`;
-      document.getElementById('cardNPVLabel').textContent = `${fin.horizon}-Year NPV`;
+      document.getElementById('cardNPVLabel').textContent = `${fin.horizon}-Year Net Value`;
       document.getElementById('cardNPVValue').textContent = formatMoneySigned(r.npv);
-      document.getElementById('cardNPVSub').textContent = `Conservative: ${formatMoneySigned(conservative.npv)} · Upside: ${formatMoneySigned(upside.npv)}`;
+      document.getElementById('cardNPVSub').textContent = `at ${fin.discountRate}% discount · Conservative: ${formatMoneySigned(conservative.npv)}`;
     }
 
     /* ===== Decision badge ===== */
@@ -1069,7 +1091,7 @@
       const labels = {
         promising: 'Economic Estimate: Promising',
         'needs-pilot': 'Economic Estimate: Needs Pilot',
-        weak: 'Economic Estimate: Weak',
+        weak: 'Economic Estimate: High Risk',
       };
       badge.className = `decision-badge ${signal}`;
       badge.textContent = labels[signal] || '—';
@@ -1085,13 +1107,11 @@
       } else {
         msg = `Current assumptions do not support the investment. Base steady-state net is <strong>${formatMoneySigned(r.monthlySavings)}</strong> and conservative net is <strong>${formatMoneySigned(conservative.monthlySavings)}</strong>. Re-scope before rollout.`;
       }
-      if (confidence.guessedCount > 0) {
-        msg += ` <strong>${confidence.guessedCount}</strong> key assumption group${confidence.guessedCount === 1 ? ' is' : 's are'} still guessed.`;
-      }
+
       const contextWarnings = {
-        incremental:  ' Context: incremental uplift — ensure the manual baseline reflects only residual unautomated cost.',
-        replace:      ' Context: replacing existing automation — include decommission and migration costs in your build estimate.',
-        exploring:    ' Context: scope undefined — treat this as directional only until the process is scoped.',
+        incremental:  ' Context: adding to existing setup. Make sure your manual cost only counts work not already automated.',
+        replace:      ' Context: replacing old automation. Include shutdown and migration costs in your build estimate.',
+        exploring:    ' Context: scope undefined. Treat this as a rough estimate only until the process is defined.',
       };
       if (contextWarnings[automationContext]) {
         msg += `<br><span style="color:var(--muted);font-style:italic">${contextWarnings[automationContext]}</span>`;
@@ -1164,8 +1184,8 @@
               {
                 label: 'Base case',
                 data: toPoints(base.cumulativeSeries),
-                borderColor: '#FC5D0D',
-                backgroundColor: '#FC5D0D18',
+                borderColor: '#B5223F',
+                backgroundColor: '#B5223F18',
                 showLine: true,
                 fill: false,
                 tension: 0,
@@ -1244,7 +1264,7 @@
               {
                 label: 'Base',
                 data: baseData,
-                backgroundColor: '#FC5D0Dcc',
+                backgroundColor: '#B5223Fcc',
                 borderRadius: 4,
                 borderSkipped: false,
               },
@@ -1321,7 +1341,8 @@
 
     /* ===== Display helpers ===== */
     function updateDisplays() {
-      document.getElementById('devDaysDisplay').textContent      = `${impl.devDays} days`;
+      document.getElementById('fteDisplay').textContent          = `${impl.fte.toFixed(impl.fte % 1 === 0 ? 0 : 1)} FTE`;
+      document.getElementById('devWeeksDisplay').textContent     = `${impl.devWeeks} wk`;
       document.getElementById('dailyRateDisplay').textContent    = `${formatMoney(impl.dailyRate)}/day`;
       document.getElementById('infraCostDisplay').textContent    = formatMoney(impl.infraCost);
       document.getElementById('trainingCostDisplay').textContent = formatMoney(impl.trainingCost);
@@ -1329,9 +1350,7 @@
       document.getElementById('processCountDisplay').textContent = `${proc.processCount}`;
       document.getElementById('instancesPerProcessDisplay').textContent = proc.instancesPerProcess.toLocaleString();
       document.getElementById('peoplePerInstanceDisplay').textContent = `${proc.peoplePerInstance.toFixed(1)}`;
-      const mins = proc.handlingMinutes;
-      const minDisplay = mins >= 60 ? `${(mins / 60).toFixed(1)}h` : `${mins}min`;
-      document.getElementById('handlingMinutesDisplay').textContent  = minDisplay;
+      document.getElementById('handlingHoursDisplay').textContent = `${proc.handlingHours.toFixed(1)}h`;
       document.getElementById('hourlyRateDisplay').textContent       = `${formatMoney(proc.hourlyRate)}/hr`;
 
       document.getElementById('camundaClustersDisplay').textContent = `${auto.camundaClusters} cluster${auto.camundaClusters === 1 ? '' : 's'}`;
@@ -1353,30 +1372,25 @@
       document.getElementById('rampMonthsDisplay').textContent = `${fin.rampMonths} month${fin.rampMonths !== 1 ? 's' : ''}`;
       document.getElementById('discountRateDisplay').textContent = `${fin.discountRate}%/yr`;
       document.getElementById('horizonDisplay').textContent      = `${fin.horizon} year${fin.horizon !== 1 ? 's' : ''}`;
-      const profileNotes = {
-        conservative: 'Pre-fills inputs conservatively. Pessimistic, base, and upside ranges are always computed and shown.',
-        base: 'Pre-fills balanced inputs. Pessimistic, base, and upside ranges are always computed and shown.',
-        upside: 'Pre-fills optimistic inputs. Pessimistic, base, and upside ranges are always computed and shown.',
-      };
-      document.getElementById('assumptionProfileNote').textContent = profileNotes[activeAssumptionProfile];
       const contextNotes = {
-        greenfield:   'Full process is manual today. Your baseline cost reflects the complete current effort.',
-        incremental:  'Set your manual baseline to the residual unautomated labor cost only — not the full process cost.',
-        replace:      'Factor decommission and migration costs into your build estimate. Increase your assumption profile risk.',
-        exploring:    'Directional only. Results carry high uncertainty until scope is defined.',
+        greenfield:   'Process is fully manual today. Use the full current cost as your starting point.',
+        incremental:  'Only count the manual work that remains after existing automation — not the full process.',
+        replace:      'Include the cost of shutting down and migrating off the old automation in your build estimate.',
+        exploring:    'Rough estimate only. Results are uncertain until the scope is defined.',
       };
       document.getElementById('automationContextNote').textContent = contextNotes[automationContext] || '';
       document.getElementById('automationContextInput').value = automationContext;
     }
     function syncInputsFromState() {
-      document.getElementById('devDaysInput').value          = impl.devDays;
+      document.getElementById('fteInput').value              = impl.fte;
+      document.getElementById('devWeeksInput').value         = impl.devWeeks;
       document.getElementById('dailyRateInput').value        = impl.dailyRate;
       document.getElementById('infraCostInput').value        = impl.infraCost;
       document.getElementById('trainingCostInput').value     = impl.trainingCost;
       document.getElementById('processCountInput').value     = proc.processCount;
       document.getElementById('instancesPerProcessInput').value = proc.instancesPerProcess;
       document.getElementById('peoplePerInstanceInput').value = proc.peoplePerInstance;
-      document.getElementById('handlingMinutesInput').value  = proc.handlingMinutes;
+      document.getElementById('handlingHoursInput').value    = proc.handlingHours;
       document.getElementById('hourlyRateInput').value       = proc.hourlyRate;
       document.getElementById('deploymentModeInput').value   = auto.deploymentMode;
       document.getElementById('existingCostModeInput').value = auto.existingCostMode;
@@ -1400,26 +1414,6 @@
       document.getElementById('discountRateInput').value     = fin.discountRate;
       document.getElementById('horizonInput').value          = fin.horizon;
       document.getElementById('rangeProfileInput').value     = activeRangeProfile;
-      document.getElementById('assumptionProfileInput').value = activeAssumptionProfile;
-    }
-    function applyAssumptionProfile(profile, { preserveValues = false } = {}) {
-      activeAssumptionProfile = normalizeAssumptionProfile(profile);
-      document.getElementById('assumptionProfileInput').value = activeAssumptionProfile;
-      if (preserveValues) return;
-      const cfg = ASSUMPTION_PROFILES[activeAssumptionProfile];
-      fin.coverage = cfg.coverage;
-      fin.capturedValue = cfg.capturedValue;
-      fin.pilotMonths = cfg.pilotMonths;
-      fin.rampMonths = cfg.rampMonths;
-      fin.discountRate = cfg.discountRate;
-      fin.horizon = cfg.horizon;
-      auto.reviewRate = cfg.reviewRate;
-      auto.reviewMinutes = cfg.reviewMinutes;
-      auto.fallbackRate = cfg.fallbackRate;
-      auto.maintenanceDays = cfg.maintenanceDays;
-      auto.llmCents = cfg.llmCents;
-      auto.orchestratorVarCents = cfg.orchestratorVarCents;
-      syncInputsFromState();
     }
     function applyRangeConfig(input, cfg, value) {
       input.min = cfg.min;
@@ -1430,7 +1424,7 @@
     function applyRangeProfile(profile, { preserveValues = true } = {}) {
       activeRangeProfile = normalizeRangeProfile(profile);
       const cfg = RANGE_PROFILES[activeRangeProfile];
-      const devDaysInput = document.getElementById('devDaysInput');
+      const devWeeksInput = document.getElementById('devWeeksInput');
       const infraCostInput = document.getElementById('infraCostInput');
       const trainingCostInput = document.getElementById('trainingCostInput');
       const processCountInput = document.getElementById('processCountInput');
@@ -1442,7 +1436,7 @@
       const orchestratorVarInput = document.getElementById('orchestratorVarCostInput');
       const maintenanceDaysInput = document.getElementById('maintenanceDaysInput');
 
-      impl.devDays = applyRangeConfig(devDaysInput, cfg.devDays, preserveValues ? impl.devDays : cfg.devDays.defaultValue);
+      impl.devWeeks = applyRangeConfig(devWeeksInput, cfg.devWeeks, preserveValues ? impl.devWeeks : cfg.devWeeks.defaultValue);
       impl.infraCost = applyRangeConfig(infraCostInput, cfg.infraCost, preserveValues ? impl.infraCost : cfg.infraCost.defaultValue);
       impl.trainingCost = applyRangeConfig(trainingCostInput, cfg.trainingCost, preserveValues ? impl.trainingCost : cfg.trainingCost.defaultValue);
       proc.processCount = applyRangeConfig(processCountInput, cfg.processCount, preserveValues ? proc.processCount : cfg.processCount.defaultValue);
@@ -1485,7 +1479,7 @@
       const warnings = [];
       if (proc.processCount > cfg.processCount.max) warnings.push(`Candidate processes will be capped at ${cfg.processCount.max}.`);
       if (proc.instancesPerProcess > cfg.instancesPerProcess.max) warnings.push(`Avg. instances / process / month will be capped at ${cfg.instancesPerProcess.max.toLocaleString()}.`);
-      if (impl.devDays > cfg.devDays.max) warnings.push(`Developer days will be capped at ${cfg.devDays.max}.`);
+      if (impl.devWeeks > cfg.devWeeks.max) warnings.push(`Developer weeks will be capped at ${cfg.devWeeks.max}.`);
       if (impl.infraCost > cfg.infraCost.max) warnings.push(`Infrastructure & tooling will be capped at ${formatMoney(cfg.infraCost.max)}.`);
       if (impl.trainingCost > cfg.trainingCost.max) warnings.push(`Training & change management will be capped at ${formatMoney(cfg.trainingCost.max)}.`);
       if (auto.camundaClusters > cfg.camundaClusters.max) warnings.push(`Camunda SaaS clusters will be capped at ${cfg.camundaClusters.max}.`);
@@ -1514,14 +1508,15 @@
 
     /* ===== Slider event handlers ===== */
     const sliderBindings = [
-      ['devDaysInput',         () => { impl.devDays        = +document.getElementById('devDaysInput').value; }],
-      ['dailyRateInput',       () => { impl.dailyRate       = +document.getElementById('dailyRateInput').value; }],
+      ['fteInput',             () => { impl.fte            = +document.getElementById('fteInput').value; }],
+      ['devWeeksInput',        () => { impl.devWeeks       = +document.getElementById('devWeeksInput').value; }],
+      ['dailyRateInput',       () => { impl.dailyRate      = +document.getElementById('dailyRateInput').value; }],
       ['infraCostInput',       () => { impl.infraCost       = +document.getElementById('infraCostInput').value; }],
       ['trainingCostInput',    () => { impl.trainingCost    = +document.getElementById('trainingCostInput').value; }],
       ['processCountInput',    () => { proc.processCount    = +document.getElementById('processCountInput').value; }],
       ['instancesPerProcessInput', () => { proc.instancesPerProcess = +document.getElementById('instancesPerProcessInput').value; }],
       ['peoplePerInstanceInput', () => { proc.peoplePerInstance = +document.getElementById('peoplePerInstanceInput').value; }],
-      ['handlingMinutesInput', () => { proc.handlingMinutes = +document.getElementById('handlingMinutesInput').value; }],
+      ['handlingHoursInput',   () => { proc.handlingHours   = +document.getElementById('handlingHoursInput').value; }],
       ['hourlyRateInput',      () => { proc.hourlyRate      = +document.getElementById('hourlyRateInput').value; }],
       ['camundaClustersInput', () => { auto.camundaClusters = +document.getElementById('camundaClustersInput').value; }],
       ['camundaClusterYearlyRateInput', () => { auto.camundaClusterYearlyRate = +document.getElementById('camundaClusterYearlyRateInput').value; }],
@@ -1585,11 +1580,6 @@
       updateDisplays();
       recalculate();
     });
-    document.getElementById('assumptionProfileInput').addEventListener('change', () => {
-      applyAssumptionProfile(document.getElementById('assumptionProfileInput').value, { preserveValues: false });
-      updateDisplays();
-      recalculate();
-    });
     document.getElementById('automationContextInput').addEventListener('change', () => {
       automationContext = document.getElementById('automationContextInput').value;
       updateDisplays();
@@ -1625,15 +1615,9 @@
       const v = parseFloat(rateInput.value);
       if (v > 0 && isFinite(v)) { eurRate = v; updateDisplays(); recalculate(); saveState(); }
     });
-
-    /* ===== Share button ===== */
-    document.getElementById('shareBtn').addEventListener('click', () => {
-      const url = location.origin + location.pathname + '#' + encodeState();
-      navigator.clipboard.writeText(url).then(() => {
-        const btn = document.getElementById('shareBtn');
-        btn.classList.add('copied');
-        setTimeout(() => btn.classList.remove('copied'), 1500);
-      });
+    rateInput.addEventListener('blur', () => {
+      const v = parseFloat(rateInput.value);
+      if (!(v > 0 && isFinite(v))) rateInput.value = eurRate;
     });
 
     /* ===== Theme ===== */
@@ -1648,23 +1632,16 @@
     function doReset() {
       localStorage.removeItem(STORAGE_KEY);
       activeRangeProfile = 'growth';
-      activeAssumptionProfile = 'base';
-      automationContext = 'greenfield';
-      // Configure slider ranges first (preserveValues: false sets range defaults which we then override)
-      applyRangeProfile(activeRangeProfile, { preserveValues: false });
-      // Zero all numeric inputs
-      impl.devDays = 0; impl.dailyRate = 0; impl.infraCost = 0; impl.trainingCost = 0;
-      proc.processCount = 0; proc.instancesPerProcess = 0; proc.peoplePerInstance = 0;
-      proc.handlingMinutes = 0; proc.hourlyRate = 0;
-      auto.existingAllocatedYearly = 0; auto.camundaClusters = 0; auto.camundaClusterYearlyRate = 0;
-      auto.selfManagedInfraYearly = 0; auto.orchestratorVarCents = 0; auto.llmCents = 0;
-      auto.reviewRate = 0; auto.reviewMinutes = 0; auto.fallbackRate = 0; auto.maintenanceDays = 0;
-      fin.coverage = 0; fin.capturedValue = 0; fin.pilotMonths = 0;
-      fin.rampMonths = 0; fin.discountRate = 0; fin.horizon = 0;
+      automationContext = 'incremental';
+      Object.assign(impl, DEFAULT_IMPL);
+      Object.assign(proc, DEFAULT_PROC);
+      Object.assign(auto, DEFAULT_AUTO);
+      Object.assign(fin, DEFAULT_FIN);
       implCollapsed = false;
       procCollapsed = false;
       autoCollapsed = true;
       finCollapsed = true;
+      applyRangeProfile(activeRangeProfile, { preserveValues: true });
       applyPanelStates();
       syncInputsFromState();
       updateDisplays();
@@ -1682,12 +1659,13 @@
     const S1S2_HANDOFF_KEY = 'camunda-s1s2-handoff';
     function writeS1S2Handoff() {
       const count = Math.max(1, proc.processCount);
-      const effortPerProcess = Math.max(1, Math.round(impl.devDays / 5 / count));
-      const implCostPerWeek = Math.round(impl.dailyRate * 5 / 500) * 500;
+      const effortPerProcess = Math.max(1, Math.round(impl.devWeeks / count));
+      const implCostPerWeek = Math.max(500, Math.round(impl.fte * impl.dailyRate * 5 / 500) * 500);
+      const totalPersonHours = Math.max(0.5, Math.round(proc.handlingHours * proc.peoplePerInstance * 2) / 2);
       const processes = Array.from({ length: count }, (_, i) => ({
         processName: count === 1 ? 'Business Case Process' : `Process ${i + 1}`,
         volume: proc.instancesPerProcess,
-        manualMinutes: proc.handlingMinutes,
+        manualHours: totalPersonHours,
         hourlyRate: proc.hourlyRate,
         monthlyErrorCost: 0,
         effortWeeks: effortPerProcess,
@@ -1699,14 +1677,14 @@
     /* ===== Step 1 → Step 2 modal ===== */
     function openS1S2Modal() {
       const count = Math.max(1, proc.processCount);
-      const effortPer = Math.max(1, Math.round(impl.devDays / 5 / count));
-      const implWeeklyCost = Math.round(impl.dailyRate * 5 / 500) * 500;
+      const effortPer = Math.max(1, Math.round(impl.devWeeks / count));
+      const implWeeklyCost = Math.max(500, Math.round(impl.fte * impl.dailyRate * 5 / 500) * 500);
       const s = sym();
       const rate = displayRate();
       let html = `<div class="handoff-process-item">
         <div class="handoff-process-name">Implementation rate</div>
         <div class="handoff-process-meta">
-          <span>${s}${Math.round(implWeeklyCost * rate).toLocaleString()}/week (from ${s}${Math.round(impl.dailyRate * rate)}/day daily rate)</span>
+          <span>${s}${Math.round(implWeeklyCost * rate).toLocaleString()}/wk (${impl.fte} FTE × ${s}${Math.round(impl.dailyRate * rate).toLocaleString()}/day)</span>
         </div>
       </div>`;
       for (let i = 0; i < count; i++) {
@@ -1715,7 +1693,7 @@
           <div class="handoff-process-name">${name}</div>
           <div class="handoff-process-meta">
             <span>${proc.instancesPerProcess.toLocaleString()} instances/mo</span>
-            <span>${proc.handlingMinutes} min/instance</span>
+            <span>${(Math.round(proc.handlingHours * proc.peoplePerInstance * 2) / 2).toFixed(1)}h/instance</span>
             <span>${s}${Math.round(proc.hourlyRate * rate)}/hr</span>
             <span>${effortPer} wk est. effort</span>
           </div>
@@ -1776,7 +1754,6 @@
         normalizeLoadedState(saved);
         if (saved.activeChartTab) activeChartTab = saved.activeChartTab;
         activeRangeProfile = inferRangeProfile(saved);
-        activeAssumptionProfile = normalizeAssumptionProfile(saved.activeAssumptionProfile || activeAssumptionProfile);
         if (saved.automationContext) automationContext = saved.automationContext;
         if (saved.impl)          Object.assign(impl, saved.impl);
         if (saved.proc)          Object.assign(proc, saved.proc);
@@ -1790,7 +1767,6 @@
       }
 
       applyRangeProfile(activeRangeProfile, { preserveValues: true });
-      applyAssumptionProfile(activeAssumptionProfile, { preserveValues: !!saved });
       syncInputsFromState();
       applyPanelStates();
 

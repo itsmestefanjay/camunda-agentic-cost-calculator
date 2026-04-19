@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Model Cost &amp; Fit — Agentic Orchestration</title>
+  <meta name="description" content="Compare LLM model costs at your target volume. Find the best fit for your quality, compliance, and budget requirements.">
+  <title>Model Cost &amp; Fit · Agentic Decision Framework</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="style.css">
   <script>!function(){try{var g=JSON.parse(localStorage.getItem("camunda-global"));if(g&&g.theme)document.documentElement.dataset.theme=g.theme}catch(e){}}();</script>
   <style>
@@ -13,6 +15,7 @@
       gap: 1.5rem; align-items: start;
       @media (max-width: 860px) { grid-template-columns: 1fr; }
     }
+    main > .page-title { grid-column: 1 / -1; }
 
     .models-column {
       display: flex; flex-direction: column; gap: 0.75rem;
@@ -20,6 +23,28 @@
       @media (max-width: 860px) { max-height: none; padding-right: 0; }
     }
     .chart-wrapper { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+
+    /* --- Handover tile --- */
+    .handover-tile { padding: 1rem 1.25rem; }
+    .handover-title {
+      font-size: 0.7rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.65rem;
+    }
+    .handover-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+      @media (max-width: 680px) { grid-template-columns: 1fr; }
+    }
+    .handover-item { min-width: 0; }
+    .handover-label {
+      font-size: 0.72rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.25rem;
+    }
+    .handover-value {
+      font-size: 1.15rem; font-weight: 700; color: var(--text);
+      letter-spacing: -0.01em; margin-bottom: 0.25rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .handover-note { font-size: 0.72rem; color: var(--muted); line-height: 1.45; }
 
     /* --- Model panels --- */
     .section-label {
@@ -114,11 +139,11 @@
     .add-model-wrap { position: relative; }
     .add-model-btn {
       display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-      width: 100%; padding: 0.75rem; background: rgba(252, 93, 13, 0.08);
-      border: 1px dashed rgba(252, 93, 13, 0.3); border-radius: 12px;
+      width: 100%; padding: 0.75rem; background: rgba(var(--accent-rgb), 0.08);
+      border: 1px dashed rgba(var(--accent-rgb), 0.3); border-radius: 12px;
       color: var(--accent); font-size: 0.875rem; font-weight: 600;
       cursor: pointer; transition: background 0.15s;
-      &:hover { background: rgba(252, 93, 13, 0.15); }
+      &:hover { background: rgba(var(--accent-rgb), 0.15); }
     }
     .preset-menu {
       display: none; position: absolute; z-index: 20; left: 0; right: 0; bottom: calc(100% + 4px);
@@ -137,6 +162,8 @@
 
     /* --- Table --- */
     .table-wrap { overflow-x: auto; }
+    .model-table tbody tr:nth-child(even) td { background: rgba(0,0,0,0.025); }
+    [data-theme="dark"] .model-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.025); }
     .model-table {
       width: 100%; border-collapse: collapse; font-size: 0.8125rem;
       th {
@@ -153,11 +180,10 @@
   </style>
 </head>
 <body>
-  <!-- Navigation drawer -->
   <div class="nav-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="navDrawer" aria-label="Site navigation">
     <div class="nav-drawer-header">
-      <span class="nav-logo">Agentic Orchestration Calculators</span>
+      <span class="nav-logo">Agentic Decision Framework</span>
       <button class="nav-close" id="navClose" aria-label="Close navigation">&times;</button>
     </div>
     <a href="index.html" class="nav-item">
@@ -165,24 +191,29 @@
       Home
     </a>
     <div class="nav-divider"></div>
-    <div class="nav-section-title">Calculators</div>
+    <div class="nav-section-title">Tools</div>
     <a href="step1.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Business Case
+      1. Business Case
     </a>
     <a href="step2.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      Process Prioritization
+      2. Process Prioritization
     </a>
     <a href="step3.html" class="nav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Model Cost &amp; Fit
+      3. Model Cost &amp; Fit
+    </a>
+    <a href="summary.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      4. Summary
     </a>
     <div class="nav-divider"></div>
     <a href="about.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       About
     </a>
+    <div class="nav-version">v1.0</div>
   </nav>
 
   <header>
@@ -191,52 +222,56 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <div class="header-copy">
-        <h1>Model Cost &amp; Fit Comparison</h1>
-        <p>Step 3: Compare model economics and your manual fit rubric for the scoped workload</p>
+        <h1><a href="index.html">Agentic Decision Framework</a></h1>
       </div>
     </div>
     <div class="header-actions">
       <div class="header-currency usd-active">
         <button id="btnUSD" aria-pressed="true">USD</button>
         <button id="btnEUR" aria-pressed="false">EUR</button>
-        <span class="rate-field">1 USD = <input type="text" id="rateInput" value="0.92" size="5"> EUR</span>
+        <span class="rate-field">1 USD = <input type="text" id="rateInput" value="0.85" size="5"> EUR</span>
       </div>
-      <button class="icon-btn share" id="shareBtn" title="Copy share link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-      </button>
       <button class="icon-btn reset" id="resetBtn" title="Reset all inputs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
       </button>
-      <button class="icon-btn theme" id="themeBtn" title="Toggle light/dark mode">
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <button class="icon-btn theme" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
     </div>
   </header>
 
-  <nav class="step-bar" aria-label="Step progress">
-    <a href="step1.html" class="step-bar-item">
-      <span class="step-bar-num">1</span>
-      <span class="step-bar-label">Business Case</span>
-    </a>
-    <span class="step-bar-sep" aria-hidden="true">›</span>
-    <a href="step2.html" class="step-bar-item">
-      <span class="step-bar-num">2</span>
-      <span class="step-bar-label">Prioritization</span>
-    </a>
-    <span class="step-bar-sep" aria-hidden="true">›</span>
-    <a href="step3.html" class="step-bar-item active" aria-current="step">
-      <span class="step-bar-num">3</span>
-      <span class="step-bar-label">Model Cost &amp; Fit</span>
-    </a>
-  </nav>
-
-  <div class="step-nav">
+  <div class="page-toolbar">
     <a href="step2.html" class="step-nav-btn secondary">← Step 2: Prioritization</a>
-    <a href="about.html" class="step-nav-btn primary">About this tool →</a>
+    <nav class="step-bar" aria-label="Step progress">
+      <a href="step1.html" class="step-bar-item">
+        <span class="step-bar-num">1</span>
+        <span class="step-bar-label">Business Case</span>
+      </a>
+      <span class="step-bar-sep" aria-hidden="true">›</span>
+      <a href="step2.html" class="step-bar-item">
+        <span class="step-bar-num">2</span>
+        <span class="step-bar-label">Prioritization</span>
+      </a>
+      <span class="step-bar-sep" aria-hidden="true">›</span>
+      <a href="step3.html" class="step-bar-item active" aria-current="step">
+        <span class="step-bar-num">3</span>
+        <span class="step-bar-label">Model Cost &amp; Fit</span>
+      </a>
+      <span class="step-bar-sep" aria-hidden="true">›</span>
+      <a href="summary.html" class="step-bar-item">
+        <span class="step-bar-num">4</span>
+        <span class="step-bar-label">Summary</span>
+      </a>
+    </nav>
+    <a href="summary.html" class="step-nav-btn primary">View Summary →</a>
   </div>
 
   <main>
+    <div class="page-title">
+      <h2><span class="page-title-num">3</span>Model Cost &amp; Fit</h2>
+      <p>Which model fits the budget and quality bar? Compare LLM cost curves against your volume and manual baseline. <a href="https://docs.camunda.io/docs/components/agentic-orchestration/choose-right-model-agentic/" target="_blank" rel="noopener">Camunda guidance on choosing a model →</a></p>
+    </div>
     <div class="models-column" id="modelsColumn">
 
       <div class="panel settings-panel" id="processSettingsPanel">
@@ -245,9 +280,9 @@
           <div class="settings-title">Process</div>
         </div>
         <div class="settings-body"><div class="settings-body-inner">
-          <div class="slider-group"><div class="slider-header"><label>Input tokens / tool call</label><output id="psInputTokensDisplay"></output></div><input type="range" min="100" max="10000" step="100" value="1000" id="psInputTokens"><p class="input-note">Input tokens per model call including history.</p></div>
-          <div class="slider-group"><div class="slider-header"><label>Output tokens / tool call</label><output id="psOutputTokensDisplay"></output></div><input type="range" min="50" max="5000" step="50" value="500" id="psOutputTokens"><p class="input-note">Output tokens generated per call.</p></div>
-          <div class="slider-group"><div class="slider-header"><label>Tools in subprocess</label><output id="psToolsDisplay"></output></div><input type="range" min="1" max="50" step="1" value="5" id="psTools"><p class="input-note">Sequential tool calls per process run.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Input tokens / tool call</label><output id="psInputTokensDisplay"></output></div><input type="range" min="100" max="10000" step="100" value="100" id="psInputTokens"><p class="input-note">Input tokens per model call including history.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Output tokens / tool call</label><output id="psOutputTokensDisplay"></output></div><input type="range" min="50" max="5000" step="50" value="50" id="psOutputTokens"><p class="input-note">Output tokens generated per call.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Tools in subprocess</label><output id="psToolsDisplay"></output></div><input type="range" min="1" max="50" step="1" value="1" id="psTools"><p class="input-note">Sequential tool calls per process run.</p></div>
           <div class="context-summary" id="contextSummary">
             <div class="context-summary-row"><span>Total input / run</span><span class="context-summary-val" id="ctxInputDisplay"></span></div>
             <div class="context-summary-row"><span>Total output / run</span><span class="context-summary-val" id="ctxOutputDisplay"></span></div>
@@ -261,12 +296,8 @@
           <div class="settings-title">Business</div>
         </div>
         <div class="settings-body"><div class="settings-body-inner">
-          <div class="slider-group"><div class="slider-header"><label>Range profile</label></div><select id="rangeProfileInput" class="profile-select"><option value="small">Small</option><option value="growth" selected>Growth</option><option value="enterprise">Enterprise</option></select></div>
-          <div class="slider-group"><div class="slider-header"><label>Instances / month</label><output id="monthlyInstancesDisplay"></output></div><input type="range" min="0" max="250000" step="1000" value="0" id="monthlyInstancesInput"><p class="input-note">Monthly process volume assumption.</p></div>
-          <div class="slider-group"><div class="slider-header"><label>Monthly growth rate</label><output id="growthRateDisplay"></output></div><input type="range" min="0" max="100" step="1" value="0" id="growthRateInput"><p class="input-note">Monthly volume growth assumption.</p></div>
-          <div class="slider-group"><div class="slider-header"><label>Forecast horizon</label><output id="forecastMonthsDisplay"></output></div><input type="range" min="1" max="60" step="1" value="12" id="forecastMonthsInput"><p class="input-note">Months projected in forecast.</p></div>
-          <div class="slider-group"><div class="slider-header"><label>Monthly budget</label><output id="budgetDisplay"></output></div><input type="range" min="0" max="100000" step="500" value="0" id="budgetInput"><p class="input-note">Monthly spend limit reference line.</p></div>
-          <div class="slider-group"><div class="slider-header"><label>Manual cost / month</label><output id="manualCostDisplay"></output></div><input type="range" min="0" max="500000" step="500" value="0" id="manualCostInput"><p class="input-note">Current monthly manual handling cost.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Monthly growth rate</label><output id="growthRateDisplay"></output></div><input type="range" min="0" max="100" step="1" value="0" id="growthRateInput"><p class="input-note">Expected monthly volume growth.</p></div>
+          <div class="slider-group"><div class="slider-header"><label>Forecast horizon</label><output id="forecastMonthsDisplay"></output></div><input type="range" min="1" max="60" step="1" value="1" id="forecastMonthsInput"><p class="input-note">Months projected in the forecast chart.</p></div>
         </div></div>
       </div>
       <div class="section-label">
@@ -283,6 +314,26 @@
     </div>
 
     <div class="chart-wrapper">
+      <div class="panel handover-tile">
+        <div class="handover-title">Scenario from Step 2</div>
+        <div class="handover-grid">
+          <div class="handover-item">
+            <div class="handover-label">Monthly instances</div>
+            <div class="handover-value" id="hoInstances">—</div>
+            <div class="handover-note">Volume of the top-ranked process.</div>
+          </div>
+          <div class="handover-item">
+            <div class="handover-label">Manual cost / month</div>
+            <div class="handover-value" id="hoManualCost">—</div>
+            <div class="handover-note">Instances × handling time × hourly rate.</div>
+          </div>
+          <div class="handover-item">
+            <div class="handover-label">Monthly budget</div>
+            <div class="handover-value" id="hoBudget">—</div>
+            <div class="handover-note">30% of projected monthly savings.</div>
+          </div>
+        </div>
+      </div>
       <div class="panel chart-container"><canvas id="costChart"></canvas></div>
       <div class="chart-controls">
         <div class="chart-tabs">
@@ -301,19 +352,18 @@
             <th data-sort="costPerInstance" class="sort-active" title="Total LLM cost for one process instance. History accumulates: total input = N·inputTokens + N(N-1)/2·outputTokens, total output = N·outputTokens.">Cost / inst. <span class="sort-arrow">&#9650;</span></th>
             <th data-sort="monthlyCost" title="Projected monthly cost at your specified instances/month. Set 'Instances / month' to see values.">Monthly <span class="sort-arrow"></span></th>
             <th data-sort="savingsVsManual" title="Savings compared to manual processing cost. Set 'Manual cost / month' and 'Instances / month' to see values.">vs Manual <span class="sort-arrow"></span></th>
-            <th data-sort="budgetReachInstances" title="Instance volume at which monthly model cost reaches your monthly budget.">Budget reached <span class="sort-arrow"></span></th>
-            <th data-sort="breakevenInstances" title="Number of instances at which automation cost equals manual cost.">Break-even inst. <span class="sort-arrow"></span></th>
-            <th data-sort="breakevenMonths" title="Estimated full months to reach break-even instance volume at your current instances/month.">Break-even months <span class="sort-arrow"></span></th>
+            <th data-sort="budgetPct" title="Monthly cost as a percentage of your monthly budget at your current volume.">% of budget <span class="sort-arrow"></span></th>
+            <th data-sort="breakevenMonths" title="Months at your current volume before automation pays back the manual cost baseline.">Break-even <span class="sort-arrow"></span></th>
           </tr></thead>
           <tbody></tbody>
         </table>
       </div>
-      <div class="btn-row">
-        <button class="action-btn" id="downloadPng">Download PNG</button>
-        <button class="action-btn" id="exportCsv">Export CSV</button>
-      </div>
     </div>
   </main>
+
+  <footer class="site-footer no-print">
+    <p class="site-footer-text">Made by <a href="https://www.consid.com" target="_blank" rel="noopener" class="site-footer-logo" aria-label="Consid"></a></p><p class="site-footer-meta">&copy; 2026 Consid AB</p>
+  </footer>
 
   <!-- Reset confirmation modal -->
   <div class="handoff-backdrop" id="resetBackdrop" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle">
@@ -329,7 +379,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script>
     /* ===== Custom Chart.js interaction mode ===== */
     // Only activates elements that belong to intersection datasets (_intersectionKind).
@@ -340,7 +390,7 @@
     };
 
     /* ===== Constants ===== */
-    const COLORS        = ['#FC5D0D','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#EF4444','#84CC16','#F97316'];
+    const COLORS        = ['#B5223F','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#EF4444','#84CC16','#F97316'];
     const SWATCH_COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
     const PRICE_IN_MIN  = 1e-7, PRICE_IN_MAX = 1e-4;
     const PRICE_OUT_MIN = 1e-7, PRICE_OUT_MAX = 4e-4;
@@ -350,52 +400,51 @@
     const STEP2_HANDOFF_KEY = 'camunda-step2-handoff';
 
     const MODEL_PRESETS = [
-      { name: 'GPT-4.1',          inPrice: 2.0e-6,  outPrice: 8.0e-6  },
-      { name: 'GPT-4.1 mini',     inPrice: 4.0e-7,  outPrice: 1.6e-6  },
-      { name: 'GPT-4.1 nano',     inPrice: 1.0e-7,  outPrice: 4.0e-7  },
-      { name: 'GPT-4o',           inPrice: 2.5e-6,  outPrice: 1.0e-5  },
-      { name: 'GPT-4o mini',      inPrice: 1.5e-7,  outPrice: 6.0e-7  },
-      { name: 'Claude Opus 4',    inPrice: 1.5e-5,  outPrice: 7.5e-5  },
-      { name: 'Claude Sonnet 4',  inPrice: 3.0e-6,  outPrice: 1.5e-5  },
-      { name: 'Claude Haiku 3.5', inPrice: 8.0e-7,  outPrice: 4.0e-6  },
-      { name: 'Gemini 2.5 Pro',   inPrice: 1.25e-6, outPrice: 1.0e-5  },
-      { name: 'Gemini 2.5 Flash', inPrice: 1.5e-7,  outPrice: 6.0e-7  },
-      { name: 'Llama 4 Maverick', inPrice: 2.0e-7,  outPrice: 6.0e-7  },
-      { name: 'Mistral Large',    inPrice: 2.0e-6,  outPrice: 6.0e-6  },
+      // OpenAI
+      { name: 'GPT-5',               inPrice: 1.5e-5,  outPrice: 6.0e-5  },
+      { name: 'GPT-4o',              inPrice: 2.5e-6,  outPrice: 1.0e-5  },
+      { name: 'GPT-4o mini',         inPrice: 1.5e-7,  outPrice: 6.0e-7  },
+      // Anthropic
+      { name: 'Claude Opus 4',       inPrice: 1.5e-5,  outPrice: 7.5e-5  },
+      { name: 'Claude Sonnet 4',     inPrice: 3.0e-6,  outPrice: 1.5e-5  },
+      { name: 'Claude Haiku 3.5',    inPrice: 8.0e-7,  outPrice: 4.0e-6  },
+      // Google
+      { name: 'Gemini 2.5 Pro',      inPrice: 1.25e-6, outPrice: 1.0e-5  },
+      { name: 'Gemini 2.5 Flash',    inPrice: 1.5e-7,  outPrice: 6.0e-7  },
+      // DeepSeek
+      { name: 'DeepSeek-V3',         inPrice: 2.7e-7,  outPrice: 1.1e-6  },
+      { name: 'DeepSeek-R1',         inPrice: 5.5e-7,  outPrice: 2.19e-6 },
+      // xAI
+      { name: 'Grok-3',              inPrice: 3.0e-6,  outPrice: 1.5e-5  },
+      { name: 'Grok-3 mini',         inPrice: 3.0e-7,  outPrice: 5.0e-7  },
+      // Qwen
+      { name: 'Qwen3-235B-A22B',      inPrice: 2.2e-7,  outPrice: 6.0e-7  },
+      { name: 'Qwen3-72B',            inPrice: 4.0e-7,  outPrice: 1.2e-6  },
+      { name: 'Qwen2.5-72B',          inPrice: 4.0e-7,  outPrice: 1.2e-6  },
+      // Meta
+      { name: 'Llama 4 Maverick',    inPrice: 2.0e-7,  outPrice: 6.0e-7  },
+      { name: 'Llama 3.3 70B',       inPrice: 5.9e-7,  outPrice: 7.9e-7  },
     ];
 
-    const DEFAULT_PROCESS = { inputTokens: 1000, outputTokens: 500, tools: 5 };
-    const RANGE_PROFILES = {
-      small: {
-        monthlyInstances: { min: 0, max: 25000, step: 250, defaultValue: 0 },
-        budget: { min: 0, max: 10000, step: 100, defaultValue: 0 },
-        manualCost: { min: 0, max: 30000, step: 250, defaultValue: 0 },
-      },
-      growth: {
-        monthlyInstances: { min: 0, max: 100000, step: 1000, defaultValue: 0 },
-        budget: { min: 0, max: 40000, step: 500, defaultValue: 0 },
-        manualCost: { min: 0, max: 120000, step: 500, defaultValue: 0 },
-      },
-      enterprise: {
-        monthlyInstances: { min: 0, max: 250000, step: 2500, defaultValue: 0 },
-        budget: { min: 0, max: 100000, step: 1000, defaultValue: 0 },
-        manualCost: { min: 0, max: 500000, step: 2500, defaultValue: 0 },
-      },
-    };
+    const DEFAULT_PROCESS = { inputTokens: 100, outputTokens: 50, tools: 1 };
+    // Max scenario values inherited from Step 2's slider caps
+    // (volume × handling × hourlyRate product determines manualCost / budget ranges)
+    const MAX_MONTHLY_INSTANCES = 10000;   // Step 2 volume max
+    const MAX_MANUAL_COST       = 25000000; // 10000 × 8h × $300/hr
+    const MAX_BUDGET            = 10000000; // headroom over 30% of max savings
 
     /* ===== State ===== */
     let processSettings    = { ...DEFAULT_PROCESS };
     let models             = [];
     let nextId             = 0;
     let currency           = 'USD';
-    let eurRate            = 0.92;
+    let eurRate            = 0.85;
     let budget             = 0;
     let monthlyInstances   = 0;
     let manualCost         = 0;
     let growthRate         = 0;
-    let forecastMonths     = 12;
+    let forecastMonths     = 1;
     let activeChartTab     = 'score'; // 'instances' | 'forecast' | 'breakeven' | 'score'
-    let activeRangeProfile = 'growth'; // 'small' | 'growth' | 'enterprise'
     let processPanelCollapsed = true;
     let businessPanelCollapsed = false;
     let sortKey            = 'costPerInstance';
@@ -413,9 +462,10 @@
     function sym() { return CURRENCIES[currency]; }
     function formatPrice(perToken) { return `${sym()}${(perToken * 1e6).toFixed(2)} / 1M`; }
     function formatCost(v) {
-      if (v < 0.01) return `${sym()}${v.toFixed(4)}`;
-      if (v < 1000) return `${sym()}${v.toFixed(2)}`;
-      return `${sym()}${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+      const d = v * (currency === 'EUR' ? eurRate : 1);
+      if (d < 0.01) return `${sym()}${d.toFixed(4)}`;
+      if (d < 1000) return `${sym()}${d.toFixed(2)}`;
+      return `${sym()}${d.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
     }
     function formatInstances(n) {
       if (n >= 1e6) return `${(n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1)}M`;
@@ -429,9 +479,6 @@
     function normalizeChartTab(value) {
       if (value === 'annual') return 'forecast';
       return ['instances', 'forecast', 'breakeven', 'score'].includes(value) ? value : 'instances';
-    }
-    function normalizeRangeProfile(value) {
-      return Object.hasOwn(RANGE_PROFILES, value) ? value : 'growth';
     }
     function clamp(value, min, max) {
       return Math.max(min, Math.min(max, value));
@@ -453,14 +500,6 @@
       model.decisionScore = computeManualFitScore(model);
       return model;
     }
-    function inferRangeProfile(source) {
-      if (source?.activeRangeProfile) return normalizeRangeProfile(source.activeRangeProfile);
-      const b = Number.isFinite(source?.budget) ? +source.budget : 0;
-      if (b <= RANGE_PROFILES.small.budget.max) return 'small';
-      if (b <= RANGE_PROFILES.growth.budget.max) return 'growth';
-      return 'enterprise';
-    }
-
     /* ===== Currency conversion ===== */
     function convertPrices(factor) {
       for (const m of models) {
@@ -482,7 +521,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         models: data, nextId, processSettings, budget,
         monthlyInstances, growthRate, forecastMonths, manualCost,
-        activeChartTab, activeRangeProfile,
+        activeChartTab,
         processPanelCollapsed, businessPanelCollapsed,
       }));
       localStorage.setItem('camunda-global', JSON.stringify({ currency, eurRate, theme: document.documentElement.dataset.theme }));
@@ -498,7 +537,7 @@
         m: models.map(m => ({ n: m.name, c: m.color, ip: m.inputPrice, op: m.outputPrice, fc: m.fixedCost || 0, ds: m.decisionScore ?? 50, f1: m.fitCompliance ?? m.decisionScore ?? 50, f2: m.fitQuality ?? m.decisionScore ?? 50, f3: m.fitOps ?? m.decisionScore ?? 50 })),
         ps: processSettings, cur: currency, rate: eurRate, bgt: budget,
         mi: monthlyInstances, gr: growthRate, fm: forecastMonths, mc: manualCost,
-        ct: activeChartTab, rp: activeRangeProfile,
+        ct: activeChartTab,
         pp: processPanelCollapsed, bp: businessPanelCollapsed,
       }));
     }
@@ -509,10 +548,9 @@
         return {
           models: d.m.map(m => ({ name: m.n, color: m.c, inputPrice: m.ip, outputPrice: m.op, fixedCost: m.fc || 0, decisionScore: m.ds ?? 50, fitCompliance: m.f1 ?? m.ds ?? 50, fitQuality: m.f2 ?? m.ds ?? 50, fitOps: m.f3 ?? m.ds ?? 50 })),
           processSettings: d.ps || { ...DEFAULT_PROCESS },
-          currency: d.cur || 'USD', eurRate: d.rate || 0.92, budget: Math.min(100000, Math.max(0, d.bgt || 0)),
-          monthlyInstances: d.mi || 0, growthRate: d.gr || 0, forecastMonths: d.fm || 12, manualCost: d.mc || 0,
+          currency: d.cur || 'USD', eurRate: d.rate || 0.92, budget: Math.min(MAX_BUDGET, Math.max(0, d.bgt || 0)),
+          monthlyInstances: d.mi || 0, growthRate: d.gr || 0, forecastMonths: d.fm || 1, manualCost: d.mc || 0,
           activeChartTab: normalizeChartTab(d.ct || d.cv || 'score'),
-          activeRangeProfile: normalizeRangeProfile(d.rp || inferRangeProfile({ budget: d.bgt || 0 })),
           processPanelCollapsed: normalizeBoolean(d.pp),
           businessPanelCollapsed: normalizeBoolean(d.bp),
         };
@@ -577,9 +615,17 @@ function updateProcessSettingsDisplay() {
         const yScale = chart.scales.y;
         if (!yScale) return;
         const yPixel = yScale.getPixelForValue(manualCost);
-        if (yPixel < yScale.top || yPixel > yScale.bottom) return;
         const ctx = chart.ctx;
         const area = chart.chartArea;
+        // If manual cost is above the visible range, show a clipped cue at the top of the chart
+        if (yPixel < yScale.top) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(168, 85, 247, 0.85)'; ctx.font = '10px system-ui'; ctx.textAlign = 'right';
+          ctx.fillText(`↑ Manual: ${formatCost(manualCost)} (off-chart)`, area.right, area.top + 12);
+          ctx.restore();
+          return;
+        }
+        if (yPixel > yScale.bottom) return;
         ctx.save();
         ctx.setLineDash([]);
         ctx.strokeStyle = 'rgba(168, 85, 247, 0.55)'; ctx.lineWidth = 1;
@@ -680,35 +726,35 @@ function updateProcessSettingsDisplay() {
     };
 
     function getInstancesChartDomain() {
-      const profileMax = RANGE_PROFILES[activeRangeProfile]?.monthlyInstances?.max || 100000;
-      const xAnchors = [];
+      // Zoom to the range the user cares about:
+      // - base: 2× the user's monthly volume (shows today + headroom)
+      // - pull in break-even / budget-reach intercepts only when they land within 5× of that base (otherwise they'd flatten the curves)
+      let xMax = monthlyInstances > 0 ? monthlyInstances * 2 : 5000;
+      const baseForIntercepts = xMax * 5;
+      for (const row of lastRows) {
+        if (!row.noBreakeven && row.breakevenInstances > 0 && row.breakevenInstances <= baseForIntercepts) {
+          xMax = Math.max(xMax, row.breakevenInstances * 1.1);
+        }
+        const xAtBudget = row.budgetAtFixed ? 0 : row.budgetReachInstances;
+        if (Number.isFinite(xAtBudget) && xAtBudget > 0 && xAtBudget <= baseForIntercepts) {
+          xMax = Math.max(xMax, xAtBudget * 1.1);
+        }
+      }
+      xMax = Math.max(1000, Math.ceil(xMax));
+
+      // Y anchors: curve values at xMax + budget (always). Manual cost only if it would not dwarf the curves,
+      // else drawn as a clipped "above chart" cue by the plugin.
       const yAnchors = [];
-
-      if (monthlyInstances > 0) {
-        xAnchors.push(monthlyInstances);
-        for (const row of lastRows) {
-          const yAtVolume = monthlyInstances * row.costPerInstance + row.fixedCost;
-          if (Number.isFinite(yAtVolume) && yAtVolume >= 0) yAnchors.push(yAtVolume);
-        }
+      for (const row of lastRows) {
+        const y = xMax * row.costPerInstance + row.fixedCost;
+        if (Number.isFinite(y) && y >= 0) yAnchors.push(y);
       }
-
-      if (budget > 0) {
-        yAnchors.push(budget);
-        for (const row of lastRows) {
-          const xAtBudget = row.budgetAtFixed ? 0 : row.budgetReachInstances;
-          if (Number.isFinite(xAtBudget) && xAtBudget >= 0) xAnchors.push(Math.min(xAtBudget, profileMax));
-        }
-      }
-
-      if (manualCost > 0) {
+      if (budget > 0) yAnchors.push(budget);
+      const curveMax = yAnchors.length ? Math.max(...yAnchors) : 0;
+      if (manualCost > 0 && (curveMax === 0 || manualCost <= curveMax * 3)) {
         yAnchors.push(manualCost);
-        for (const row of lastRows) {
-          if (!row.noBreakeven && row.breakevenInstances > 0) xAnchors.push(Math.min(row.breakevenInstances, profileMax));
-        }
       }
 
-      if (!xAnchors.length) xAnchors.push(Math.max(1000, Math.ceil(profileMax * 0.1)));
-      const xMax = Math.max(1000, Math.ceil(Math.max(...xAnchors) * 1.1));
       const yMax = yAnchors.length ? Math.ceil(Math.max(...yAnchors) * 1.25) : undefined;
       return { xMax, yMax };
     }
@@ -1147,16 +1193,12 @@ function updateProcessSettingsDisplay() {
     }
 
     function ensureChart(spec) {
+      // Always destroy + recreate. Chart.js doesn't reliably re-register plugins
+      // nor re-scale axes via chart.update() when the underlying reference values
+      // (budget, manualCost, monthlyInstances) change. Full rebuild is cheap and correct.
       const canvas = document.getElementById('costChart');
-      if (!chart || chart.config.type !== spec.config.type) {
-        if (chart) chart.destroy();
-        chart = new Chart(canvas, { ...spec.config, plugins: spec.plugins });
-        return;
-      }
-      chart.config.data = spec.config.data;
-      chart.config.options = spec.config.options;
-      chart.config.plugins = spec.plugins;
-      chart.update('none');
+      if (chart) chart.destroy();
+      chart = new Chart(canvas, { ...spec.config, plugins: spec.plugins });
     }
 
     function renderActiveChart() {
@@ -1340,6 +1382,7 @@ function updateProcessSettingsDisplay() {
         const budgetReachInstances = (budget > 0 && costPerInstance > 0 && !budgetAtFixed)
           ? Math.ceil((budget - fc) / costPerInstance)
           : 0;
+        const budgetPct = (budget > 0 && monthlyCost > 0) ? (monthlyCost / budget * 100) : 0;
 
         lastRows.push({
           name: m.name,
@@ -1362,6 +1405,7 @@ function updateProcessSettingsDisplay() {
           savingsPct,
           budgetAtFixed,
           budgetReachInstances,
+          budgetPct,
           breakevenInstances,
           breakevenMonths,
           noBreakeven,
@@ -1382,26 +1426,28 @@ function updateProcessSettingsDisplay() {
       const cheapest = lastRows.length ? Math.min(...lastRows.map(r => r.costPerInstance)) : 0;
       const dim = '<span style="color:var(--muted)">\u2014</span>';
 
+      if (!sorted.length) {
+        document.querySelector('#modelTable tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted);font-size:0.875rem">Add a model using the button on the left to start comparing costs.</td></tr>`;
+        return;
+      }
       document.querySelector('#modelTable tbody').innerHTML = sorted.map(r => {
         const isCheapest = r.costPerInstance === cheapest && lastRows.length > 1;
         const savColor = r.savingsVsManual > 0 ? '#22C55E' : r.savingsVsManual < 0 ? '#EF4444' : '';
         const savStr = r.savingsVsManual !== 0
           ? `<span style="color:${savColor}">${r.savingsVsManual > 0 ? '+' : ''}${r.savingsPct.toFixed(0)}% (${formatCost(Math.abs(r.savingsVsManual))})</span>`
           : dim;
-        const beStr = r.noBreakeven
-          ? 'No break-even'
-          : r.breakevenInstances > 0
-          ? formatInstances(r.breakevenInstances)
-          : dim;
-        const budgetReachStr = budget <= 0
+        const budgetPctStr = budget <= 0 || r.monthlyCost <= 0
           ? dim
-          : r.budgetAtFixed
-          ? '0 inst (fixed)'
-          : r.budgetReachInstances > 0
-          ? `${formatInstances(r.budgetReachInstances)} inst`
-          : dim;
+          : (() => {
+              const pct = r.budgetPct;
+              const color = pct > 100 ? '#EF4444' : pct > 50 ? '#F59E0B' : '#22C55E';
+              const label = pct < 0.1 ? '<0.1%' : pct < 10 ? `${pct.toFixed(1)}%` : `${Math.round(pct)}%`;
+              return `<span style="color:${color}">${label}</span>`;
+            })();
         const beMonthsStr = r.noBreakeven
           ? 'No break-even'
+          : r.breakevenMonths > 60
+          ? '60+ mo'
           : r.breakevenMonths > 0
           ? `${r.breakevenMonths} mo`
           : dim;
@@ -1411,8 +1457,7 @@ function updateProcessSettingsDisplay() {
           <td>${formatCost(r.costPerInstance)}</td>
           <td>${r.monthlyCost > 0 ? formatCost(r.monthlyCost) : dim}</td>
           <td>${savStr}</td>
-          <td>${budgetReachStr}</td>
-          <td>${beStr}</td>
+          <td>${budgetPctStr}</td>
           <td>${beMonthsStr}</td>
         </tr>`;
       }).join('');
@@ -1502,87 +1547,34 @@ document.getElementById('processCollapseBtn').addEventListener('click', () => {
         saveState();
       }
     });
+    rateInput.addEventListener('blur', () => {
+      const v = parseFloat(rateInput.value);
+      if (!(v > 0 && isFinite(v))) rateInput.value = eurRate;
+    });
 
-    // Business params
-    const budgetInput = document.getElementById('budgetInput');
-    const monthlyInstancesInput = document.getElementById('monthlyInstancesInput');
-    const manualCostInput = document.getElementById('manualCostInput');
-    const rangeProfileInput = document.getElementById('rangeProfileInput');
-
+    // Business params (growth / forecast are still user-controlled; instances, budget, manual cost come from Step 2)
     const growthRateInput = document.getElementById('growthRateInput');
-    function applyRangeConfig(input, cfg, value) {
-      input.min = cfg.min;
-      input.max = cfg.max;
-      input.step = cfg.step;
-      return clamp(value, cfg.min, cfg.max);
-    }
-    function applyRangeProfile(profile, { preserveValues = true } = {}) {
-      activeRangeProfile = normalizeRangeProfile(profile);
-      rangeProfileInput.value = activeRangeProfile;
-      const cfg = RANGE_PROFILES[activeRangeProfile];
-      monthlyInstances = applyRangeConfig(monthlyInstancesInput, cfg.monthlyInstances, preserveValues ? monthlyInstances : cfg.monthlyInstances.defaultValue);
-      budget = applyRangeConfig(budgetInput, cfg.budget, preserveValues ? budget : cfg.budget.defaultValue);
-      manualCost = applyRangeConfig(manualCostInput, cfg.manualCost, preserveValues ? manualCost : cfg.manualCost.defaultValue);
-      monthlyInstancesInput.value = monthlyInstances;
-      budgetInput.value = budget;
-      manualCostInput.value = manualCost;
-    }
-    function getRangeClampWarnings(nextProfile) {
-      const cfg = RANGE_PROFILES[normalizeRangeProfile(nextProfile)];
-      const warnings = [];
-      if (monthlyInstances > cfg.monthlyInstances.max) warnings.push(`Instances / month will be capped at ${formatInstances(cfg.monthlyInstances.max)}.`);
-      if (budget > cfg.budget.max) warnings.push(`Monthly budget will be capped at ${sym()}${cfg.budget.max.toLocaleString()}.`);
-      if (manualCost > cfg.manualCost.max) warnings.push(`Manual cost / month will be capped at ${sym()}${cfg.manualCost.max.toLocaleString()}.`);
-      return warnings;
-    }
+    const forecastMonthsInput = document.getElementById('forecastMonthsInput');
 
+    function fmtScenarioMoney(v) {
+      return v > 0 ? `${sym()}${Math.round(v * (currency === 'EUR' ? eurRate : 1)).toLocaleString()}` : '—';
+    }
     function updateBusinessDisplay() {
-      document.getElementById('monthlyInstancesDisplay').textContent = formatInstances(monthlyInstances);
       document.getElementById('growthRateDisplay').textContent = `${growthRate}% / mo`;
       document.getElementById('forecastMonthsDisplay').textContent = `${forecastMonths} month${forecastMonths !== 1 ? 's' : ''}`;
-      document.getElementById('budgetDisplay').textContent = `${sym()}${budget.toLocaleString()}`;
-      document.getElementById('manualCostDisplay').textContent = `${sym()}${manualCost.toLocaleString()}`;
+      document.getElementById('hoInstances').textContent = monthlyInstances > 0 ? monthlyInstances.toLocaleString() : '—';
+      document.getElementById('hoManualCost').textContent = fmtScenarioMoney(manualCost);
+      document.getElementById('hoBudget').textContent = fmtScenarioMoney(budget);
     }
-    applyRangeProfile(activeRangeProfile);
     updateBusinessDisplay();
 
-    rangeProfileInput.addEventListener('change', () => {
-      const warnings = getRangeClampWarnings(rangeProfileInput.value);
-      if (warnings.length) {
-        const proceed = confirm(`Changing profile will adjust current values:\n- ${warnings.join('\n- ')}\n\nContinue?`);
-        if (!proceed) {
-          rangeProfileInput.value = activeRangeProfile;
-          return;
-        }
-      }
-      applyRangeProfile(rangeProfileInput.value, { preserveValues: true });
-      updateBusinessDisplay();
-      recalculate();
-    });
-
-    monthlyInstancesInput.addEventListener('input', () => {
-      monthlyInstances = +monthlyInstancesInput.value;
-      updateBusinessDisplay();
-      recalculate();
-    });
     growthRateInput.addEventListener('input', () => {
       growthRate = +growthRateInput.value;
       updateBusinessDisplay();
       recalculate();
     });
-    const forecastMonthsInput = document.getElementById('forecastMonthsInput');
     forecastMonthsInput.addEventListener('input', () => {
       forecastMonths = +forecastMonthsInput.value;
-      updateBusinessDisplay();
-      recalculate();
-    });
-    budgetInput.addEventListener('input', () => {
-      budget = +budgetInput.value;
-      updateBusinessDisplay();
-      recalculate();
-    });
-    manualCostInput.addEventListener('input', () => {
-      manualCost = +manualCostInput.value;
       updateBusinessDisplay();
       recalculate();
     });
@@ -1600,13 +1592,12 @@ document.getElementById('processCollapseBtn').addEventListener('click', () => {
       localStorage.removeItem(STORAGE_KEY);
       for (const m of [...models]) document.getElementById(`model-${m.id}`)?.remove();
       models = []; nextId = 0;
-      activeRangeProfile = 'growth';
-      applyRangeProfile(activeRangeProfile, { preserveValues: false });
+      monthlyInstances = 0; manualCost = 0; budget = 0;
       processPanelCollapsed = true;
       businessPanelCollapsed = false;
       applySettingsPanelState();
       growthRate = 0; growthRateInput.value = 0;
-      forecastMonths = 12; forecastMonthsInput.value = 12;
+      forecastMonths = 1; forecastMonthsInput.value = 1;
       updateBusinessDisplay();
       processSettings = { ...DEFAULT_PROCESS };
       document.getElementById('psInputTokens').value = DEFAULT_PROCESS.inputTokens;
@@ -1622,46 +1613,6 @@ document.getElementById('processCollapseBtn').addEventListener('click', () => {
     document.getElementById('resetClose').addEventListener('click', closeResetModal);
     document.getElementById('resetBackdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeResetModal(); });
     document.getElementById('resetConfirm').addEventListener('click', () => { doReset(); closeResetModal(); });
-
-    // Share
-    document.getElementById('shareBtn').addEventListener('click', () => {
-      const url = location.origin + location.pathname + '#' + encodeState();
-      navigator.clipboard.writeText(url).then(() => {
-        const btn = document.getElementById('shareBtn');
-        btn.classList.add('copied');
-        setTimeout(() => btn.classList.remove('copied'), 1500);
-      });
-    });
-
-    // Export CSV
-    document.getElementById('exportCsv').addEventListener('click', () => {
-      const header = ['Model','Your fit (manual rubric)','Input / 1M','Output / 1M','Cost / instance','Cost @ 10k','Cost @ 100k','Monthly cost','12-mo total','vs Manual','vs Manual %','Budget reached (instances/mo)','Break-even instances','Break-even months'];
-      const rows = [header.join(',')];
-      const sorted = [...lastRows].sort((a, b) => {
-        const av = a[sortKey], bv = b[sortKey];
-        return (sortDir === 'asc' ? 1 : -1) * (typeof av === 'string' ? av.localeCompare(bv) : av - bv);
-      });
-      for (const r of sorted) {
-        const budgetReached = budget <= 0 ? '' : (r.budgetAtFixed ? '0 (fixed cost)' : r.budgetReachInstances);
-        const be = r.noBreakeven ? 'No break-even' : r.breakevenInstances;
-        const beMonths = r.noBreakeven ? 'No break-even' : (r.breakevenMonths > 0 ? r.breakevenMonths : '');
-        rows.push([`"${r.name}"`, r.decisionScore, (r.inP*1e6).toFixed(2), (r.outP*1e6).toFixed(2), r.costPerInstance.toFixed(6), r.costAt10k.toFixed(2), r.costAt100k.toFixed(2), r.monthlyCost.toFixed(2), r.annualCost.toFixed(2), r.savingsVsManual.toFixed(2), r.savingsPct.toFixed(1) + '%', budgetReached, be, beMonths].join(','));
-      }
-      const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'camunda-cost-comparison.csv';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
-
-    // Download PNG
-    document.getElementById('downloadPng').addEventListener('click', () => {
-      const a = document.createElement('a');
-      a.href = chart.toBase64Image('image/png', 1);
-      a.download = 'camunda-cost-chart.png';
-      a.click();
-    });
 
     // Preset menu
     const presetMenu = document.getElementById('presetMenu');
@@ -1684,20 +1635,14 @@ document.getElementById('processCollapseBtn').addEventListener('click', () => {
 
     function applyStep2Handoff(handoff) {
       if (!handoff) return false;
-      const inferredProfile = inferRangeProfile({
-        budget: handoff.budget,
-        monthlyInstances: handoff.monthlyInstances,
-        manualCost: handoff.manualCost,
-      });
-      applyRangeProfile(inferredProfile, { preserveValues: true });
       if (Number.isFinite(handoff.monthlyInstances)) {
-        monthlyInstances = clamp(+handoff.monthlyInstances, +monthlyInstancesInput.min, +monthlyInstancesInput.max);
+        monthlyInstances = clamp(+handoff.monthlyInstances, 0, MAX_MONTHLY_INSTANCES);
       }
       if (Number.isFinite(handoff.manualCost)) {
-        manualCost = clamp(+handoff.manualCost, +manualCostInput.min, +manualCostInput.max);
+        manualCost = clamp(+handoff.manualCost, 0, MAX_MANUAL_COST);
       }
       if (Number.isFinite(handoff.budget)) {
-        budget = clamp(+handoff.budget, +budgetInput.min, +budgetInput.max);
+        budget = clamp(+handoff.budget, 0, MAX_BUDGET);
       }
       if (Number.isFinite(handoff.growthRate)) {
         growthRate = clamp(+handoff.growthRate, +growthRateInput.min, +growthRateInput.max);
@@ -1712,13 +1657,10 @@ document.getElementById('processCollapseBtn').addEventListener('click', () => {
         document.getElementById('psTools').value = processSettings.tools;
         updateProcessSettingsDisplay();
       }
-      monthlyInstancesInput.value = monthlyInstances;
-      manualCostInput.value = manualCost;
-      budgetInput.value = budget;
       growthRateInput.value = growthRate;
       forecastMonthsInput.value = forecastMonths;
       updateBusinessDisplay();
-setChartTab(normalizeChartTab(handoff.activeChartTab || 'score'), { skipRecalc: true });
+      setChartTab(normalizeChartTab(handoff.activeChartTab || 'instances'), { skipRecalc: true });
       return true;
     }
 
@@ -1727,13 +1669,11 @@ setChartTab(normalizeChartTab(handoff.activeChartTab || 'score'), { skipRecalc: 
       processPanelCollapsed = normalizeBoolean(source.processPanelCollapsed);
       businessPanelCollapsed = normalizeBoolean(source.businessPanelCollapsed);
       applySettingsPanelState();
-      applyRangeProfile(inferRangeProfile(source), { preserveValues: false });
-      budget = Number.isFinite(source.budget) ? Math.min(100000, Math.max(0, +source.budget)) : 0;
-      monthlyInstances = Number.isFinite(source.monthlyInstances) ? +source.monthlyInstances : 0;
+      budget = Number.isFinite(source.budget) ? clamp(+source.budget, 0, MAX_BUDGET) : 0;
+      monthlyInstances = Number.isFinite(source.monthlyInstances) ? clamp(+source.monthlyInstances, 0, MAX_MONTHLY_INSTANCES) : 0;
       growthRate = Number.isFinite(source.growthRate) ? +source.growthRate : 0;
-      forecastMonths = Number.isFinite(source.forecastMonths) && source.forecastMonths > 0 ? +source.forecastMonths : 12;
-      manualCost = Number.isFinite(source.manualCost) ? +source.manualCost : 0;
-      applyRangeProfile(source.activeRangeProfile || activeRangeProfile, { preserveValues: true });
+      forecastMonths = Number.isFinite(source.forecastMonths) && source.forecastMonths > 0 ? +source.forecastMonths : 1;
+      manualCost = Number.isFinite(source.manualCost) ? clamp(+source.manualCost, 0, MAX_MANUAL_COST) : 0;
       growthRateInput.value = growthRate;
       forecastMonthsInput.value = forecastMonths;
       updateBusinessDisplay();
@@ -1808,12 +1748,9 @@ setChartTab(normalizeChartTab(handoff.activeChartTab || 'score'), { skipRecalc: 
       if (saved?.models?.length) {
         updateChartTheme();
         loadModels(saved);
-      } else {
-        addModel(MODEL_PRESETS[0]);
       }
     }
     if (step2Handoff && !hashState) {
-      if (!models.length) addModel(MODEL_PRESETS[0]);
       applyStep2Handoff(step2Handoff);
       localStorage.removeItem(STEP2_HANDOFF_KEY);
       recalculate();

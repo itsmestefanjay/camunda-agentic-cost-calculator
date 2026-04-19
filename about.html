@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About · Agentic Orchestration Calculators</title>
+  <meta name="description" content="About the Agentic Decision Framework, built by Consid for CTOs evaluating Camunda agentic orchestration. Independent tool, not affiliated with Camunda.">
+  <title>About · Agentic Decision Framework</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="style.css">
   <script>!function(){try{var g=JSON.parse(localStorage.getItem("camunda-global"));if(g&&g.theme)document.documentElement.dataset.theme=g.theme}catch(e){}}();</script>
   <style>
@@ -11,6 +13,7 @@
     .about-wrap {
       max-width: 720px; margin: 0 auto; padding: 2rem 2rem 4rem;
     }
+    .about-wrap .page-title { margin-bottom: 2rem; }
     .about-section {
       margin-bottom: 2.5rem;
     }
@@ -32,11 +35,11 @@
       height: 1px; background: var(--border); margin: 2.5rem 0;
     }
     .disclaimer-box {
-      background: var(--toggle-bg); border: 1px solid rgba(245, 158, 11, 0.3);
+      background: var(--toggle-bg); border: 1px solid rgba(var(--accent-rgb), 0.3);
       border-radius: 10px; padding: 1.25rem 1.5rem;
     }
     .disclaimer-box .disclaimer-title {
-      font-size: 0.7rem; font-weight: 700; color: #F59E0B;
+      font-size: 0.7rem; font-weight: 700; color: var(--accent);
       text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.6rem;
     }
     .disclaimer-box p {
@@ -44,20 +47,22 @@
       margin-bottom: 0.6rem;
       &:last-child { margin-bottom: 0; }
     }
-    .author-card {
-      display: flex; align-items: flex-start; gap: 1.25rem;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 1.5rem;
+
+    .about-logo-row {
+      display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+      margin-bottom: 1rem;
     }
-    .author-avatar {
-      width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
-      background: linear-gradient(135deg, #FC5D0D 0%, #f97316 100%);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.25rem; font-weight: 700; color: #fff; line-height: 1;
+    .about-logo {
+      display: block; height: 32px; width: auto;
     }
-    .author-name { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
-    .author-role { font-size: 0.8125rem; color: var(--muted); margin-bottom: 0.6rem; }
-    .author-bio  { font-size: 0.875rem; color: var(--muted); line-height: 1.65; }
+    .about-logo-partner { height: 64px; }
+    .about-partner-row {
+      display: flex; justify-content: center; margin-bottom: 1.25rem;
+    }
+    .about-logo-light { display: block; }
+    .about-logo-dark  { display: none; }
+    [data-theme="dark"] .about-logo-light { display: none; }
+    [data-theme="dark"] .about-logo-dark  { display: block; }
   </style>
 </head>
 <body>
@@ -65,7 +70,7 @@
   <div class="nav-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="navDrawer" aria-label="Site navigation">
     <div class="nav-drawer-header">
-      <span class="nav-logo">Agentic Orchestration Calculators</span>
+      <span class="nav-logo">Agentic Decision Framework</span>
       <button class="nav-close" id="navClose" aria-label="Close navigation">&times;</button>
     </div>
     <a href="index.html" class="nav-item">
@@ -73,24 +78,29 @@
       Home
     </a>
     <div class="nav-divider"></div>
-    <div class="nav-section-title">Calculators</div>
+    <div class="nav-section-title">Tools</div>
     <a href="step1.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Business Case
+      1. Business Case
     </a>
     <a href="step2.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      Process Prioritization
+      2. Process Prioritization
     </a>
     <a href="step3.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Model Cost &amp; Fit
+      3. Model Cost &amp; Fit
+    </a>
+    <a href="summary.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      4. Summary
     </a>
     <div class="nav-divider"></div>
     <a href="about.html" class="nav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       About
     </a>
+    <div class="nav-version">v1.0</div>
   </nav>
 
   <header>
@@ -99,8 +109,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <div class="header-copy">
-        <h1>About</h1>
-        <p>Project background, author, and legal notice</p>
+        <h1><a href="index.html">Agentic Decision Framework</a></h1>
       </div>
     </div>
     <div class="header-actions">
@@ -112,30 +121,47 @@
   </header>
 
   <main class="about-wrap">
+    <div class="page-title">
+      <h2>About the project</h2>
+    </div>
 
     <section class="about-section">
-      <h2>About the project</h2>
-      <p>When evaluating whether to automate a process with Camunda's agentic orchestration capabilities, the first questions are always economic: <em>is it worth doing, and which approach fits the budget?</em> These calculators give decision-makers a structured way to answer both quickly.</p>
-      <p>The goal is a directional answer in minutes — not a replacement for a proper business case, but a concrete starting point that makes the conversation grounded and fast.</p>
-      <p>The two-step workflow mirrors how good investment decisions are made:</p>
+      <p>When evaluating whether to automate a process with Camunda's agentic orchestration capabilities, the first questions are always economic: <em>is it worth doing, and which approach fits the budget?</em> These tools give decision-makers a structured way to answer both quickly.</p>
+      <p>The goal is a directional answer in minutes, not a replacement for a proper business case, but a concrete starting point that makes the conversation grounded and fast.</p>
+      <p>The four-step workflow mirrors how good investment decisions are made:</p>
       <ul>
-        <li><strong>Step 1</strong> — build a business case: payback, NPV, go/no-go recommendation</li>
-        <li><strong>Step 2</strong> — find a model that fits your cost envelope and quality bar</li>
+        <li><strong>Step 1: Business Case</strong> - payback, long-term value, go/no-go recommendation</li>
+        <li><strong>Step 2: Process Prioritization</strong> - score and rank candidate processes by value and feasibility</li>
+        <li><strong>Step 3: Model Cost &amp; Fit</strong> - compare AI model costs against your volume and quality needs</li>
+        <li><strong>Step 4: Summary</strong> - export results as JSON for AI tools, PDF for documents, or share via link</li>
       </ul>
     </section>
 
     <div class="about-divider"></div>
 
     <section class="about-section">
-      <h2>About the author</h2>
-      <div class="author-card">
-        <div class="author-avatar" aria-hidden="true">S</div>
-        <div>
-          <p class="author-name">Stefan Schultz</p>
-          <p class="author-role">Camunda Champion</p>
-          <p class="author-bio">A Camunda Champion with a strong interest in agentic orchestration and how teams can evaluate it practically before committing to an implementation. Built these tools to make that conversation more concrete for decision-makers.</p>
-        </div>
+      <div class="about-logo-row">
+        <img src="assets/logo-black.png" alt="Consid" class="about-logo about-logo-light">
+        <img src="assets/logo-white.png" alt="Consid" class="about-logo about-logo-dark">
       </div>
+      <p>Founded in 2000, <a href="https://www.consid.com" target="_blank" rel="noopener">Consid</a> is one of the Nordic region's leading tech consultancy firms, with more than 1,800 employees across 40+ offices in Sweden, Denmark, Finland, Germany, and Poland. We work with public sector organisations and private companies alike — from mid-sized organisations to global corporations — combining technical excellence with business insight to help clients lead digital transformation, not just keep pace with it.</p>
+      <div class="about-partner-row">
+        <img src="assets/partner-black.png" alt="Camunda Silver Partner" class="about-logo about-logo-light about-logo-partner">
+        <img src="assets/partner-white.png" alt="Camunda Silver Partner" class="about-logo about-logo-dark about-logo-partner">
+      </div>
+      <p>As a <strong>Camunda Silver Partner</strong> — and global partner in Sweden — process automation and agentic orchestration are core to what we do. Our teams work directly with CTOs and engineering organisations to move from business case to architecture, from pilot to production.</p>
+      <p>These tools were built to make that first conversation more concrete. To move from numbers to an actual implementation, get in touch through the <a href="summary.html#contactSection">contact form</a> on the summary page.</p>
+    </section>
+
+    <div class="about-divider"></div>
+
+    <section class="about-section">
+      <div class="about-logo-row">
+        <img src="assets/camunda-logo-black.png" alt="Camunda" class="about-logo about-logo-light">
+        <img src="assets/camunda-logo-white.png" alt="Camunda" class="about-logo about-logo-dark">
+      </div>
+      <p>Camunda is the leader in enterprise agentic automation, orchestrating complex business processes — including high-value knowledge work — across agents, people, and systems. By creating production-ready, enterprise-grade agents with built-in governance, Camunda uniquely delivers trusted AI agents for business-critical processes.</p>
+      <p>Over 700 leading innovators like Atlassian, ING, and Vodafone rely on Camunda to slash time-to-value from months to days, boost operational efficiency, and elevate customer experiences. Ready to become an AI-first enterprise? Visit <a href="https://camunda.com" target="_blank" rel="noopener">camunda.com</a>.</p>
     </section>
 
     <div class="about-divider"></div>
@@ -144,12 +170,17 @@
       <p class="disclaimer-title">Legal Disclaimer</p>
       <p>All values, calculations, outputs, scores, badges, and recommendations produced by these tools are <strong>directional estimates for internal planning and discussion purposes only</strong>. They are not financial advice, investment advice, legal advice, or professional advice of any kind.</p>
       <p>Inputs are provided by the user and are not validated, verified, or checked for accuracy. The underlying models are simplified and make assumptions that may not reflect your specific situation. Results will differ from real-world outcomes.</p>
-      <p>No output from these tools — including cost estimates, payback periods, NPV figures, decision badges, or any other value — constitutes a binding commitment, guarantee, warranty, or representation of any kind, by any party.</p>
+      <p>No output from these tools (including cost estimates, payback periods, net value figures, decision badges, or any other value) constitutes a binding commitment, guarantee, warranty, or representation of any kind, by any party.</p>
       <p>Always validate material business decisions with qualified financial, legal, and technical professionals using your own rigorous modelling. Use these tools as a starting point for conversation, not as a basis for commitment.</p>
-      <p>This is an independent tool. Stefan Schultz is not affiliated with, employed by, or acting on behalf of Camunda. Camunda is a trademark of Camunda Services GmbH. All references to Camunda products are for descriptive purposes only.</p>
+      <p>This tool was built independently by Consid. Consid is a Camunda Silver Partner and offers Camunda-related services and consulting, but this tool was not commissioned, funded, reviewed, or endorsed by Camunda. Camunda is a trademark of Camunda Services GmbH. All references to Camunda products are for descriptive purposes only.</p>
+      <p>This tool was built with the assistance of AI. Logic, calculations, and copy were reviewed by humans but may contain errors. Apply judgement accordingly.</p>
     </div>
 
   </main>
+
+  <footer class="site-footer no-print">
+    <p class="site-footer-text">Made by <a href="https://www.consid.com" target="_blank" rel="noopener" class="site-footer-logo" aria-label="Consid"></a></p><p class="site-footer-meta">&copy; 2026 Consid AB</p>
+  </footer>
 
   <script>
     /* ===== Theme ===== */
